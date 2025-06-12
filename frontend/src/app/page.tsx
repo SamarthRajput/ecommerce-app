@@ -17,7 +17,7 @@ export default function Home() {
             </p>
             <div className="space-x-4">
               <Button asChild size="lg" variant="secondary">
-                <Link href={`/buyer/request-quote/${1234}`}>Browse Listings</Link>
+                <Link href={`/buyer/request-quote/${1234}`}>Request RFQ</Link>
               </Button>
               <Button asChild size="lg">
                 <Link href="/seller/create-listing">Create Listing</Link>
@@ -87,19 +87,6 @@ export default function Home() {
               <p className="text-gray-600">Multiple payment options for your convenience</p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="bg-gray-900 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to Get Started?</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Join our marketplace today and start buying or selling products
-          </p>
-          <Button asChild size="lg" variant="secondary">
-            <Link href="/listings/create">Create Your First Listing</Link>
-          </Button>
         </div>
       </section>
     </main>
