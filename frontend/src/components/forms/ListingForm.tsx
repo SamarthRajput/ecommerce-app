@@ -12,13 +12,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { showSuccess, showError } from '@/lib/toast';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { X } from 'lucide-react';
 
 export function ListingForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadedImages, setUploadedImages] = useState<File[]>([]);
-    const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
     const router = useRouter();
 
     const {
@@ -35,39 +33,6 @@ export function ListingForm() {
             validityPeriod: 30,
         },
     });
-
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        if (uploadedImages.length >= 5) {
-            showError("Maximum 5 images allowed");
-            return;
-        }
-
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            showError("Please upload an image file");
-            return;
-        }
-
-        // Create preview URL
-        const previewUrl = URL.createObjectURL(file);
-
-        setUploadedImages(prev => [...prev, file]);
-        setImagePreviewUrls(prev => [...prev, previewUrl]);
-        setValue('images', [...uploadedImages, file]);
-    };
-
-    const removeImage = (index: number) => {
-        setUploadedImages(prev => prev.filter((_, i) => i !== index));
-        setImagePreviewUrls(prev => {
-            const newUrls = prev.filter((_, i) => i !== index);
-            URL.revokeObjectURL(prev[index]); // Clean up the URL
-            return newUrls;
-        });
-        setValue('images', uploadedImages.filter((_, i) => i !== index));
-    };
 
     const onSubmit = async (data: ListingFormSchema) => {
         try {
@@ -98,6 +63,32 @@ export function ListingForm() {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (uploadedImages.length >= 5) {
+            showError("Maximum 5 images allowed");
+            return;
+        }
+
+        if (!file.type.startsWith('image/')) {
+            showError("Please upload only image files");
+            return;
+        }
+
+        setUploadedImages(prev => [...prev, file]);
+        setValue('images', [...uploadedImages, file]);
+    };
+
+    const removeImage = (index: number) => {
+        setUploadedImages(prev => {
+            const newImages = prev.filter((_, i) => i !== index);
+            setValue('images', newImages);
+            return newImages;
+        });
     };
 
     return (
@@ -226,39 +217,47 @@ export function ListingForm() {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="images">Product Images (Max 5)</Label>
-                        <Input
-                            id="images"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            disabled={uploadedImages.length >= 5}
-                        />
-                        {errors.images && (
-                            <p className="text-sm text-red-500">{errors.images.message}</p>
-                        )}
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="images">Product Images (Max 5)</Label>
+                            <div className="flex items-center gap-4">
+                                <Input
+                                    id="images"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    className="max-w-xs"
+                                />
+                                <span className="text-sm text-gray-500">
+                                    {uploadedImages.length}/5 images uploaded
+                                </span>
+                            </div>
+                            {errors.images && (
+                                <p className="text-sm text-red-500">{errors.images.message}</p>
+                            )}
+                        </div>
 
-                        {/* Image Preview Grid */}
-                        {imagePreviewUrls.length > 0 && (
-                            <div className="grid grid-cols-5 gap-4 mt-4">
-                                {imagePreviewUrls.map((url, index) => (
+                        {uploadedImages.length > 0 && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                                {uploadedImages.map((image, index) => (
                                     <div key={index} className="relative group">
-                                        <div className="aspect-square relative rounded-lg overflow-hidden">
-                                            <Image
-                                                src={url}
-                                                alt={`Preview ${index + 1}`}
-                                                fill
-                                                className="object-cover"
+                                        <div className="aspect-square relative rounded-lg overflow-hidden border">
+                                            <img
+                                                src={URL.createObjectURL(image)}
+                                                alt={`Uploaded ${index + 1}`}
+                                                className="object-cover w-full h-full"
                                             />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeImage(index)}
+                                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeImage(index)}
-                                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </button>
+                                        <p className="text-xs text-gray-500 mt-1 truncate">
+                                            {image.name}
+                                        </p>
                                     </div>
                                 ))}
                             </div>
