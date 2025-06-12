@@ -12,7 +12,7 @@ export function Footer() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="mt-24 border-t bg-background"
+            className="mt-16 border-t bg-background"
         >
             <div className="container mx-auto py-8 md:py-12 px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-4">

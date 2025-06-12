@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { rfqFormSchema, type RFQFormSchema } from '@/lib/validations/rfq';
@@ -17,9 +17,40 @@ interface RFQFormProps {
     onSuccess?: () => void;
 }
 
+// Memoized Form Field Component
+const FormField = React.memo(({
+    label,
+    error,
+    children
+}: {
+    label: string;
+    error?: string;
+    children: React.ReactNode;
+}) => (
+    <div className="space-y-2">
+        <Label>{label}</Label>
+        {children}
+        {error && <p className="text-sm text-red-500">{error}</p>}
+    </div>
+));
+
+FormField.displayName = 'FormField';
+
 export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
+
+    // Memoized default values
+    const defaultValues = useMemo<RFQFormSchema>(() => ({
+        listingId,
+        quantity: 1,
+        currency: 'USD',
+        deliveryDate: '',
+        budget: 0,
+        paymentTerms: '',
+        specialRequirements: '',
+        additionalNotes: '',
+    }), [listingId]);
 
     const {
         register,
@@ -29,14 +60,10 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
         reset,
     } = useForm<RFQFormSchema>({
         resolver: zodResolver(rfqFormSchema),
-        defaultValues: {
-            listingId,
-            quantity: 1,
-            currency: 'USD',
-        },
+        defaultValues,
     });
 
-    const onSubmit = async (data: RFQFormSchema) => {
+    const onSubmit = useCallback(async (data: RFQFormSchema) => {
         try {
             setIsSubmitting(true);
             // TODO: Implement API call to submit RFQ
@@ -51,7 +78,7 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [router, reset, onSuccess]);
 
     return (
         <Card className="w-full max-w-2xl mx-auto">
@@ -61,35 +88,26 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
             <CardContent>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="quantity">Quantity</Label>
+                        <FormField label="Quantity" error={errors.quantity?.message}>
                             <Input
                                 id="quantity"
                                 type="number"
                                 {...register('quantity', { valueAsNumber: true })}
                                 min={1}
                             />
-                            {errors.quantity && (
-                                <p className="text-sm text-red-500">{errors.quantity.message}</p>
-                            )}
-                        </div>
+                        </FormField>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="deliveryDate">Delivery Date</Label>
+                        <FormField label="Delivery Date" error={errors.deliveryDate?.message}>
                             <Input
                                 id="deliveryDate"
                                 type="date"
                                 {...register('deliveryDate')}
                             />
-                            {errors.deliveryDate && (
-                                <p className="text-sm text-red-500">{errors.deliveryDate.message}</p>
-                            )}
-                        </div>
+                        </FormField>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="budget">Budget</Label>
+                        <FormField label="Budget" error={errors.budget?.message}>
                             <Input
                                 id="budget"
                                 type="number"
@@ -97,64 +115,56 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
                                 min={0}
                                 step={0.01}
                             />
-                            {errors.budget && (
-                                <p className="text-sm text-red-500">{errors.budget.message}</p>
-                            )}
-                        </div>
+                        </FormField>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="currency">Currency</Label>
+                        <FormField label="Currency" error={errors.currency?.message}>
                             <Input
                                 id="currency"
                                 {...register('currency')}
                                 placeholder="USD"
                             />
-                            {errors.currency && (
-                                <p className="text-sm text-red-500">{errors.currency.message}</p>
-                            )}
-                        </div>
+                        </FormField>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="paymentTerms">Payment Terms</Label>
+                    <FormField label="Payment Terms" error={errors.paymentTerms?.message}>
                         <Input
                             id="paymentTerms"
                             {...register('paymentTerms')}
                             placeholder="e.g., 30 days after delivery"
                         />
-                        {errors.paymentTerms && (
-                            <p className="text-sm text-red-500">{errors.paymentTerms.message}</p>
-                        )}
-                    </div>
+                    </FormField>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="specialRequirements">Special Requirements</Label>
+                    <FormField label="Special Requirements" error={errors.specialRequirements?.message}>
                         <Textarea
                             id="specialRequirements"
                             {...register('specialRequirements')}
                             placeholder="Enter any special requirements or conditions"
                             rows={3}
                         />
-                        {errors.specialRequirements && (
-                            <p className="text-sm text-red-500">{errors.specialRequirements.message}</p>
-                        )}
-                    </div>
+                    </FormField>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="additionalNotes">Additional Notes</Label>
+                    <FormField label="Additional Notes" error={errors.additionalNotes?.message}>
                         <Textarea
                             id="additionalNotes"
                             {...register('additionalNotes')}
                             placeholder="Enter any additional notes or comments"
                             rows={3}
                         />
-                        {errors.additionalNotes && (
-                            <p className="text-sm text-red-500">{errors.additionalNotes.message}</p>
-                        )}
-                    </div>
+                    </FormField>
 
-                    <Button type="submit" className="w-full" disabled={isSubmitting}>
-                        {isSubmitting ? 'Submitting RFQ...' : 'Submit RFQ'}
+                    <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? (
+                            <div className="flex items-center gap-2">
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                Submitting RFQ...
+                            </div>
+                        ) : (
+                            'Submit RFQ'
+                        )}
                     </Button>
                 </form>
             </CardContent>

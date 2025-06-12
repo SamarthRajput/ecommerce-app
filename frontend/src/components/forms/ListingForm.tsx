@@ -1,6 +1,5 @@
 'use client';
-
-import { useState } from 'react';
+import React, { useCallback, useState, useMemo, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { listingFormSchema, type ListingFormSchema } from '@/lib/validations/listing';
@@ -14,10 +13,48 @@ import { showSuccess, showError } from '@/lib/toast';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 
+// Memoized Form Field Component
+const FormField = React.memo(({
+    label,
+    error,
+    children
+}: {
+    label: string;
+    error?: string;
+    children: React.ReactNode;
+}) => (
+    <div className="space-y-2">
+        <Label>{label}</Label>
+        {children}
+        {error && <p className="text-sm text-red-500">{error}</p>}
+    </div>
+));
+
+FormField.displayName = 'FormField';
+
 export function ListingForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadedImages, setUploadedImages] = useState<File[]>([]);
     const router = useRouter();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Memoized default values with correct types
+    const defaultValues = useMemo<ListingFormSchema>(() => ({
+        listingType: 'SELL' as const,
+        condition: 'NEW' as const,
+        quantity: 1,
+        validityPeriod: 30,
+        industry: '',
+        category: '',
+        productCode: '',
+        productName: '',
+        description: '',
+        model: '',
+        specifications: '',
+        countryOfSource: '',
+        hsnCode: '',
+        images: [],
+    }), []);
 
     const {
         register,
@@ -26,15 +63,19 @@ export function ListingForm() {
         setValue,
     } = useForm<ListingFormSchema>({
         resolver: zodResolver(listingFormSchema),
-        defaultValues: {
-            listingType: 'SELL',
-            condition: 'NEW',
-            quantity: 1,
-            validityPeriod: 30,
-        },
+        defaultValues,
     });
 
-    const onSubmit = async (data: ListingFormSchema) => {
+    // Cleanup object URLs
+    useEffect(() => {
+        return () => {
+            uploadedImages.forEach(image => {
+                URL.revokeObjectURL(URL.createObjectURL(image));
+            });
+        };
+    }, [uploadedImages]);
+
+    const onSubmit = useCallback(async (data: ListingFormSchema) => {
         try {
             setIsSubmitting(true);
             console.log("Form submitted with data:", data);
@@ -63,9 +104,9 @@ export function ListingForm() {
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [router]);
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -81,15 +122,46 @@ export function ListingForm() {
 
         setUploadedImages(prev => [...prev, file]);
         setValue('images', [...uploadedImages, file]);
-    };
+    }, [uploadedImages, setValue]);
 
-    const removeImage = (index: number) => {
+    const removeImage = useCallback((index: number) => {
         setUploadedImages(prev => {
             const newImages = prev.filter((_, i) => i !== index);
             setValue('images', newImages);
             return newImages;
         });
-    };
+    }, [setValue]);
+
+    // Memoized image preview grid
+    const imagePreviewGrid = useMemo(() => {
+        if (uploadedImages.length === 0) return null;
+
+        return (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                {uploadedImages.map((image, index) => (
+                    <div key={index} className="relative group">
+                        <div className="aspect-square relative rounded-lg overflow-hidden border">
+                            <img
+                                src={URL.createObjectURL(image)}
+                                alt={`Uploaded ${index + 1}`}
+                                className="object-cover w-full h-full"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1 truncate">
+                            {image.name}
+                        </p>
+                    </div>
+                ))}
+            </div>
+        );
+    }, [uploadedImages, removeImage]);
 
     return (
         <Card className="w-full max-w-3xl mx-auto">
@@ -99,8 +171,7 @@ export function ListingForm() {
             <CardContent>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="listingType">Listing Type</Label>
+                        <FormField label="Listing Type" error={errors.listingType?.message}>
                             <Select
                                 onValueChange={(value) => setValue('listingType', value as 'SELL' | 'RENT')}
                                 defaultValue="SELL"
@@ -113,13 +184,9 @@ export function ListingForm() {
                                     <SelectItem value="RENT">Rent</SelectItem>
                                 </SelectContent>
                             </Select>
-                            {errors.listingType && (
-                                <p className="text-sm text-red-500">{errors.listingType.message}</p>
-                            )}
-                        </div>
+                        </FormField>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="condition">Condition</Label>
+                        <FormField label="Condition" error={errors.condition?.message}>
                             <Select
                                 onValueChange={(value) => setValue('condition', value as 'NEW' | 'USED')}
                                 defaultValue="NEW"
@@ -132,96 +199,69 @@ export function ListingForm() {
                                     <SelectItem value="USED">Used</SelectItem>
                                 </SelectContent>
                             </Select>
-                            {errors.condition && (
-                                <p className="text-sm text-red-500">{errors.condition.message}</p>
-                            )}
-                        </div>
+                        </FormField>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="productName">Product Name</Label>
+                    <FormField label="Product Name" error={errors.productName?.message}>
                         <Input
                             id="productName"
                             {...register('productName')}
                             placeholder="Enter product name"
                         />
-                        {errors.productName && (
-                            <p className="text-sm text-red-500">{errors.productName.message}</p>
-                        )}
-                    </div>
+                    </FormField>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
+                    <FormField label="Description" error={errors.description?.message}>
                         <Textarea
                             id="description"
                             {...register('description')}
                             placeholder="Enter product description"
                             rows={4}
                         />
-                        {errors.description && (
-                            <p className="text-sm text-red-500">{errors.description.message}</p>
-                        )}
-                    </div>
+                    </FormField>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="productCode">Product Code</Label>
+                        <FormField label="Product Code" error={errors.productCode?.message}>
                             <Input
                                 id="productCode"
                                 {...register('productCode')}
                                 placeholder="Enter product code"
                             />
-                            {errors.productCode && (
-                                <p className="text-sm text-red-500">{errors.productCode.message}</p>
-                            )}
-                        </div>
+                        </FormField>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="hsnCode">HSN Code</Label>
+                        <FormField label="HSN Code" error={errors.hsnCode?.message}>
                             <Input
                                 id="hsnCode"
                                 {...register('hsnCode')}
                                 placeholder="Enter HSN code"
                             />
-                            {errors.hsnCode && (
-                                <p className="text-sm text-red-500">{errors.hsnCode.message}</p>
-                            )}
-                        </div>
+                        </FormField>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="quantity">Quantity</Label>
+                        <FormField label="Quantity" error={errors.quantity?.message}>
                             <Input
                                 id="quantity"
                                 type="number"
                                 {...register('quantity', { valueAsNumber: true })}
                                 min={1}
                             />
-                            {errors.quantity && (
-                                <p className="text-sm text-red-500">{errors.quantity.message}</p>
-                            )}
-                        </div>
+                        </FormField>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="validityPeriod">Validity Period (days)</Label>
+                        <FormField label="Validity Period (days)" error={errors.validityPeriod?.message}>
                             <Input
                                 id="validityPeriod"
                                 type="number"
                                 {...register('validityPeriod', { valueAsNumber: true })}
                                 min={1}
                             />
-                            {errors.validityPeriod && (
-                                <p className="text-sm text-red-500">{errors.validityPeriod.message}</p>
-                            )}
-                        </div>
+                        </FormField>
                     </div>
 
                     <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="images">Product Images (Max 5)</Label>
+                        <FormField label="Product Images (Max 5)" error={errors.images?.message}>
                             <div className="flex items-center gap-4">
                                 <Input
+                                    ref={fileInputRef}
                                     id="images"
                                     type="file"
                                     accept="image/*"
@@ -232,102 +272,55 @@ export function ListingForm() {
                                     {uploadedImages.length}/5 images uploaded
                                 </span>
                             </div>
-                            {errors.images && (
-                                <p className="text-sm text-red-500">{errors.images.message}</p>
-                            )}
-                        </div>
+                        </FormField>
 
-                        {uploadedImages.length > 0 && (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                                {uploadedImages.map((image, index) => (
-                                    <div key={index} className="relative group">
-                                        <div className="aspect-square relative rounded-lg overflow-hidden border">
-                                            <img
-                                                src={URL.createObjectURL(image)}
-                                                alt={`Uploaded ${index + 1}`}
-                                                className="object-cover w-full h-full"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => removeImage(index)}
-                                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-1 truncate">
-                                            {image.name}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        {imagePreviewGrid}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="industry">Industry</Label>
+                        <FormField label="Industry" error={errors.industry?.message}>
                             <Input
                                 id="industry"
                                 {...register('industry')}
                                 placeholder="Enter industry"
                             />
-                            {errors.industry && (
-                                <p className="text-sm text-red-500">{errors.industry.message}</p>
-                            )}
-                        </div>
+                        </FormField>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="category">Category</Label>
+                        <FormField label="Category" error={errors.category?.message}>
                             <Input
                                 id="category"
                                 {...register('category')}
                                 placeholder="Enter category"
                             />
-                            {errors.category && (
-                                <p className="text-sm text-red-500">{errors.category.message}</p>
-                            )}
-                        </div>
+                        </FormField>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="model">Model</Label>
+                        <FormField label="Model" error={errors.model?.message}>
                             <Input
                                 id="model"
                                 {...register('model')}
                                 placeholder="Enter model"
                             />
-                            {errors.model && (
-                                <p className="text-sm text-red-500">{errors.model.message}</p>
-                            )}
-                        </div>
+                        </FormField>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="countryOfSource">Country of Source</Label>
+                        <FormField label="Country of Source" error={errors.countryOfSource?.message}>
                             <Input
                                 id="countryOfSource"
                                 {...register('countryOfSource')}
                                 placeholder="Enter country of source"
                             />
-                            {errors.countryOfSource && (
-                                <p className="text-sm text-red-500">{errors.countryOfSource.message}</p>
-                            )}
-                        </div>
+                        </FormField>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="specifications">Specifications</Label>
+                    <FormField label="Specifications" error={errors.specifications?.message}>
                         <Textarea
                             id="specifications"
                             {...register('specifications')}
                             placeholder="Enter product specifications"
                             rows={4}
                         />
-                        {errors.specifications && (
-                            <p className="text-sm text-red-500">{errors.specifications.message}</p>
-                        )}
-                    </div>
+                    </FormField>
 
                     <Button
                         type="submit"
