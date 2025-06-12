@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
+import { showSuccess, showError, showInfo } from '@/lib/toast';
+import { useRouter } from 'next/navigation';
 
 interface RFQFormProps {
     listingId: string;
@@ -18,12 +19,14 @@ interface RFQFormProps {
 
 export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const router = useRouter();
 
     const {
         register,
         handleSubmit,
         formState: { errors },
         setValue,
+        reset,
     } = useForm<RFQFormSchema>({
         resolver: zodResolver(rfqFormSchema),
         defaultValues: {
@@ -38,11 +41,13 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
             setIsSubmitting(true);
             // TODO: Implement API call to submit RFQ
             console.log('RFQ data:', data);
-            toast.success('RFQ submitted successfully!');
+            showSuccess('RFQ submitted successfully!');
+            reset(); // Reset form after successful submission
             onSuccess?.();
+            router.push('/'); // Redirect to RFQs page after success
         } catch (error) {
-            toast.error('Failed to submit RFQ. Please try again.');
             console.error('Error submitting RFQ:', error);
+            showError('Failed to submit RFQ. Please try again.');
         } finally {
             setIsSubmitting(false);
         }

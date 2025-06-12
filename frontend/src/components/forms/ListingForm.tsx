@@ -10,17 +10,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
+import { showSuccess, showError } from '@/lib/toast';
+import { useRouter } from 'next/navigation';
 
 export function ListingForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const router = useRouter();
 
     const {
         register,
         handleSubmit,
         formState: { errors },
         setValue,
-        watch,
     } = useForm<ListingFormSchema>({
         resolver: zodResolver(listingFormSchema),
         defaultValues: {
@@ -33,15 +34,13 @@ export function ListingForm() {
 
     const onSubmit = async (data: ListingFormSchema) => {
         try {
-            setIsSubmitting(true);
-            // TODO: Implement API call to submit listing
-            console.log('Form data:', data);
-            toast.success('Listing created successfully!');
+            console.log("Form submitted with data:", data);
+            // TODO: Add your API call here to submit the form data
+            showSuccess("Listing created successfully!");
+            router.push('/'); // Redirect to listings page after successful submission
         } catch (error) {
-            toast.error('Failed to create listing. Please try again.');
-            console.error('Error submitting form:', error);
-        } finally {
-            setIsSubmitting(false);
+            console.error("Form submission error:", error);
+            showError("Failed to submit form");
         }
     };
 
@@ -188,7 +187,76 @@ export function ListingForm() {
                         )}
                     </div>
 
-                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="industry">Industry</Label>
+                            <Input
+                                id="industry"
+                                {...register('industry')}
+                                placeholder="Enter industry"
+                            />
+                            {errors.industry && (
+                                <p className="text-sm text-red-500">{errors.industry.message}</p>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="category">Category</Label>
+                            <Input
+                                id="category"
+                                {...register('category')}
+                                placeholder="Enter category"
+                            />
+                            {errors.category && (
+                                <p className="text-sm text-red-500">{errors.category.message}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="model">Model</Label>
+                            <Input
+                                id="model"
+                                {...register('model')}
+                                placeholder="Enter model"
+                            />
+                            {errors.model && (
+                                <p className="text-sm text-red-500">{errors.model.message}</p>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="countryOfSource">Country of Source</Label>
+                            <Input
+                                id="countryOfSource"
+                                {...register('countryOfSource')}
+                                placeholder="Enter country of source"
+                            />
+                            {errors.countryOfSource && (
+                                <p className="text-sm text-red-500">{errors.countryOfSource.message}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="specifications">Specifications</Label>
+                        <Textarea
+                            id="specifications"
+                            {...register('specifications')}
+                            placeholder="Enter product specifications"
+                            rows={4}
+                        />
+                        {errors.specifications && (
+                            <p className="text-sm text-red-500">{errors.specifications.message}</p>
+                        )}
+                    </div>
+
+                    <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={isSubmitting}
+                    >
                         {isSubmitting ? 'Creating Listing...' : 'Create Listing'}
                     </Button>
                 </form>
