@@ -22,7 +22,7 @@ interface User {
 
 interface LoginResponse {
     message: string;
-    user: User;
+    seller: User;
     token: string;
 }
 
@@ -49,7 +49,7 @@ const SellerLogin = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch('http://localhost:3001/api/seller/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -63,15 +63,11 @@ const SellerLogin = () => {
                 throw new Error(data.message || 'Login failed');
             }
 
-            // Store token and user data
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-
             // Redirect based on role
-            if (data.user.role === 'admin') {
+            if (data.seller.role === 'admin') {
                 router.push('/admin/dashboard');
             } else {
-                router.push('/seller/dashboard');
+                router.push('/seller/profile');
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Login failed');

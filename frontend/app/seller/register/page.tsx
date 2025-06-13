@@ -108,7 +108,7 @@ const SellerRegistration = () => {
                 }
             };
 
-            const response = await fetch('/api/auth/register', {
+            const response = await fetch('http://localhost:3001/api/seller/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -119,6 +119,7 @@ const SellerRegistration = () => {
             if (!response.ok) {
                 throw new Error(data.error || 'Registration failed');
             }
+            alert('Registration successful! Please log in.');
             router.push('/seller/profile');
         } catch (error) {
             setErrors({ submit: error instanceof Error ? error.message : 'Registration failed' });
@@ -409,7 +410,7 @@ const SellerRegistration = () => {
                         <div className="text-center">
                             <p className="text-sm text-gray-600">
                                 Already have an account?{' '}
-                                <a href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+                                <a href="/seller/login" className="font-medium text-blue-600 hover:text-blue-500">
                                     Sign in here
                                 </a>
                             </p>
