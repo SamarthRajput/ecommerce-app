@@ -1,8 +1,9 @@
-import { Request, Response, Router } from "express";
-import { signinSchema, signupSchema } from "../lib/types/zod";
+import e, { Request, Response, Router } from "express";
 import { prisma } from "../lib/prisma";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import { signinSchema, signupSchema, updateProfileSchema } from "../lib/zod/BuyerZod";
+import { authenticateBuyer, AuthenticatedRequest } from "../middlewares/authBuyer";
 export const buyerRouter = Router();
 
 // Signup Route
@@ -69,7 +70,7 @@ buyerRouter.post("/signup", async (req: Request, res: Response) => {
     }
 }); 
 
-
+// Signin Route
 buyerRouter.post("/signin", async (req: Request, res: Response) => {
     const body = req.body;
     const { success } = signinSchema.safeParse(body);
@@ -120,5 +121,123 @@ buyerRouter.post("/signin", async (req: Request, res: Response) => {
             message: "Invalid!"
         })
         return;
+    }
+});
+
+// get buyer details
+buyerRouter.get("/profile", authenticateBuyer, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const buyerId = req.buyer?.id;
+    
+        if(!buyerId){
+            res.status(400).json({
+                error: "Unauthorized"
+            });
+            return;
+        }
+    
+        const buyer = await prisma.buyer.findUnique({
+            where: {
+                id: buyerId
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phoneNumber: true,
+                state: true,
+                city: true,
+                zipCode: true,
+                country: true
+            }
+        });
+    
+        if(!buyer){
+            res.status(404).json({ error: 'Buyer not found' });
+            return;
+        }
+    
+        res.json({
+            message: "Profile received",
+            buyer: {
+                id: buyer.id,
+                email: buyer.email,
+                name: buyer.name,
+                phoneNumber: buyer.phoneNumber,
+                state: buyer.state,
+                city: buyer.city,
+                zipCode: buyer.zipCode,
+                country: buyer.country
+            }
+        });
+    }
+    catch(error){
+        console.log(error);
+        res.json({
+            error: "Server error"
+        });
+    }
+});
+
+// update buyer details
+buyerRouter.put("/details", authenticateBuyer, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const buyerId = req.buyer?.id;
+
+        if(!buyerId){
+            res.status(401).json({
+                error: "Unauthorized"
+            });
+            return;
+        }
+        const body = req.body;
+        // Validate request body
+        const { success } = updateProfileSchema.safeParse(body);
+
+        if(!success){
+            res.status(401).json({
+                error: "Wrong Inputs"
+            });
+            return;
+        }
+
+        // Check if buyer exists
+        const existingBuyer = await prisma.buyer.findUnique({
+            where:{
+                id: buyerId
+            }
+        });
+        if(!existingBuyer){
+            res.status(401).json({
+                error: "Buyer doesnt exist"
+            });
+            return;
+        }
+
+        // Update buyer profile
+        const updateBuyer = await prisma.buyer.update({
+            where: {
+                id: buyerId
+            },
+            data: {
+                password: body.password,
+                name: body.name,
+                phoneNumber: body.name,
+                state: body.name,
+                city: body.city,
+                zipCode: body.zipCode,
+                country: body.country
+            }
+        });
+
+        res.json({
+            message: "Profile Updated successfully"
+        });
+    }
+    catch(error){
+        console.log(error);
+        res.status(501).json({
+            message: "Server error"
+        })
     }
 });

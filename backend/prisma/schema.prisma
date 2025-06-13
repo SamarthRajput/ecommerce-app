@@ -13,6 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Buyer Schema
 model Buyer {
   id        String    @id @default(uuid())
   email     String    @unique
@@ -23,4 +24,93 @@ model Buyer {
   city       String
   zipCode    String 
   country    String 
+  rfq        RFQ[]
+  trades     Trade[]  @relation("BuyerTrades")
+}
+
+// Seller Schema
+model Seller {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  businessName String
+  businessType String
+  phone     String
+  street    String
+  city      String
+  state     String
+  zipCode   String
+  country   String
+  taxId     String
+  product   Product[]
+  trades    Trade[]   @relation("SellerTrades")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ProductStatus { 
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+// Listing = Product, therefore the product model is for listing model 
+model Product {
+  id            String     @unique @default(uuid())
+  name          String
+  description   String
+  price         Float
+  quantity      Int
+  sellerId      String
+  status        ProductStatus    @default(ACTIVE)
+  seller        Seller    @relation(fields: [sellerId], references: [id])
+  rfqs          RFQ[]
+  trades        Trade[]
+}
+
+enum RFQStatus {
+  PENDING
+  COMPLETED
+}
+
+model RFQ {
+  id            String    @unique @default(uuid())
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id])
+  buyerId       String
+  buyer         Buyer     @relation(fields: [buyerId], references: [id])
+  quantity      Int
+  message       String?
+  status        RFQStatus   
+  trade         Trade?
+}
+
+enum TradeStatus {
+  COMPLETED
+  IN_PROGRESS
+}
+
+model Trade {
+  id        String    @unique @default(uuid())
+  rfqId     String    @unique
+  rfq       RFQ       @relation(fields: [rfqId], references: [id])
+
+  productId String
+  product   Product   @relation(fields: [productId], references: [id])
+
+  buyerId   String
+  buyer     Buyer     @relation("BuyerTrades", fields: [buyerId], references: [id]) 
+
+  sellerId  String  
+  seller    Seller    @relation("SellerTrades", fields: [sellerId], references: [id])
+
+  quantity  Int
+  price     Float
+  deliveryDate  DateTime
+  status     TradeStatus 
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @default(now())
 }
