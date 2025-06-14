@@ -42,7 +42,6 @@ const SellerDashboard = () => {
     const router = useRouter();
 
     useEffect(() => {
-        // Mock data - replace with actual API calls
         const mockSeller: SellerProfile = {
             id: '1',
             email: 'seller@example.com',

@@ -58,7 +58,7 @@ const SellerProfile = () => {
     const [success, setSuccess] = useState('');
     const router = useRouter();
 
-    // Get token from localStorage or wherever you store it
+    // Get token from localStorage
     const getToken = () => {
         if (typeof window !== 'undefined') {
             return localStorage.getItem('token');
