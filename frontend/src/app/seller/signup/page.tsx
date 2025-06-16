@@ -33,11 +33,11 @@ type RegistrationData = z.infer<typeof sellerRegistrationSchema>;
 const SellerRegistration = () => {
     const [formData, setFormData] = useState<RegistrationData>({
         email: '',
-        password: '',
-        confirmPassword: '',
+        password: '12345',
+        confirmPassword: '12345',
         firstName: '',
         lastName: '',
-        businessName: '',
+        businessName: 'Registered Business',
         businessType: 'individual',
         phone: '',
         street: '',
@@ -45,7 +45,7 @@ const SellerRegistration = () => {
         state: '',
         zipCode: '',
         country: '',
-        taxId: ''
+        taxId: '123456789'
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -55,7 +55,7 @@ const SellerRegistration = () => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        
+
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
         }
@@ -108,19 +108,30 @@ const SellerRegistration = () => {
                 }
             };
 
-            const response = await fetch('http://localhost:3001/api/seller/register', {
+            const response = await fetch('http://localhost:3001/api/v1/seller/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
             const data = await response.json();
+            
+            if(data.error) {
+                console.error('Registration error:', data.error.message);
+                alert(data.message || 'Something went wrong');
+                setErrors({ submit: data.message || 'Registration failed' });
+                setLoading(false);
+                return;
+            }
 
             if (!response.ok) {
-                throw new Error(data.error || 'Registration failed');
+                console.error('Registration failed:', data);
+                throw new Error(data.message || 'Registration failed');
             }
-            alert('Registration successful! Please log in.');
-            router.push('/seller/profile');
+            alert(data.message || 'Registration successful! Please log in.');
+            // Save the token to localStorage or context if needed
+            localStorage.setItem('sellerToken', data.token);
+            router.push('/seller/dashboard');
         } catch (error) {
             setErrors({ submit: error instanceof Error ? error.message : 'Registration failed' });
         } finally {
@@ -410,7 +421,7 @@ const SellerRegistration = () => {
                         <div className="text-center">
                             <p className="text-sm text-gray-600">
                                 Already have an account?{' '}
-                                <a href="/seller/login" className="font-medium text-blue-600 hover:text-blue-500">
+                                <a href="/seller/signin" className="font-medium text-blue-600 hover:text-blue-500">
                                     Sign in here
                                 </a>
                             </p>

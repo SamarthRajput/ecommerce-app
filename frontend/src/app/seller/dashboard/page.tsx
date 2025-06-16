@@ -3,27 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface SellerProfile {
-    id: string;
-    email: string;
-    profile: {
-        firstName: string;
-        lastName: string;
-        businessName: string;
-        businessType: string;
-        phone: string;
-        address: {
-            street: string;
-            city: string;
-            state: string;
-            zipCode: string;
-            country: string;
-        };
-        taxId: string;
-    };
-}
-
+import { SellerProfile } from '@/src/lib/types/seller';
 interface Listing {
     id: string;
     title: string;
@@ -42,16 +22,15 @@ const SellerDashboard = () => {
     const router = useRouter();
 
     useEffect(() => {
-        // Mock data - replace with actual API calls
         const mockSeller: SellerProfile = {
             id: '1',
             email: 'seller@example.com',
             profile: {
-                firstName: 'John',
-                lastName: 'Doe',
-                businessName: 'Doe Electronics',
+                firstName: 'Rohit',
+                lastName: 'Kumar',
+                businessName: 'Electronics ki dukaan',
                 businessType: 'company',
-                phone: '+1234567890',
+                phone: '+916392177974',
                 address: {
                     street: '123 Main St',
                     city: 'New York',
@@ -90,8 +69,8 @@ const SellerDashboard = () => {
     }, []);
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        router.push('/seller/login');
+        localStorage.removeItem('sellerToken');
+        router.push('/seller/signin');
     };
 
     if (loading) {
