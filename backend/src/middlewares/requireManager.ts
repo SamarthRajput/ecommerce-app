@@ -15,29 +15,28 @@ declare global {
     }
 }
 
-export function requireManager(req: Request, res: Response, next: NextFunction): Promise<void> {
-    return Promise.resolve()
-        .then(async () => {
-            // next();
-            // if (!req.user || !req.user.userId) {
-            //     return res.status(401).json({ error: 'Unauthorized. User not authenticated.' });
-            // }
-            // const { userId } = req.user;
+export async function requireManager(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+        if (!req.user || !req.user.userId) {
+            res.status(401).json({ error: 'Unauthorized. User not authenticated.' });
+            return;
+        }
+        const { userId } = req.user;
 
-            // const user = await prisma.seller.findUnique({
-            //     where: { id: userId }
-            // });
-
-            // if (!user || user.role !== 'admin') {
-            //     return res.status(403).json({
-            //         error: 'Access denied. Manager role required.'
-            //     });
-            // }
-
-            next();
-        })
-        .catch((error) => {
-            console.error('Manager auth error:', error);
-            res.status(500).json({ error: 'Internal server error' });
+        const user = await prisma.seller.findUnique({
+            where: { id: userId }
         });
+
+        if (!user || user.role !== 'admin') {
+            res.status(403).json({
+                error: 'Access denied. Manager role required.'
+            });
+            return;
+        }
+
+        next();
+    } catch (error) {
+        console.error('Manager auth error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 } 
