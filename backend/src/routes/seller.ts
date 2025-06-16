@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { loginSellerSchema, registerSellerSchema, updateProfileSchema } from "../lib/zod/SellerZod";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma";
 import { AuthenticatedRequest, authenticateSeller } from "../middlewares/authSeller";
@@ -20,8 +20,10 @@ sellerRouter.post("/signup", async (req: Request, res: Response) => {
                     message: issue.message
                 }))
                 ,
-                error: `Validation failed: ${validationResult.error.message}`
+                error: `Validation failed: ${validationResult.error.issues[0]?.message}`,
+                message: `${validationResult.error.issues[0]?.message}`
             })
+            console.error('Validation error:', validationResult.error.issues[0]?.message)
             return
         }
 
@@ -29,12 +31,17 @@ sellerRouter.post("/signup", async (req: Request, res: Response) => {
         console.log('Registering seller:', email, profile.businessName)
 
         // Check if seller exists
+        console.log('Checking for existing seller with email:', email)
         const existingSeller = await prisma.seller.findUnique({
             where: { email }
         })
 
         if (existingSeller) {
-            res.status(400).json({ error: 'Seller already exists' })
+            console.log('Seller already exists:', email)
+            res.status(400).json({
+                message: 'Seller already exists',
+                error: 'Seller already exists'
+            })
             return
         }
 
@@ -42,6 +49,7 @@ sellerRouter.post("/signup", async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(password, 12)
 
         // Create seller
+        console.log('Creating new seller:', email)
         const seller = await prisma.seller.create({
             data: {
                 email,
@@ -61,11 +69,14 @@ sellerRouter.post("/signup", async (req: Request, res: Response) => {
         })
 
         // Generate JWT
+        console.log('Generating JWT for seller:', seller.id)
         const token = jwt.sign(
             { sellerId: seller.id },
             process.env.JWT_SECRET || 'fallback-secret',
             { expiresIn: '7d' }
         )
+
+        console.log('JWT generated for seller:', seller.id)
 
         res.status(201).json({
             message: 'Seller registered successfully',
@@ -242,7 +253,7 @@ sellerRouter.get("/profile", authenticateSeller, async (req: AuthenticatedReques
 
 // update seller details
 sellerRouter.put("/details", async (req: AuthenticatedRequest, res: Response) => {
- try {
+    try {
         const sellerId = req.seller?.id;
 
         if (!sellerId) {

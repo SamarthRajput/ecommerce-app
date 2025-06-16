@@ -49,7 +49,7 @@ const SellerLogin = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:3001/api/seller/login', {
+            const response = await fetch('http://localhost:3001/api/v1/seller/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -62,6 +62,10 @@ const SellerLogin = () => {
             if (!response.ok) {
                 throw new Error(data.message || 'Login failed');
             }
+
+            // Store token in localStorage
+            localStorage.setItem('sellerToken', data.token);
+            localStorage.setItem('sellerId', data.seller._id);
 
             // Redirect based on role
             if (data.seller.role === 'admin') {
@@ -162,7 +166,7 @@ const SellerLogin = () => {
                     <div className="text-center">
                         <p className="text-sm text-gray-600">
                             Don&#39;t have an account?{' '}
-                            <a href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+                            <a href="/seller/signup" className="font-medium text-blue-600 hover:text-blue-500">
                                 Register as a seller
                             </a>
                         </p>

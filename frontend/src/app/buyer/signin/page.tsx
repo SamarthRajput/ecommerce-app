@@ -28,7 +28,7 @@ const BuyerSignIn = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:3001/api/seller/login', {
+            const response = await fetch('http://localhost:3001/api/v1/seller/signin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -41,6 +41,15 @@ const BuyerSignIn = () => {
             if (!response.ok) {
                 throw new Error(data.message || 'Login failed');
             }
+
+            // Store token in localStorage
+            localStorage.setItem('sellerToken', data.token);
+            localStorage.setItem('sellerId', data.seller._id);
+            localStorage.setItem('sellerRole', data.seller.role);
+            localStorage.setItem('sellerName', data.seller.profile.firstName + ' ' + data.seller.profile.lastName);
+            localStorage.setItem('sellerEmail', data.seller.email);
+
+            alert(`Welcome back, ${data.seller.profile.firstName}!`);
 
             // Redirect based on role
             if (data.seller.role === 'admin') {
