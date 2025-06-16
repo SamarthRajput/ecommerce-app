@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, Check, X, Building, User, Calendar, DollarSign, Package, MessageSquare, Search, Filter } from 'lucide-react';
+import { profile } from 'console';
 
 type Seller = {
   id: string;
@@ -41,67 +41,21 @@ const ListingsManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState({ pending: 0, active: 0, rejected: 0, total: 0 });
 
-  // Simulated API calls (replace with actual API endpoints)
   const fetchPendingListings = async () => {
     setLoading(true);
     try {
-      // Simulated API response
-      const mockListings = [
-        {
-          id: '1',
-          name: 'Premium Steel Rods',
-          description: 'High-quality steel rods suitable for construction projects. Grade A material with excellent durability.',
-          price: 45.99,
-          quantity: 500,
-          status: 'PENDING',
-          createdAt: new Date('2024-06-10'),
-          seller: {
-            id: 's1',
-            name: 'Steel Works Ltd.',
-            email: 'contact@steelworks.com',
-            company: 'Steel Works Ltd.',
-            phone: '+1-555-0123'
-          },
-          _count: { rfqs: 3 }
-        },
-        {
-          id: '2',
-          name: 'Organic Cotton Fabric',
-          description: 'Premium organic cotton fabric, GOTS certified. Perfect for high-end textile manufacturing.',
-          price: 12.50,
-          quantity: 1000,
-          status: 'PENDING',
-          createdAt: new Date('2024-06-12'),
-          seller: {
-            id: 's2',
-            name: 'EcoTextiles Inc.',
-            email: 'sales@ecotextiles.com',
-            company: 'EcoTextiles Inc.',
-            phone: '+1-555-0456'
-          },
-          _count: { rfqs: 1 }
-        },
-        {
-          id: '3',
-          name: 'Electronic Components Kit',
-          description: 'Complete electronic components kit including resistors, capacitors, and microcontrollers.',
-          price: 89.99,
-          quantity: 200,
-          status: 'PENDING',
-          createdAt: new Date('2024-06-13'),
-          seller: {
-            id: 's3',
-            name: 'TechParts Supply',
-            email: 'orders@techparts.com',
-            company: 'TechParts Supply Co.',
-            phone: '+1-555-0789'
-          },
-          _count: { rfqs: 7 }
-        }
-      ];
-
-      setListings(mockListings);
-      setStats({ pending: 3, active: 15, rejected: 2, total: 20 });
+      const response = await fetch('/api/v1/listing/pending');
+      if (!response.ok) {
+        throw new Error('Failed to fetch listings');
+      }
+      const data = await response.json();
+      setListings(data.data);
+      setStats({
+        pending: data.data.filter((listing: Listing) => listing.status === 'INACTIVE').length,
+        active: data.data.filter((listing: Listing) => listing.status === 'ACTIVE').length,
+        rejected: data.data.filter((listing: Listing) => listing.status === 'REJECTED').length,
+        total: data.count
+      });
     } catch {
       showToast('Failed to fetch listings', 'error');
     } finally {
@@ -116,8 +70,16 @@ const ListingsManagement = () => {
   const approveListing: ApproveListingFn = async (listingId) => {
     setProcessingAction(listingId);
     try {
-      // Simulate API call
-      await new Promise<void>(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(`/api/v1/listing/approve/${listingId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to approve listing');
+      }
+
 
       setListings(prev => prev.filter(listing => listing.id !== listingId));
       setStats(prev => ({ ...prev, pending: prev.pending - 1, active: prev.active + 1 }));
@@ -132,14 +94,25 @@ const ListingsManagement = () => {
   const rejectListing = async (listingId: string) => {
     setProcessingAction(listingId);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
+      if (!rejectionReason.trim()) {
+        showToast('Rejection reason is required', 'error');
+        return;
+      }
+      const response = await fetch(`/api/v1/listing/reject/${listingId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ reason: rejectionReason })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to reject listing');
+      }
       setListings(prev => prev.filter(listing => listing.id !== listingId));
       setStats(prev => ({ ...prev, pending: prev.pending - 1, rejected: prev.rejected + 1 }));
       showToast('Listing rejected successfully', 'success');
-      setShowRejectModal(false);
       setRejectionReason('');
+      setShowRejectModal(false);
     } catch (error) {
       showToast('Failed to reject listing', 'error');
     } finally {
@@ -450,3 +423,11 @@ const ListingsManagement = () => {
 };
 
 export default ListingsManagement;
+/*
+https://ecommerce-app-rho-five.vercel.app//seller/create-listing
+https://ecommerce-app-rho-five.vercel.app//seller/dashboard
+https://ecommerce-app-rho-five.vercel.app//seller/profile
+https://ecommerce-app-rho-five.vercel.app//seller/signin
+https://ecommerce-app-rho-five.vercel.app//seller/signup
+https://ecommerce-app-rho-five.vercel.app//manager/listings
+*/

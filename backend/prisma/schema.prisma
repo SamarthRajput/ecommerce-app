@@ -35,6 +35,7 @@ model Seller {
   password  String
   firstName String
   lastName  String
+  role      String
   businessName String
   businessType String
   phone     String
@@ -54,6 +55,9 @@ enum ProductStatus {
   ACTIVE
   INACTIVE
   ARCHIVED
+  APPROVED
+  PENDING
+  REJECTED
 }
 
 // Listing = Product, therefore the product model is for listing model 
