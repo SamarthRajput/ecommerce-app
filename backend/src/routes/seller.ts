@@ -56,6 +56,7 @@ sellerRouter.post("/signup", async (req: Request, res: Response) => {
                 password: hashedPassword,
                 firstName: profile.firstName,
                 lastName: profile.lastName,
+                role: 'seller', // Default role
                 businessName: profile.businessName,
                 businessType: profile.businessType,
                 phone: profile.phone,
