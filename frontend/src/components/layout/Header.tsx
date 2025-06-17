@@ -88,9 +88,6 @@ export function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link href="/buyer/signin">Login</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                   <Link href="/buyer/dashboard">Dashboard</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
@@ -98,6 +95,9 @@ export function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/buyer/wishlist">Wishlist</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/buyer/signin">Settings</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

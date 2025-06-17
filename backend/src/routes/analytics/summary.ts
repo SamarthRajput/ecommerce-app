@@ -7,7 +7,7 @@ export const summaryRouter = Router();
 // Summary router which returns the summary of the active listing, pending rfqs, completed trade
 summaryRouter.get("/", async (req: Request, res: Response) => {
     try {
-        const [activeListingCount, pendingRFQsCount, completedTradesCount] = await Promise.all([
+        const [activeListingCount, pendingRFQsCount, completedRFQsCount, completedTradesCount, inprogressTradesCount] = await Promise.all([
             prisma.product.count({
                 where: {
                     status: "ACTIVE"
@@ -18,9 +18,19 @@ summaryRouter.get("/", async (req: Request, res: Response) => {
                     status: "PENDING"
                 }
             }),
+            prisma.rFQ.count({
+                where: {
+                    status: "COMPLETED"
+                }
+            }),
             prisma.trade.count({
                 where: {
                     status: "COMPLETED"
+                }
+            }),
+            prisma.trade.count({
+                where: {
+                    status: "IN_PROGRESS"
                 }
             })
         ]);
@@ -30,7 +40,9 @@ summaryRouter.get("/", async (req: Request, res: Response) => {
             data: {
                 activeListingCount: activeListingCount,
                 pendingRFQsCount: pendingRFQsCount,
-                completedTradesCount: completedTradesCount
+                completedRFQsCount: completedRFQsCount,
+                completedTradesCount: completedTradesCount,
+                inprogressTradesCount: inprogressTradesCount
             }
         });
     }

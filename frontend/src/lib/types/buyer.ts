@@ -19,3 +19,22 @@ export interface LoginResponse {
     lastName: string;
     token: string;
 }
+
+interface BuyerProfile {
+    id: string;
+    email: string;
+    profile: {
+        firstName: string;
+        lastName: string;
+        phoneNumber: string;
+        address: {
+            street: string;
+            city: string;
+            state: string;
+            zipCode: string;
+            country: string;
+        };
+    };
+}
+
+export type { BuyerProfile };

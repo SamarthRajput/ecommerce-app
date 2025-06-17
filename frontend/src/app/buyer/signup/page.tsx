@@ -88,7 +88,7 @@ const BuyerSignUp = () => {
             }
             alert('Signup successful!');
             localStorage.setItem('buyerToken', data.token);
-            localStorage.setItem('buyerId', data.buyer._id);
+            localStorage.setItem('buyerId', data._id);
 
             router.push('/dashboard');
         } catch (error) {
