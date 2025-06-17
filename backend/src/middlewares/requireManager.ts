@@ -1,5 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Request, Response, NextFunction } from "express";
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../routes/adminAuthRouter';
 
 const prisma = new PrismaClient();
 
@@ -24,59 +26,41 @@ interface User {
 export async function requireManager(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         // Check if user is authenticated
-        // if (!req.user || !req.user.userId) {
-        //     res.status(401).json({
-        //         success: false,
-        //         error: 'Unauthorized. User not authenticated.'
-        //     });
-        //     return;
-        // }
+        const authHeader = req.headers.authorization;
+        const token = authHeader && authHeader.startsWith('Bearer ')
+            ? authHeader.substring(7)
+            : null;
 
-        // const { userId } = req.user;
+        if (!token) {
+            res.status(401).json({
+                success: false,
+                error: 'Access denied. Please log in as a manager.'
+            });
+            return;
+        }
 
-        // // Validate userId format
-        // if (typeof userId !== 'string' || userId.trim() === '') {
-        //     res.status(401).json({
-        //         success: false,
-        //         error: 'Invalid user ID format.'
-        //     });
-        //     return;
-        // }
+        // Verify JWT token
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
 
-        // // Find user in database
-        // const user = await prisma.seller.findUnique({
-        //     where: { id: userId.trim() },
-        //     select: {
-        //         id: true,
-        //         role: true,
-        //         email: true
-        //     }
-        // });
+        // Check if user still exists and is admin
+        const adminUser = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                createdAt: true
+            }
+        });
 
-        // // Check if user exists
-        // if (!user) {
-        //     res.status(401).json({
-        //         success: false,
-        //         error: 'User not found.'
-        //     });
-        //     return;
-        // }
-
-        // // Check if user has manager/admin role
-        // if (!user.role || user.role !== 'admin') {
-        //     res.status(403).json({
-        //         success: false,
-        //         error: 'Access denied. Manager role required.'
-        //     });
-        //     return;
-        // }
-
-        // // Add user info to request for downstream use
-        // req.user = {
-        //     ...req.user,
-        //     role: user.role,
-        //     email: user.email
-        // };
+        if (!adminUser || adminUser.role !== 'admin') {
+            res.status(401).json({
+                success: false,
+                error: 'Invalid or expired token'
+            });
+            return;
+        }
 
         next();
     } catch (error) {

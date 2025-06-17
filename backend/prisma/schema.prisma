@@ -123,7 +123,7 @@ model Trade {
 model User {
   id    String @id @default(uuid())
   name  String
-  email String
+  email String @unique
   role  String @default("admin")
   password String
   createdAt DateTime @default(now())
