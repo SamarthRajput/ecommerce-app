@@ -1,10 +1,9 @@
 import { Request, Response, Router } from "express";
-import { PrismaClient, ProductStatus } from "@prisma/client";
+import { ProductStatus } from "@prisma/client";
 import { requireManager } from "../middlewares/requireManager";
+import { prisma } from "../lib/prisma";
 
 // Base url: http://localhost:3001/api/v1/listing
-
-const prisma = new PrismaClient();
 
 const listingRouter = Router();
 console.log('Listing router called');

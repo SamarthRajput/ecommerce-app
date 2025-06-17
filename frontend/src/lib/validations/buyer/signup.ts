@@ -7,17 +7,13 @@ export const buyerSignUpSchema = z.object({
     confirmPassword: z.string(),
     firstName: z.string().min(1, 'First name is required').max(50, 'First name too long'),
     lastName: z.string().min(1, 'Last name is required').max(50, 'Last name too long'),
-    businessName: z.string().min(1, 'Business name is required').max(100, 'Business name too long'),
-    businessType: z.enum(['individual', 'company', 'partnership', 'llc'], {
-        errorMap: () => ({ message: 'Please select a business type' })
-    }),
-    phone: z.string().regex(/^\+?[\d\s\-\(\)]{10,}$/, 'Invalid phone number'),
+    phoneNumber: z.string().regex(/^\+?[\d\s\-\(\)]{10,}$/, 'Invalid phone number'),
     street: z.string().min(1, 'Street address is required').max(200, 'Address too long'),
     city: z.string().min(1, 'City is required').max(50, 'City name too long'),
     state: z.string().min(1, 'State is required').max(50, 'State name too long'),
     zipCode: z.string().min(1, 'Zip code is required').max(20, 'Zip code too long'),
     country: z.string().min(1, 'Country is required').max(50, 'Country name too long'),
-    taxId: z.string().min(1, 'Tax ID is required').max(50, 'Tax ID too long')
+
 }).refine(data => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"]

@@ -3,6 +3,7 @@ import { prisma } from "../../lib/prisma";
 
 export const summaryRouter = Router();
 
+// GET /api/v1/analytics/summary endpoint to get the summary
 // Summary router which returns the summary of the active listing, pending rfqs, completed trade
 summaryRouter.get("/", async (req: Request, res: Response) => {
     try {

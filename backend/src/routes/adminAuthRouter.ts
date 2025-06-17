@@ -2,8 +2,8 @@ import { Request, Response, Router } from "express";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { prisma } from "../lib/prisma";
 
-const prisma = new PrismaClient();
 const authRouter = Router();
 
 // will load from environment variables
@@ -50,7 +50,9 @@ authRouter.post('/admin/signin', async (req: Request, res: Response) => {
 
         // Find user in database
         const user = await prisma.user.findUnique({
-            where: { email: email.toLowerCase().trim() },
+            where: { 
+                email: email.toLowerCase().trim() 
+            },
             select: {
                 id: true,
                 name: true,

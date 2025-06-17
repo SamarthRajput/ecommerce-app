@@ -5,6 +5,22 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('Starting database seeding...');
 
+    // Creating dummy buyer
+    const buyer = await prisma.buyer.create({
+        data: {
+            email: "testbuyer@gmail.com",
+            password: "hashedpassword123",
+            firstName: "Test",
+            lastName: "User",
+            phoneNumber: "9876543210",
+            street: "New Delhi, CP",
+            state: "Delhi",
+            city: "New Delhi",
+            zipCode: "110033",
+            country: "India"
+        }
+    });
+    
     // Create dummy sellers first
     const sellers = await Promise.all([
         prisma.seller.create({
@@ -299,6 +315,7 @@ async function main() {
     console.log('Created additional products with different statuses');
     console.log('✅ Database seeding completed successfully!');
     console.log(`\nSummary:`);
+    console.log(`- Create 1 buyer with email ${buyer.email} and password ${buyer.password}`);
     console.log(`- Created ${sellers.length} sellers (including 1 admin)`);
     console.log(`- Created ${products.length} products with PENDING status`);
     console.log(`- Created 2 additional products with ACTIVE and REJECTED status`);

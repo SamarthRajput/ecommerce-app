@@ -1,30 +1,33 @@
-import zod from "zod";
+import { z } from "zod";
+
 
 // Buyer signup schema
-export const signupSchema = zod.object({
-    email: zod.string().email(),
-    password: zod.string().min(6),
-    name: zod.string(),
-    phoneNumber: zod.number().min(10).max(10),
-    state: zod.string(),
-    city: zod.string(),
-    zipCode: zod.string(),
-    country: zod.string()
+export const signupSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(8),
+    firstName: z.string(),
+    lastName: z.string(),
+    phoneNumber: z.string().min(10),
+    street: z.string(),
+    state: z.string(),
+    city: z.string(),
+    zipCode: z.string(),
+    country: z.string()
 });
 // Buyer signin schemas
-export const signinSchema = zod.object({
-    email: zod.string().email(),
-    password: zod.string().min(6)
+export const signinSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(8)
 });
 // Buyer update schemas
-export const updateProfileSchema = zod.object({
-    email: zod.string().email().optional(),
-    password: zod.string().min(6).optional(),
-    name: zod.string().optional(),
-    phoneNumber: zod.number().min(10).max(10).optional(),
-    state: zod.string().optional(),
-    city: zod.string().optional(),
-    zipCode: zod.string().optional(),
-    country: zod.string().optional()
+export const updateProfileSchema = z.object({
+    email: z.string().email().optional(),
+    password: z.string().min(8).optional(),
+    name: z.string().optional(),
+    phoneNumber: z.string().min(10).optional(),
+    state: z.string().optional(),
+    city: z.string().optional(),
+    zipCode: z.string().optional(),
+    country: z.string().optional()
 })
 

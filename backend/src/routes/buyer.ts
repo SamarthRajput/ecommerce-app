@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { prisma } from "../lib/prisma";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { signinSchema, signupSchema, updateProfileSchema } from "../lib/zod/BuyerZod";
 import { authenticateBuyer, AuthenticatedRequest } from "../middlewares/authBuyer";
 export const buyerRouter = Router();
@@ -40,8 +40,10 @@ buyerRouter.post("/signup", async (req: Request, res: Response) => {
             data: {
                 email: body.email,
                 password: hashPassword,
-                name: body.name,
+                firstName: body.firstName,
+                lastName: body.lastName,
                 phoneNumber: body.phoneNumber,
+                street: body.street,
                 state: body.state,
                 city: body.city,
                 zipCode: body.zipCode,
@@ -56,7 +58,8 @@ buyerRouter.post("/signup", async (req: Request, res: Response) => {
     
         res.json({
             message: "Signed Up Successfully",
-            token: token
+            token: token,
+            _id: buyer.id
         });
         return;
     }
@@ -97,7 +100,7 @@ buyerRouter.post("/signin", async (req: Request, res: Response) => {
         }
     
         // If user exists in database then
-        const passwordMatch = await bcrypt.compare(existingBuyer.password, body.password);
+        const passwordMatch = await bcrypt.compare(body.password, existingBuyer.password);
         if(!passwordMatch){
             res.status(400).json({
                 message: "Incorrect password"
@@ -111,7 +114,10 @@ buyerRouter.post("/signin", async (req: Request, res: Response) => {
     
         res.json({
             message: "Signed in successfully",
-            token: token
+            token: token,
+            _id: existingBuyer.id,
+            firstName: existingBuyer.firstName,
+            lastName: existingBuyer.lastName
         })
         return;
     }
@@ -142,9 +148,11 @@ buyerRouter.get("/profile", authenticateBuyer, async (req: AuthenticatedRequest,
             },
             select: {
                 id: true,
-                name: true,
+                firstName: true,
+                lastName: true,
                 email: true,
                 phoneNumber: true,
+                street: true,
                 state: true,
                 city: true,
                 zipCode: true,
@@ -162,8 +170,10 @@ buyerRouter.get("/profile", authenticateBuyer, async (req: AuthenticatedRequest,
             buyer: {
                 id: buyer.id,
                 email: buyer.email,
-                name: buyer.name,
+                firstName: buyer.firstName,
+                lastName: buyer.lastName,
                 phoneNumber: buyer.phoneNumber,
+                street: buyer.street,
                 state: buyer.state,
                 city: buyer.city,
                 zipCode: buyer.zipCode,
@@ -180,7 +190,7 @@ buyerRouter.get("/profile", authenticateBuyer, async (req: AuthenticatedRequest,
 });
 
 // update buyer details
-buyerRouter.put("/details", authenticateBuyer, async (req: AuthenticatedRequest, res: Response) => {
+buyerRouter.put("/update", authenticateBuyer, async (req: AuthenticatedRequest, res: Response) => {
     try {
         const buyerId = req.buyer?.id;
 
@@ -221,8 +231,10 @@ buyerRouter.put("/details", authenticateBuyer, async (req: AuthenticatedRequest,
             },
             data: {
                 password: body.password,
-                name: body.name,
+                firstName: body.firstName,
+                lastName: body.lastName,
                 phoneNumber: body.name,
+                street: body.street,
                 state: body.name,
                 city: body.city,
                 zipCode: body.zipCode,

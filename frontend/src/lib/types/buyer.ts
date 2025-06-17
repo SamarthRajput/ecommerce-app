@@ -4,19 +4,18 @@ export interface LoginFormData {
     password: string;
 }
 
-export interface User {
+export interface Buyer {
     _id: string;
     email: string;
-    role: 'seller' | 'admin';
-    profile: {
-        firstName: string;
-        lastName: string;
-        businessName?: string;
-    };
+    firstName: string;
+    lastName: string;
 }
 
 export interface LoginResponse {
+    _id: string;
     message: string;
-    seller: User;
+    buyer: Buyer;
+    firstName: string;
+    lastName: string;
     token: string;
 }

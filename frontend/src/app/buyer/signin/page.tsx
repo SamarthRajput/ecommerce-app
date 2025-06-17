@@ -28,7 +28,7 @@ const BuyerSignIn = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:3001/api/v1/seller/signin', {
+            const response = await fetch('http://localhost:3001/api/v1/buyer/signin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -37,26 +37,18 @@ const BuyerSignIn = () => {
             });
 
             const data: LoginResponse = await response.json();
-
+            console.log(data);
             if (!response.ok) {
                 throw new Error(data.message || 'Login failed');
             }
 
             // Store token in localStorage
-            localStorage.setItem('sellerToken', data.token);
-            localStorage.setItem('sellerId', data.seller._id);
-            localStorage.setItem('sellerRole', data.seller.role);
-            localStorage.setItem('sellerName', data.seller.profile.firstName + ' ' + data.seller.profile.lastName);
-            localStorage.setItem('sellerEmail', data.seller.email);
+            localStorage.setItem('buyerToken', data.token);
+            localStorage.setItem('buyerId', data._id);
 
-            alert(`Welcome back, ${data.seller.profile.firstName}!`);
+            alert(`Welcome back, ${data.firstName}!`);
+            router.push('/dashboard');
 
-            // Redirect based on role
-            if (data.seller.role === 'admin') {
-                router.push('/admin/dashboard');
-            } else {
-                router.push('/seller/profile');
-            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Login failed');
         } finally {
@@ -72,7 +64,7 @@ const BuyerSignIn = () => {
                         Sign in to your account
                     </h2>
                     <p className="mt-2 text-center text-sm text-gray-600">
-                        Seller Portal Login
+                        Buyer Login Portal
                     </p>
                 </div>
 
@@ -150,8 +142,8 @@ const BuyerSignIn = () => {
                     <div className="text-center">
                         <p className="text-sm text-gray-600">
                             Don&#39;t have an account?{' '}
-                            <a href="/register" className="font-medium text-blue-600 hover:text-blue-500">
-                                Register as a seller
+                            <a href="/buyer/signup" className="font-medium text-blue-600 hover:text-blue-500">
+                                Register as a buyer
                             </a>
                         </p>
                     </div>

@@ -18,8 +18,10 @@ model Buyer {
   id        String    @id @default(uuid())
   email     String    @unique
   password  String
-  name      String    
-  phoneNumber   Int
+  firstName      String  
+  lastName  String  
+  phoneNumber   String
+  street     String
   state      String
   city       String
   zipCode    String 
