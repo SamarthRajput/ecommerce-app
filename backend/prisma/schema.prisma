@@ -118,3 +118,14 @@ model Trade {
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @default(now())
 }
+
+// Model User for admin
+model User {
+  id    String @id @default(uuid())
+  name  String
+  email String
+  role  String @default("admin")
+  password String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
