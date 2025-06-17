@@ -426,85 +426,12 @@ const ListingsTab = ({ listings, setListings }: { listings: Listing[]; setListin
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-medium text-gray-900">Your Listings</h3>
                 <button
-                    onClick={() => setShowCreateForm(true)}
+                    onClick={() => setShowCreateForm(!showCreateForm)}
                     className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                 >
                     Create New Listing
                 </button>
             </div>
-
-            {/* Create Listing Form */}
-            {showCreateForm && (
-                <div className="bg-white p-6 rounded-lg shadow mb-6">
-                    <h4 className="text-lg font-medium mb-4">Create New Listing</h4>
-                    <form onSubmit={handleCreateListing} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                                <input
-                                    type="text"
-                                    value={newListing.title}
-                                    onChange={(e) => setNewListing({ ...newListing, title: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                                <input
-                                    type="number"
-                                    value={newListing.price}
-                                    onChange={(e) => setNewListing({ ...newListing, price: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                            <select
-                                value={newListing.category}
-                                onChange={(e) => setNewListing({ ...newListing, category: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                <option value="Electronics">Electronics</option>
-                                <option value="Clothing">Clothing</option>
-                                <option value="Home">Home & Garden</option>
-                                <option value="Books">Books</option>
-                                <option value="Sports">Sports</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                            <textarea
-                                rows={3}
-                                value={newListing.description}
-                                onChange={(e) => setNewListing({ ...newListing, description: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                required
-                            />
-                        </div>
-
-                        <div className="flex justify-end space-x-3">
-                            <button
-                                type="button"
-                                onClick={() => setShowCreateForm(false)}
-                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                            >
-                                Create Listing
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
 
             {/* Listings Grid */}
             {listings.length === 0 ? (
