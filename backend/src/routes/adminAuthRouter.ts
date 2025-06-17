@@ -197,66 +197,66 @@ authRouter.post('/admin/logout', (req: Request, res: Response) => {
     });
 });
 
-// authRouter.post('/admin/signup', async (req: Request, res: Response) => {
-//     try {
-//         const { name, email, password } = req.body;
+authRouter.post('/admin/signup', async (req: Request, res: Response) => {
+    try {
+        const { name, email, password } = req.body;
 
-//         // Input validation
-//         if (!name || !email || !password) {
-//             res.status(400).json({
-//                 success: false,
-//                 error: 'Name, email, and password are required'
-//             });
-//             return;
-//         }
+        // Input validation
+        if (!name || !email || !password) {
+            res.status(400).json({
+                success: false,
+                error: 'Name, email, and password are required'
+            });
+            return;
+        }
 
-//         // Check if user already exists
-//         const existingUser = await prisma.user.findUnique({
-//             where: { email: email.toLowerCase().trim() }
-//         });
+        // Check if user already exists
+        const existingUser = await prisma.user.findUnique({
+            where: { email: email.toLowerCase().trim() }
+        });
 
-//         if (existingUser) {
-//             res.status(400).json({
-//                 success: false,
-//                 error: 'User with this email already exists'
-//             });
-//             return;
-//         }
+        if (existingUser) {
+            res.status(400).json({
+                success: false,
+                error: 'User with this email already exists'
+            });
+            return;
+        }
 
-//         // Hash the password
-//         const hashedPassword = await bcrypt.hash(password, 10);
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-//         // Create new user
-//         const newUser = await prisma.user.create({
-//             data: {
-//                 name,
-//                 email: email.toLowerCase().trim(),
-//                 password: hashedPassword,
-//                 role: 'admin'
-//             }
-//         });
+        // Create new user
+        const newUser = await prisma.user.create({
+            data: {
+                name,
+                email: email.toLowerCase().trim(),
+                password: hashedPassword,
+                role: 'admin'
+            }
+        });
 
-//         res.json({
-//             success: true,
-//             message: 'Admin account created successfully',
-//             data: {
-//                 id: newUser.id,
-//                 name: newUser.name,
-//                 email: newUser.email,
-//                 role: newUser.role,
-//                 createdAt: newUser.createdAt
-//             }
-//         });
+        res.json({
+            success: true,
+            message: 'Admin account created successfully',
+            data: {
+                id: newUser.id,
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role,
+                createdAt: newUser.createdAt
+            }
+        });
 
-//     } catch (error) {
-//         console.error('Error during admin signup:', error);
-//         res.status(500).json({
-//             success: false,
-//             error: 'Internal server error during signup'
-//         });
-//     }
-// }
-// );
+    } catch (error) {
+        console.error('Error during admin signup:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error during signup'
+        });
+    }
+}
+);
 
 // Clean up Prisma connection
 

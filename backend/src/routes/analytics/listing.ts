@@ -3,23 +3,42 @@ import { prisma } from "../../lib/prisma";
 
 export const listingRouter = Router();
 
-listingRouter.get("/active-listing", async (req: Request, res: Response) => {
+// GET /api/v1/listing/active - Get all active listings
+listingRouter.get('/active', async (req: Request, res: Response) => {
     try {
-        const activeListingCount = await prisma.product.count({
+        const activeListings = await prisma.product.findMany({
             where: {
                 status: "ACTIVE"
+            },
+            include: {
+                seller: {
+                    select: {
+                        id: true,
+                        email: true
+                    }
+                },
+                _count: {
+                    select: {
+                        rfqs: true
+                    }
+                }
+            },
+            orderBy: {
+                id: 'desc'
             }
-            // we can return the active status listing for a particular seller also 
         });
+
+        console.log(`Found ${activeListings.length} active listings`);
         res.json({
-            message: "Active listing count fetched",
-            count: activeListingCount
+            success: true,
+            data: activeListings,
+            count: activeListings.length
         });
-    }
-    catch(error) {
-        console.log(error);
+    } catch (error) {
+        console.error('Error fetching active listings:', error);
         res.status(500).json({
-            message: "Internal server error"
+            success: false,
+            error: 'Failed to fetch active listings'
         });
     }
 });
