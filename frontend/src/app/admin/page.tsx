@@ -12,7 +12,8 @@ import {
     Menu,
     Home,
     Loader2,
-    HomeIcon
+    HomeIcon,
+    MessageSquare
 } from 'lucide-react';
 
 const quickLinks = [
@@ -20,6 +21,7 @@ const quickLinks = [
     { href: '/admin/users', label: 'Manage Users', icon: Users, description: 'View and manage user accounts' },
     { href: '/admin/orders', label: 'Manage Orders', icon: FileText, description: 'Track and process orders' },
     { href: '/admin/reports', label: 'View Reports', icon: BarChart3, description: 'Analytics and performance reports' },
+    { href: '/admin/chat', label: 'Chat Dashboard', icon: MessageSquare, description: 'Communicate with buyers and sellers' },
     { href: '/admin/settings', label: 'Settings', icon: Settings, description: 'System configuration and preferences' },
 ];
 

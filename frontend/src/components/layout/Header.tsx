@@ -73,7 +73,7 @@ export function Header() {
                   <Link href="/seller/orders">Orders</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/seller/settings">Settings</Link>
+                  <Link href="/seller/chat">Chat</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -94,7 +94,7 @@ export function Header() {
                   <Link href="/buyer/orders">My Orders</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/buyer/wishlist">Wishlist</Link>
+                  <Link href="/buyer/chat">Chat</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/buyer/signin">Settings</Link>

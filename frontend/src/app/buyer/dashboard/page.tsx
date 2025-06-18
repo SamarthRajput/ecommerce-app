@@ -1,12 +1,9 @@
-// components/SellerDashboard.tsx
 'use client';
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BuyerProfile } from '@/src/lib/types/buyer';
 import { OverviewTab } from '@/src/components/buyer/OverviewTab';
 import { ProfileTab } from '@/src/components/buyer/ProfileTab';
-
 
 const BuyerDashboard = () => {
     const [activeTab, setActiveTab] = useState<'overview' | 'profile'>('overview');
