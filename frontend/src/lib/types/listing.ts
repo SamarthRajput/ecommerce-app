@@ -1,3 +1,4 @@
+
 export type ListingType = 'SELL' | 'RENT';
 
 export type ProductCondition = 'NEW' | 'USED';
@@ -22,26 +23,6 @@ export interface ListingFormData {
 
 export interface ListingFormErrors {
   [key: string]: string;
-} 
-
-export interface Seller {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  businessName?: string;
-}
-
-export interface Listing {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  quantity: number;
-  status: 'PENDING' | 'ACTIVE' | 'REJECTED';
-  createdAt: string;
-  seller: Seller;
-  _count: { rfqs: number };
 }
 
 export interface Stats {
@@ -50,3 +31,33 @@ export interface Stats {
   rejected: number;
   total: number;
 }
+export interface Seller {
+  firstName: string;
+  lastName: string;
+  businessName: string;
+  businessType: string;
+  phone: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  taxId: string;
+  email: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export interface Listing {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+  status: 'ACTIVE' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'INACTIVE' | string;
+  quantity?: number;
+};

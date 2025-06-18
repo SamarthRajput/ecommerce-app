@@ -202,6 +202,56 @@ listingRouter.post('/reject/:id', async (req: Request, res: Response) => {
     }
 });
 
+// Developer 3 : Get listing by category
+listingRouter.get('/category/:category', async (req: Request, res: Response) => {
+    try {
+        const { category } = req.params;
+
+        if (!category) {
+            res.status(400).json({
+                success: false,
+                error: 'Category ID is required'
+            });
+            return;
+        }
+
+        const listings = await prisma.product.findMany({
+            where: {
+                category: category,
+                status: ProductStatus.ACTIVE
+            }, // Filter by category and active status
+            include: {
+                seller: {
+                    select: {
+                        id: true,
+                        email: true
+                    }
+                }, // Include seller information
+                _count: {
+                    select: {
+                        rfqs: true
+                    }
+                } // Include count of RFQs
+            },
+            orderBy: {
+                id: 'desc'
+            }
+        });
+
+        res.json({
+            success: true,
+            data: listings,
+            count: listings.length
+        });
+    } catch (error) {
+        console.error('Error fetching listings by category:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch listings by category'
+        });
+    }
+});
+
 // Clean up Prisma connection on process termination
 process.on('beforeExit', async () => {
     await prisma.$disconnect();

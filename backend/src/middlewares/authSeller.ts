@@ -19,14 +19,15 @@ export const authenticateSeller = (
     // Get token from Authorization header: "Bearer <token>"
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        res.status(401).json({ error: "No token provided" });
+        res.status(401).json({ error: "Unauthorised, please login" });
+        console.error("Authorization header missing or invalid format");
         return;
     }
 
     const token = authHeader.split(" ")[1];
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "jwtsecret") as {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "!@#$%^&*(qwertyuio") as {
       id: string;
       email: string;
     };

@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+const API_BASE_URL = 'http://localhost:3001/api/v1/seller';
 interface LoginFormData {
     email: string;
     password: string;
@@ -28,8 +29,9 @@ interface LoginResponse {
 
 const SellerLogin = () => {
     const [formData, setFormData] = useState<LoginFormData>({
-        email: '',
-        password: ''
+        email: 'rohitkuyada@gmail.com',
+        password: '123456',
+        // Default values for testing, remove in production
     });
     const [error, setError] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
@@ -71,7 +73,7 @@ const SellerLogin = () => {
             if (data.seller.role === 'admin') {
                 router.push('/admin/dashboard');
             } else {
-                router.push('/seller/profile');
+                router.push('/seller/dashboard');
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Login failed');
