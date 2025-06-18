@@ -52,6 +52,7 @@ export interface Seller {
 
 export interface Listing {
   id: string;
+  name: string;
   title: string;
   description: string;
   price: number;
@@ -60,4 +61,9 @@ export interface Listing {
   updatedAt: string;
   status: 'ACTIVE' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'INACTIVE' | string;
   quantity?: number;
+  seller: Seller;
+  images: string[];
+  _count: {
+    rfqs: number;
+  };
 };

@@ -18,7 +18,7 @@ model Buyer {
   id        String    @id @default(uuid())
   email     String    @unique
   password  String
-  firstName      String  
+  firstName String  
   lastName  String  
   phoneNumber   String
   street     String
@@ -66,16 +66,33 @@ enum ProductStatus {
 model Product {
   id            String     @unique @default(uuid())
   name          String
-  description   String
-  price         Float
-  quantity      Int
-  category      String
-  sellerId      String
-  status        ProductStatus    @default(ACTIVE)
-  seller        Seller    @relation(fields: [sellerId], references: [id])
-  rfqs          RFQ[]
-  trades        Trade[]
+  description     String
+  price           Float
+  quantity        Int
+  listingType     String     // e.g., 'SELL'
+  condition       String     // e.g., 'NEW'
+  validityPeriod  Int        // days till expiration
+  industry        String
+  category        String
+  productCode     String
+  model           String
+  specifications  String
+  countryOfSource String
+  hsnCode         String
+  images          String[]   // Array of image URLs or paths
+
+  status          ProductStatus  @default(ACTIVE)
+
+  sellerId        String
+  seller          Seller    @relation(fields: [sellerId], references: [id])
+
+  rfqs            RFQ[]
+  trades          Trade[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
+
 
 enum RFQStatus {
   PENDING
@@ -132,3 +149,4 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
