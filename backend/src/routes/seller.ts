@@ -396,13 +396,15 @@ sellerRouter.put("/details", async (req: AuthenticatedRequest, res: Response) =>
 // Get seller listings
 sellerRouter.get("/listings", authenticateSeller, async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const sellerId = req.seller?.id;
-
-        if (!sellerId) {
+        // get token from header and decode it
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) {
             res.status(401).json({ error: 'Unauthorized' });
             return;
         }
-
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { sellerId: string };
+        const sellerId = decoded.sellerId;
+        console.log('Retrieving listings for seller:', sellerId);
         const listings = await prisma.product.findMany({
             where: { sellerId },
             select: {
@@ -443,6 +445,7 @@ sellerRouter.post("/list-item", authenticateSeller, async (req: AuthenticatedReq
         // Validate request body with Zod
         const validationResult = listingFormSchema.safeParse(req.body);
         if (!validationResult.success) {
+            console.error('Validation error:', validationResult.error.issues);
             res.status(400).json({
                 error: 'Validation failed',
                 details: validationResult.error.issues.map(issue => ({
@@ -467,7 +470,7 @@ sellerRouter.post("/list-item", authenticateSeller, async (req: AuthenticatedReq
             countryOfSource,
             validityPeriod,
             notes,
-            images
+            // images
         } = validationResult.data;
         console.log('Creating listing with data:', {
             listingType,
@@ -519,6 +522,7 @@ sellerRouter.post("/list-item", authenticateSeller, async (req: AuthenticatedReq
 
         // Will Handle images if provided in future
 
+        console.log('Listing created:', listing.id);
         res.status(201).json({
             message: 'Listing created successfully',
             listing: {
@@ -535,3 +539,4 @@ sellerRouter.post("/list-item", authenticateSeller, async (req: AuthenticatedReq
         res.status(500).json({ error: 'Server error' });
     }
 });
+
