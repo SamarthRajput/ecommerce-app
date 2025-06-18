@@ -69,6 +69,7 @@ model Product {
   description   String
   price         Float
   quantity      Int
+  category      String
   sellerId      String
   status        ProductStatus    @default(ACTIVE)
   seller        Seller    @relation(fields: [sellerId], references: [id])

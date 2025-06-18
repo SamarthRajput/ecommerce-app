@@ -6,6 +6,13 @@ import { prisma } from "../lib/prisma";
 import { AuthenticatedRequest, authenticateSeller } from "../middlewares/authSeller";
 
 export const sellerRouter = Router();
+console.log('Seller router initialized');
+// auth routes: http://localhost:3001/api/v1/seller
+
+sellerRouter.get("/", (req: Request, res: Response) => {
+    res.send("Welcome to the Seller API");
+}
+);
 
 // SignUp route
 sellerRouter.post("/signup", async (req: Request, res: Response) => {
@@ -110,13 +117,14 @@ sellerRouter.post("/signup", async (req: Request, res: Response) => {
 
 // signin route
 sellerRouter.post("/signin", async (req: Request, res: Response) => {
+    console.log('Received login request:', req.body)
     try {
         // Validate request body with Zod
         const validationResult = loginSellerSchema.safeParse(req.body)
 
         if (!validationResult.success) {
             res.status(400).json({
-                error: 'Validation failed',
+                error: `Validation failed: ${validationResult.error.issues[0]?.message}`,
                 details: validationResult.error.issues.map(issue => ({
                     field: issue.path.join('.'),
                     message: issue.message
@@ -188,15 +196,47 @@ sellerRouter.post("/signin", async (req: Request, res: Response) => {
     }
 });
 
-// get seller details 
-sellerRouter.get("/profile", authenticateSeller, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+// Verify seller token
+sellerRouter.get("/verify", authenticateSeller, (req: AuthenticatedRequest, res: Response) => {
     try {
-        const sellerId = req.seller?.id;
-
-        if (!sellerId) {
+        if (!req.seller) {
             res.status(401).json({ error: 'Unauthorized' });
             return;
         }
+        res.json({
+            message: 'Seller verified successfully',
+            seller: {
+                id: req.seller.id,
+                email: req.seller.email
+            }
+        });
+    } catch (error) {
+        console.error('Verification error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Logout route
+sellerRouter.post("/logout", authenticateSeller, (req: AuthenticatedRequest, res: Response) => {
+    try {
+        res.json({ message: 'Seller logged out successfully' });
+    } catch (error) {
+        console.error('Logout error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// get seller details 
+sellerRouter.get("/profile", authenticateSeller, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        // get token from header and decode it
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { sellerId: string };
+        const sellerId = decoded.sellerId;
 
         const seller = await prisma.seller.findUnique({
             where: { id: sellerId },
@@ -255,14 +295,16 @@ sellerRouter.get("/profile", authenticateSeller, async (req: AuthenticatedReques
 // update seller details
 sellerRouter.put("/details", async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const sellerId = req.seller?.id;
-
-        if (!sellerId) {
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) {
             res.status(401).json({ error: 'Unauthorized' });
             return;
         }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { sellerId: string };
+        const sellerId = decoded.sellerId;
+        console.log('Updating profile for seller:', sellerId);
 
-        // Validate request body
+        // Validate request body with Zod
         const validationResult = updateProfileSchema.safeParse(req.body);
 
         if (!validationResult.success) {
@@ -350,3 +392,37 @@ sellerRouter.put("/details", async (req: AuthenticatedRequest, res: Response) =>
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+// Get seller listings
+sellerRouter.get("/listings", authenticateSeller, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const sellerId = req.seller?.id;
+
+        if (!sellerId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+
+        const listings = await prisma.product.findMany({
+            where: { sellerId },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                price: true,
+                quantity: true,
+                category: true,
+                status: true
+            }
+        });
+
+        res.json({
+            message: 'Listings retrieved successfully',
+            listings
+        });
+    } catch (error) {
+        console.error('Get listings error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+);

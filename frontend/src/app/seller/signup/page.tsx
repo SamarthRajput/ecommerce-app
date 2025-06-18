@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
-
+const API_BASE_URL = 'http://localhost:3001/api/v1/seller';
 // Zod validation schema
 const sellerRegistrationSchema = z.object({
     email: z.string().email('Invalid email address'),
@@ -115,8 +115,8 @@ const SellerRegistration = () => {
             });
 
             const data = await response.json();
-            
-            if(data.error) {
+
+            if (data.error) {
                 console.error('Registration error:', data.error.message);
                 alert(data.message || 'Something went wrong');
                 setErrors({ submit: data.message || 'Registration failed' });
