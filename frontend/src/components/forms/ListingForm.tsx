@@ -1,5 +1,5 @@
 'use client';
-import React, { useCallback, useState, useMemo, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useMemo, useEffect, useRef, use } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { listingFormSchema, type ListingFormSchema } from '@/src/lib/validations/listing';
@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/ca
 import { showSuccess, showError } from '@/src/lib/toast';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
+
+const API_URL = "http://localhost:3001/api/v1/seller/list-item";
 
 // Memoized Form Field Component
 const FormField = React.memo(({
@@ -32,7 +34,7 @@ const FormField = React.memo(({
 
 FormField.displayName = 'FormField';
 
-export function ListingForm() {
+export function ListingForm({ token }: { token: string }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadedImages, setUploadedImages] = useState<File[]>([]);
     const router = useRouter();
@@ -44,15 +46,15 @@ export function ListingForm() {
         condition: 'NEW' as const,
         quantity: 1,
         validityPeriod: 30,
-        industry: '',
-        category: '',
-        productCode: '',
-        productName: '',
-        description: '',
-        model: '',
-        specifications: '',
-        countryOfSource: '',
-        hsnCode: '',
+        industry: 'General',
+        category: 'test',
+        productCode: 'ABC123',
+        productName: 'Sample Product',
+        description: 'This is a sample product description.',
+        model: 'Model X',
+        specifications: 'Sample specifications for the product.',
+        countryOfSource: 'India',
+        hsnCode: '123456',
         images: [],
     }), []);
 
@@ -80,24 +82,22 @@ export function ListingForm() {
             setIsSubmitting(true);
             console.log("Form submitted with data:", data);
 
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(data),
+            });
+            console.log("Response status:", response.status);
 
-            // TODO: Add your API call here to submit the form data
-            // const response = await fetch('/api/listings', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     body: JSON.stringify(data),
-            // });
-
-            // if (!response.ok) {
-            //     throw new Error('Failed to create listing');
-            // }
+            if (!response.ok) {
+                throw new Error('Failed to create listing');
+            }
 
             showSuccess("Listing created successfully!");
-            router.push('/'); // Redirect to listings page after successful submission
+            router.push('/seller/dashboard');
         } catch (error) {
             console.error("Form submission error:", error);
             showError("Failed to submit form");

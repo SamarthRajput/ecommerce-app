@@ -16,6 +16,7 @@ export const authenticateSeller = (
   next: NextFunction
 ): void => {
   try {
+    // console.log("Authenticating seller...");
     // Get token from Authorization header: "Bearer <token>"
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -24,10 +25,11 @@ export const authenticateSeller = (
         return;
     }
 
+    // console.log("Authorization header found:", authHeader);
     const token = authHeader.split(" ")[1];
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "!@#$%^&*(qwertyuio") as {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "fallback-secret") as {
       id: string;
       email: string;
     };

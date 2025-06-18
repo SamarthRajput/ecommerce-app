@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { Listing, Seller } from '@/src/lib/types/listing';
 import { renderListings } from './Listing';
 import { renderProfile } from './Profile';
+import { fi } from 'zod/v4/locales';
 
 const API_BASE_URL = 'http://localhost:3001/api/v1/seller';
 
@@ -52,6 +53,7 @@ const SellerDashboard = () => {
             });
             if (response.ok) {
                 fetchProfile(tokenToVerify);
+                fetchListings();
             } else {
                 localStorage.removeItem('sellerToken');
                 router.push('/seller/signin');
@@ -112,15 +114,23 @@ const SellerDashboard = () => {
 
     const fetchListings = async () => {
         try {
+            // alert(`JWT Token: ${token}`);
             const response = await fetch(`${API_BASE_URL}/listings`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {
                 const data = await response.json();
                 setListings(data.listings);
+                // alert('Listings fetched successfully');
             }
         } catch (err) {
+            alert('Failed to fetch listings');
+            console.error('Error fetching listings:', err);
             setError('Failed to fetch listings');
+        }
+        finally {
+            // alert('Finished fetching listings');
+            setDashboardLoading(false);
         }
     };
 
