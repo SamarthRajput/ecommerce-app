@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import { loginSellerSchema, registerSellerSchema, updateProfileSchema } from "../lib/zod/SellerZod";
+import { listingFormSchema, loginSellerSchema, registerSellerSchema, updateProfileSchema } from "../lib/zod/SellerZod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma";
@@ -426,3 +426,112 @@ sellerRouter.get("/listings", authenticateSeller, async (req: AuthenticatedReque
     }
 }
 );
+
+// Seller list post 
+sellerRouter.post("/list-item", authenticateSeller, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        // get token from header and decode it
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { sellerId: string };
+        const sellerId = decoded.sellerId;
+        console.log('Creating listing for seller:', sellerId);
+
+        // Validate request body with Zod
+        const validationResult = listingFormSchema.safeParse(req.body);
+        if (!validationResult.success) {
+            res.status(400).json({
+                error: 'Validation failed',
+                details: validationResult.error.issues.map(issue => ({
+                    field: issue.path.join('.'),
+                    message: issue.message
+                }))
+            });
+            return;
+        }
+        const {
+            listingType,
+            industry,
+            category,
+            condition,
+            productCode,
+            productName,
+            description,
+            model,
+            specifications,
+            hsnCode,
+            quantity,
+            countryOfSource,
+            validityPeriod,
+            notes,
+            images
+        } = validationResult.data;
+        console.log('Creating listing with data:', {
+            listingType,
+            industry,
+            category,
+            condition,
+            productCode,
+            productName,
+            description,
+            model,
+            specifications,
+            hsnCode,
+            quantity,
+            countryOfSource,
+            validityPeriod,
+            notes
+        });
+
+        // Check if seller exists
+        const existingSeller = await prisma.seller.findUnique({
+            where: { id: sellerId }
+        });
+        if (!existingSeller) {
+            res.status(404).json({ error: 'Seller not found' });
+            return;
+        }
+        console.log('Seller found:', existingSeller.id);
+        // Create listing
+        const listing = await prisma.product.create({
+            data: {
+                sellerId,
+                listingType,
+                industry,
+                category,
+                condition,
+                productCode,
+                name: productName,
+                description,
+                model,
+                specifications,
+                hsnCode,
+                quantity,
+                price: 0,
+                validityPeriod: Number(validityPeriod),
+                countryOfSource,
+                status: 'PENDING' // Default status
+            }
+        });
+
+        // Will Handle images if provided in future
+
+        res.status(201).json({
+            message: 'Listing created successfully',
+            listing: {
+                id: listing.id,
+                name: listing.name,
+                description: listing.description,
+                price: listing.price,
+                category: listing.category,
+                status: listing.status
+            }
+        });
+    } catch (error) {
+        console.error('Create listing error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});

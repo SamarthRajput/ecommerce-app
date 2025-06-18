@@ -121,7 +121,7 @@ const ListingsManagement = () => {
           </div>
           <div className="flex items-center">
             <Package className="h-4 w-4 text-blue-600 mr-1 flex-shrink-0" />
-            <span className="text-blue-700">{listing.quantity.toLocaleString()} units</span>
+            <span className="text-blue-700">{(listing.quantity ?? 0).toLocaleString()} units</span>
           </div>
           <div className="flex items-center col-span-2">
             <User className="h-4 w-4 text-gray-500 mr-1 flex-shrink-0" />
@@ -456,7 +456,7 @@ const ListingsManagement = () => {
                           </div>
                           <div className="flex justify-between p-3 bg-white rounded border">
                             <span className="font-medium text-gray-700">Quantity:</span>
-                            <span className="font-semibold text-blue-600">{selectedListing.quantity.toLocaleString()} units</span>
+                            <span className="font-semibold text-blue-600">{(selectedListing.quantity ?? 0).toLocaleString()} units</span>
                           </div>
                           <div className="flex justify-between p-3 bg-white rounded border">
                             <span className="font-medium text-gray-700">Status:</span>
