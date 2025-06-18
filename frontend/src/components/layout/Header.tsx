@@ -1,160 +1,71 @@
-import Link from "next/link";
+"use client";
 import { Button } from "@/src/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/src/components/ui/dropdown-menu";
-import { Input } from "@/src/components/ui/input";
-import { Search, ShoppingCart, User, Bell, Menu } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function Header() {
-  return (
-    <header className="border-b">
-      {/* Top Bar */}
-      {/* <div className="bg-gray-900 text-white py-2">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center space-x-4">
-              <Link href="/about" className="hover:text-gray-300">About Us</Link>
-              <Link href="/contact" className="hover:text-gray-300">Contact</Link>
-              <Link href="/help" className="hover:text-gray-300">Help Center</Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link href="/track-order" className="hover:text-gray-300">Track Order</Link>
-              <Link href="/shipping" className="hover:text-gray-300">Shipping Info</Link>
-            </div>
-          </div>
-        </div>
-      </div> */}
+  const router = useRouter();
 
-      {/* Main Header */}
-      <div className="container mx-auto px-4 py-4">
+  const handleBuyerLogin = () => router.push('/buyer/signin');
+  const handleSellerLogin = () => router.push('/seller/signin');
+  const handleAbout = () => router.push('/about');
+  const handleContact = () => router.push('/contact');
+
+  return (
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+      <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold text-blue-600">
-            MarketPlace
-          </Link>
-
-          {/* Search Bar */}
-          <div className="flex-1 max-w-2xl mx-8">
-            <div className="relative">
-              <Input
-                type="search"
-                placeholder="Search for products, brands and more..."
-                className="w-full pl-10 pr-4 py-2 rounded-full"
-              />
-              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          <div className="flex items-center hover:cursor-pointer" onClick={() => router.push('/')}>
+            <div className="text-2xl font-bold text-gray-900">
+              <span className="text-orange-600">Trade</span>Connect
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex items-center space-x-6">
-            {/* Seller Portal */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  <span>Seller Portal</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link href="/seller/dashboard">Dashboard</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/seller/listings">My Listings</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/seller/create-listing">Create Listing</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/seller/orders">Orders</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/seller/chat">Chat</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <nav className="hidden md:flex items-center space-x-8">
+            <a href="#features" className="text-gray-600 hover:text-orange-600 transition-colors">
+              Features
+            </a>
+            <a href="#how-it-works" className="text-gray-600 hover:text-orange-600 transition-colors">
+              How It Works
+            </a>
+            <button
+              onClick={handleAbout}
+              className="text-gray-600 hover:text-orange-600 transition-colors"
+            >
+              About
+            </button>
+            <button
+              onClick={handleContact}
+              className="text-gray-600 hover:text-orange-600 transition-colors"
+            >
+              Contact
+            </button>
+          </nav>
 
-            {/* Buyer Portal */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  <span>Buyer Portal</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link href="/buyer/dashboard">Dashboard</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/buyer/orders">My Orders</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/buyer/chat">Chat</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/buyer/signin">Settings</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+          {/* Auth Buttons */}
+          <div className="flex items-center space-x-3">
+            <Button
+              onClick={handleBuyerLogin}
+              variant="outline"
+              className="hidden sm:flex border-orange-600 text-orange-600 hover:bg-orange-50"
+            >
+              👤 Buyer Login
+            </Button>
+            <Button
+              onClick={handleSellerLogin}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              🧑‍💼 Seller Login
             </Button>
 
-            {/* Cart */}
-            <Button variant="ghost" size="icon" className="relative">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                3
-              </span>
-            </Button>
-
-            {/* Mobile Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem asChild>
-                  <Link href="/categories">Categories</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/deals">Deals</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/new-arrivals">New Arrivals</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/brands">Brands</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </nav>
-        </div>
-      </div>
-
-      {/* Categories Bar */}
-      <div className="bg-gray-50 border-t">
-        <div className="container mx-auto px-4">
-          <nav className="hidden md:flex items-center space-x-8 py-3 text-sm">
-            <Link href="/categories/electronics" className="hover:text-blue-600">Electronics</Link>
-            <Link href="/categories/fashion" className="hover:text-blue-600">Fashion</Link>
-            <Link href="/categories/home" className="hover:text-blue-600">Home & Living</Link>
-            <Link href="/categories/beauty" className="hover:text-blue-600">Beauty</Link>
-            <Link href="/categories/sports" className="hover:text-blue-600">Sports</Link>
-            <Link href="/categories/books" className="hover:text-blue-600">Books</Link>
-            <Link href="/categories/toys" className="hover:text-blue-600">Toys</Link>
-            <Link href="/deals" className="text-red-600 font-medium">Deals of the Day</Link>
-          </nav>
+            {/* Mobile Menu Button */}
+            <button className="md:hidden p-2 text-gray-600 hover:text-orange-600">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </header>
