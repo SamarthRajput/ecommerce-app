@@ -9,8 +9,16 @@ const renderListings = (listings: Listing[], router: ReturnType<typeof useRouter
             <div className="px-6 py-4 border-b border-gray-200">
                 <div className="flex justify-between items-center">
                     <h2 className="text-lg font-medium text-gray-900">My Listings</h2>
-                    <div className="text-sm text-gray-500">
-                        {listings.length} listing{listings.length !== 1 ? 's' : ''}
+                    <div className="flex items-center space-x-4">
+                        <div className="text-sm text-gray-500">
+                            {listings.length} listing{listings.length !== 1 ? 's' : ''}
+                        </div>
+                        <button
+                            onClick={() => router.push('/seller/create-listing')}
+                            className="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                        >
+                            + Create Listing
+                        </button>
                     </div>
                 </div>
             </div>
