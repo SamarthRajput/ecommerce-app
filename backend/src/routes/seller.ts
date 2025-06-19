@@ -7,7 +7,7 @@ import { AuthenticatedRequest, authenticateSeller } from "../middlewares/authSel
 
 export const sellerRouter = Router();
 console.log('Seller router initialized');
-// auth routes: http://localhost:3001/api/v1/seller
+// auth routes: http://localhost:3001/api/v1/seller // Will keep it in .env later
 
 sellerRouter.get("/", (req: Request, res: Response) => {
     res.send("Welcome to the Seller API");

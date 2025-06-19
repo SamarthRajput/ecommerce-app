@@ -7,7 +7,7 @@ import { prisma } from "../lib/prisma";
 const authRouter = Router();
 // Base address: https://localhost:3001/api/v1/auth
 // will load from environment variables
-export const JWT_SECRET = "egliejgoirhjgioetoebtjh";
+export const JWT_SECRET = process.env.JWT_SECRET as string || 'jwtsecret';
 export const JWT_EXPIRES_IN = "1d";
 
 interface SigninBody {
@@ -52,8 +52,8 @@ authRouter.post('/admin/signin', async (req: Request, res: Response) => {
 
         // Find user in database
         const user = await prisma.user.findUnique({
-            where: { 
-                email: email.toLowerCase().trim() 
+            where: {
+                email: email.toLowerCase().trim()
             },
             select: {
                 id: true,

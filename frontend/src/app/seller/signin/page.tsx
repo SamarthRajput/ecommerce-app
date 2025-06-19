@@ -118,6 +118,8 @@ const SellerLogin = () => {
                 throw new Error(data.message || 'Login failed');
             }
 
+            // Will cache it in cookies instead of localStorage in production
+
             // Store token in localStorage
             localStorage.setItem('sellerToken', data.token);
             localStorage.setItem('sellerId', data.seller._id);
