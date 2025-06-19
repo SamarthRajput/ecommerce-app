@@ -16,20 +16,22 @@ export const authenticateSeller = (
   next: NextFunction
 ): void => {
   try {
+    const JWT_SECRET = process.env.JWT_SECRET as string || "jwtsecret";
+    const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1d";
     // console.log("Authenticating seller...");
     // Get token from Authorization header: "Bearer <token>"
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        res.status(401).json({ error: "Unauthorised, please login" });
-        console.error("Authorization header missing or invalid format");
-        return;
+      res.status(401).json({ error: "Unauthorised, please login" });
+      console.error("Authorization header missing or invalid format");
+      return;
     }
 
     // console.log("Authorization header found:", authHeader);
     const token = authHeader.split(" ")[1];
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "fallback-secret") as {
+    const decoded = jwt.verify(token, JWT_SECRET) as {
       id: string;
       email: string;
     };

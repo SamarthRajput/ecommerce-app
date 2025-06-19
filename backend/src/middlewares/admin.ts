@@ -2,7 +2,11 @@ import { Request, Response, NextFunction } from "express";
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
 
+
 export async function isAdminLoggedIn(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const JWT_SECRET = process.env.JWT_SECRET as string || 'jwtsecret';
+    const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
+
     try {
         // get token from headers
         const authHeader = req.headers.authorization;
@@ -17,7 +21,7 @@ export async function isAdminLoggedIn(req: Request, res: Response, next: NextFun
             return;
         }
         // Verify JWT token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string || 'default_secret') as any;
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
         // Check if user still exists and is admin
         const adminUser = await prisma.user.findUnique({
             where: { id: decoded.userId },

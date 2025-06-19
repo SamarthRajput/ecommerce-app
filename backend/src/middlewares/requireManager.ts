@@ -23,6 +23,15 @@ interface User {
 
 export async function requireManager(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+        const JWT_SECRET = process.env.JWT_SECRET as string;
+        if (!JWT_SECRET) {
+            res.status(500).json({
+                success: false,
+                error: 'Server configuration error. JWT secret is not set.'
+            });
+            return;
+        }
+        
         // Check if user is authenticated
         const authHeader = req.headers.authorization;
         const token = authHeader && authHeader.startsWith('Bearer ')
