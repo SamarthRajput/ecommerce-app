@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma";
 
 const authRouter = Router();
-
+// Base address: https://localhost:3001/api/v1/auth
 // will load from environment variables
 export const JWT_SECRET = "egliejgoirhjgioetoebtjh";
 export const JWT_EXPIRES_IN = "1d";
@@ -14,6 +14,8 @@ interface SigninBody {
     email: string;
     password: string;
 }
+
+// will implement rate limit later
 
 // POST /api/v1/auth/admin/signin - Admin login
 authRouter.post('/admin/signin', async (req: Request, res: Response) => {
@@ -197,6 +199,8 @@ authRouter.post('/admin/logout', (req: Request, res: Response) => {
     });
 });
 
+// Not required for admin signup, but included for adding test admin account
+// POST /api/v1/auth/admin/signup - Create a new admin account
 authRouter.post('/admin/signup', async (req: Request, res: Response) => {
     try {
         const { name, email, password } = req.body;

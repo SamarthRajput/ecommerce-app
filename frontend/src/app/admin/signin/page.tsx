@@ -1,14 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Lock, Mail, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
-
-type AdminUser = {
-    name: string;
-    email: string;
-    role: string;
-    createdAt: string;
-    // add other properties if needed
-};
+import { useRouter } from 'next/navigation';
 
 const AdminLoginPage = () => {
     const [formData, setFormData] = useState({
@@ -20,7 +13,14 @@ const AdminLoginPage = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [user, setUser] = useState<AdminUser | null>(null);
+    const router = useRouter();
+
+    // Redirect to admin dashboard if already logged in
+    useEffect(() => {
+        if (isLoggedIn) {
+            router.push('/admin');
+        }
+    }, [isLoggedIn]);
 
     // Check if user is already logged in on component mount
     useEffect(() => {
@@ -44,7 +44,6 @@ const AdminLoginPage = () => {
                 const data = await response.json();
                 if (data.success) {
                     setIsLoggedIn(true);
-                    setUser(data.data.user);
                 }
             } else {
                 // Token is invalid, remove it
@@ -112,7 +111,6 @@ const AdminLoginPage = () => {
                 localStorage.setItem('adminToken', data.data.token);
 
                 setSuccess('Login successful! Welcome back.');
-                setUser(data.data.user);
                 setIsLoggedIn(true);
 
                 // Clear form
@@ -147,85 +145,6 @@ const AdminLoginPage = () => {
             setIsLoading(false);
         }
     };
-
-    const handleLogout = async () => {
-        setIsLoading(true);
-
-        try {
-            const token = localStorage.getItem('adminToken');
-
-            // Call logout endpoint
-            await fetch('http://localhost:3001/api/v1/auth/admin/logout', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-        } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
-            // Always clear local state and token
-            localStorage.removeItem('adminToken');
-            setIsLoggedIn(false);
-            setUser(null);
-            setIsLoading(false);
-            setSuccess('Logged out successfully.');
-        }
-    };
-
-    // If user is logged in, show dashboard
-    if (isLoggedIn && user) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-                <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-                    <div className="text-center mb-6">
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <CheckCircle className="w-8 h-8 text-green-600" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-900">Welcome Back!</h2>
-                        <p className="text-gray-600 mt-2">You are successfully logged in as admin.</p>
-                    </div>
-
-                    <div className="space-y-4 mb-6">
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                            <h3 className="font-semibold text-gray-900 mb-2">User Information</h3>
-                            <div className="space-y-2 text-sm">
-                                <p><span className="font-medium">Name:</span> {user.name}</p>
-                                <p><span className="font-medium">Email:</span> {user.email}</p>
-                                <p><span className="font-medium">Role:</span> <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">{user.role}</span></p>
-                                <p><span className="font-medium">Member since:</span> {new Date(user.createdAt).toLocaleDateString()}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="text-center mb-6">
-                        <p className="text-sm text-gray-500">You can now manage listings, view reports, and more.</p>
-                        <a
-                            href="/admin"
-                            className="inline-block mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition duration-200"
-                        >
-                            Go to Dashboard
-                        </a>
-                    </div>
-
-                    <button
-                        onClick={handleLogout}
-                        disabled={isLoading}
-                        className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center"
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                Logging out...
-                            </>
-                        ) : (
-                            'Logout'
-                        )}
-                    </button>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -337,13 +256,6 @@ const AdminLoginPage = () => {
                             'Sign In'
                         )}
                     </div>
-                </div>
-
-                {/* Footer */}
-                <div className="mt-8 text-center">
-                    <p className="text-xs text-gray-500">
-                        Secure admin access • Protected by authentication
-                    </p>
                 </div>
             </div>
         </div>
