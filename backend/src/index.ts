@@ -5,6 +5,8 @@ import { sellerRouter } from "./routes/seller";
 import { analyticsRouter } from "./routes/analytics";
 import { listingRouter } from "./routes/listing";
 import { authRouter } from "./routes/adminAuthRouter";
+import { adminRouter } from "./routes/admin";
+
 const app = express();
 app.use(cors());
 
@@ -23,6 +25,8 @@ app.use("/api/v1/analytics", analyticsRouter);
 app.use("/api/v1/listing", listingRouter);
 
 app.use("/api/v1/auth", authRouter);
+
+app.use("/api/v1/admin", adminRouter);
 
 app.get("/", (req, res) => {
     res.send("Welcome to the API");
