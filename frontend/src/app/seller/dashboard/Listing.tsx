@@ -40,42 +40,54 @@ const renderListings = (listings: Listing[], router: ReturnType<typeof useRouter
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {listings.map((listing) => (
-                            <div key={listing.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                                <div className="flex justify-between items-start mb-3">
-                                    <h3 className="font-medium text-gray-900 truncate">{listing.title}</h3>
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${listing.status === 'ACTIVE'
-                                        ? 'bg-green-100 text-green-800'
-                                        : listing.status === 'PENDING'
-                                            ? 'bg-yellow-100 text-yellow-800'
-                                            : listing.status === 'APPROVED'
-                                                ? 'bg-blue-100 text-blue-800'
-                                                : listing.status === 'REJECTED'
-                                                    ? 'bg-red-100 text-red-800'
-                                                    : 'bg-gray-100 text-gray-800'
-                                        }`}>
-                                        {listing.status}
-                                    </span>
-                                </div>
+                        {listings.map((listing) => {
+                            const isApproved = listing.status === 'ACTIVE';
+                            return (
+                                <div
+                                    key={listing.id}
+                                    className={`border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow ${isApproved ? 'cursor-pointer' : ''}`}
+                                    onClick={
+                                        isApproved
+                                            ? () => router.push(`/product/${listing.id}`)
+                                            : undefined
+                                    }
+                                    title='Click to view details'
+                                >
+                                    <div className="flex justify-between items-start mb-3">
+                                        <h3 className="font-medium text-gray-900 truncate">{listing.title}</h3>
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${listing.status === 'ACTIVE'
+                                            ? 'bg-green-100 text-green-800'
+                                            : listing.status === 'PENDING'
+                                                ? 'bg-yellow-100 text-yellow-800'
+                                                : listing.status === 'APPROVED'
+                                                    ? 'bg-blue-100 text-blue-800'
+                                                    : listing.status === 'REJECTED'
+                                                        ? 'bg-red-100 text-red-800'
+                                                        : 'bg-gray-100 text-gray-800'
+                                            }`}>
+                                            {listing.status}
+                                        </span>
+                                    </div>
 
-                                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{listing.description}</p>
+                                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">{listing.description}</p>
 
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Price:</span>
-                                        <span className="font-medium">${listing.price?.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Quantity:</span>
-                                        <span className="font-medium">{listing.quantity}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">Category:</span>
-                                        <span className="font-medium">{listing.category}</span>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500">Price:</span>
+                                            <span className="font-medium">${listing.price?.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500">Quantity:</span>
+                                            <span className="font-medium">{listing.quantity}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500">Category:</span>
+                                            <span className="font-medium">{listing.category}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
@@ -138,4 +150,4 @@ const renderListings = (listings: Listing[], router: ReturnType<typeof useRouter
     </div>
 );
 
-export {renderListings as default, renderListings};
+export { renderListings as default, renderListings };

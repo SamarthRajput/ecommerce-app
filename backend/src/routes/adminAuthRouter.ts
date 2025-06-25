@@ -262,9 +262,69 @@ authRouter.post('/admin/signup', async (req: Request, res: Response) => {
 }
 );
 
+// test route to insert a test admin user
+authRouter.post('/admin/test', async (req: Request, res: Response) => {
+    console.log('Test admin signup route hit');
+    try {
+        const { name, email, password } = req.body;
+
+        // Input validation
+        if (!name || !email || !password) {
+            res.status(400).json({
+                success: false,
+                error: 'Name, email, and password are required'
+            });
+            return;
+        }
+
+        // Check if user already exists
+        const existingUser = await prisma.user.findUnique({
+            where: { email: email.toLowerCase().trim() }
+        });
+
+        if (existingUser) {
+            res.status(400).json({
+                success: false,
+                error: 'User with this email already exists'
+            });
+            return;
+        }
+
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create new user
+        const newUser = await prisma.user.create({
+            data: {
+                name,
+                email: email.toLowerCase().trim(),
+                password: hashedPassword,
+                role: 'admin'
+            }
+        });
+
+        res.json({
+            success: true,
+            message: 'Test admin account created successfully',
+            data: {
+                id: newUser.id,
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role,
+                createdAt: newUser.createdAt
+            }
+        });
+
+    } catch (error) {
+        console.error('Error during test admin signup:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error during test signup'
+        });
+    }
+});
+
 // Clean up Prisma connection
-
-
 process.on('beforeExit', async () => {
     await prisma.$disconnect();
 });

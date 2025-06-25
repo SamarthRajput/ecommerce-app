@@ -4,8 +4,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-const API_BASE_URL = 'http://localhost:3001/api/v1/seller';
-
+const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
+const API_BASE_URL = `${API_BACKEND_URL}/seller`;
 interface LoginFormData {
     email: string;
     password: string;
