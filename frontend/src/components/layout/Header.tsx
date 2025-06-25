@@ -1,6 +1,14 @@
 "use client";
 import { Button } from "@/src/components/ui/button";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/src/components/ui/dropdown-menu";
+import { Search, ShoppingCart, User, Bell, Menu } from "lucide-react";
+import Link from "next/link";
 
 export function Header() {
   const router = useRouter();
@@ -9,6 +17,10 @@ export function Header() {
   const handleSellerLogin = () => router.push('/seller/signin');
   const handleAbout = () => router.push('/about');
   const handleContact = () => router.push('/contact');
+
+  const pathname = usePathname();
+  const isBuyerPath = pathname?.startsWith('/buyer') ?? false;
+  const isSellerPath = pathname?.startsWith('/seller') ?? false;
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -45,19 +57,86 @@ export function Header() {
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-3">
-            <Button
-              onClick={handleBuyerLogin}
-              variant="outline"
-              className="hidden sm:flex border-orange-600 text-orange-600 hover:bg-orange-50"
-            >
-              👤 Buyer Login
-            </Button>
-            <Button
-              onClick={handleSellerLogin}
-              className="bg-orange-600 hover:bg-orange-700 text-white"
-            >
-              🧑‍💼 Seller Login
-            </Button>
+                        {isBuyerPath ? (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      <span>Buyer Portal</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href="/buyer/dashboard">Dashboard</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/buyer/orders">My Orders</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/buyer/requests">My Requests</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/buyer/chat">Chat</Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+                </Button>
+
+                <Button variant="ghost" size="icon" className="relative">
+                  <ShoppingCart className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    0
+                  </span>
+                </Button>
+              </>
+            ) : isSellerPath ? (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      <span>Seller Portal</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href="/seller/dashboard">Dashboard</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/seller/listings">My Listings</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/seller/create-listing">Create Listing</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/seller/orders">Orders</Link>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem asChild>
+                      <Link href="/seller/chat">Seller</Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button asChild variant="ghost">
+                  <Link href="/buyer/signin">Sign In as Buyer</Link>
+                </Button>
+                <Button asChild variant="ghost">
+                  <Link href="/seller/signin">Sign In as Seller</Link>
+                </Button>
+              </>
+            )}
 
             {/* Mobile Menu Button */}
             <button className="md:hidden p-2 text-gray-600 hover:text-orange-600">

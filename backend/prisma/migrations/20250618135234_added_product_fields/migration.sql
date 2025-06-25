@@ -27,4 +27,4 @@ ADD COLUMN     "validityPeriod" INTEGER NOT NULL,
 ADD CONSTRAINT "Product_pkey" PRIMARY KEY ("id");
 
 -- DropIndex
-DROP INDEX "Product_id_key";
+-- DROP INDEX "Product_id_key";

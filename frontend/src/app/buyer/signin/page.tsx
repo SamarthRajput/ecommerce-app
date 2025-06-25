@@ -27,8 +27,10 @@ const BuyerSignIn = () => {
         setError('');
         setLoading(true);
 
-        try {
-            const response = await fetch('http://localhost:3001/api/v1/buyer/signin', {
+        try {   
+            const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+            console.log(BASE_URL);
+            const response = await fetch(`${BASE_URL}/api/v1/buyer/signin`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

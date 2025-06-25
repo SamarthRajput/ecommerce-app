@@ -16,7 +16,8 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/v1/analytics/listing/active');
+        const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+        const response = await fetch(`${BASE_URL}/api/v1/analytics/listing/active`);
         const data = await response.json();
         
         if (data.success) {
