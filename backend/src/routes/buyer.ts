@@ -254,3 +254,42 @@ buyerRouter.put("/update", requireSeller, async (req: AuthenticatedRequest, res:
         })
     }
 });
+
+buyerRouter.get("/verify", requireBuyer, (req: AuthenticatedRequest, res: Response) => {
+    try {
+        if(!req.buyer){
+            res.status(401).json({
+                error: "Unauthorized"
+            });
+            return;
+        }
+        res.json({
+            message: "Buyer verified Successfullly",
+            buyer: {
+                id: req.buyer.id,
+                email: req.buyer.email
+            }
+        })
+    }
+    catch(error){
+        console.log(error);
+        res.status(501).json({
+            message: "server error"
+        })
+    };
+});
+
+buyerRouter.post("/logout", requireBuyer, (req: AuthenticatedRequest, res: Response) => {
+    try{
+        res.json({
+            message: "Buyer logged out successfully"
+        })
+        return;
+    }
+    catch(error){
+        console.log("Logout Error: " + error);
+        res.status(500).json({
+            error: "Server Error"
+        })
+    }
+});

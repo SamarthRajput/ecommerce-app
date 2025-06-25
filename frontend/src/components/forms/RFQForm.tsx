@@ -66,19 +66,58 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
     const onSubmit = useCallback(async (data: RFQFormSchema) => {
         try {
             setIsSubmitting(true);
-            // TODO: Implement API call to submit RFQ
-            console.log('RFQ data:', data);
+            
+            const buyerId = localStorage.getItem('buyerToken'); 
+            
+            if (!buyerId) {
+                throw new Error('Buyer ID not found. Please log in again.');
+            }
+            
+            const payload = {
+                productId: data.listingId,
+                buyerId,
+                quantity: data.quantity,
+                message: JSON.stringify({
+                    deliveryDate: data.deliveryDate,
+                    budget: data.budget,
+                    currency: data.currency,
+                    paymentTerms: data.paymentTerms,
+                    specialRequirements: data.specialRequirements,
+                    additionalNotes: data.additionalNotes
+                }),
+                status: "PENDING"
+            };
+            const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+            // console.log(BASE_URL + "/rfq/create");
+            const response = await fetch(`${BASE_URL}/rfq/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${buyerId}`
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to submit RFQ');
+            }
+
+            const result = await response.json();
+            console.log('RFQ created:', result);
+            
             showSuccess('RFQ submitted successfully!');
             reset(); // Reset form after successful submission
             onSuccess?.();
-            router.push('/'); // Redirect to RFQs page after success
+            router.push('/buyer/dashboard'); // Redirect to RFQs page after success
         } catch (error) {
             console.error('Error submitting RFQ:', error);
-            showError('Failed to submit RFQ. Please try again.');
+            showError(error instanceof Error ? error.message : 'Failed to submit RFQ. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
     }, [router, reset, onSuccess]);
+
 
     return (
         <Card className="w-full max-w-2xl mx-auto">

@@ -25,6 +25,3 @@ ADD COLUMN     "specifications" TEXT NOT NULL,
 ADD COLUMN     "updatedAt" TIMESTAMP(3) NOT NULL,
 ADD COLUMN     "validityPeriod" INTEGER NOT NULL,
 ADD CONSTRAINT "Product_pkey" PRIMARY KEY ("id");
-
--- DropIndex
--- DROP INDEX "Product_id_key";

@@ -7,6 +7,7 @@ import { listingRouter } from "./routes/listing";
 import { authRouter } from "./routes/adminAuthRouter";
 import { adminRouter } from "./routes/admin";
 import productRouter from "./routes/product.routes";
+import { rfqRouter } from "./routes/rfq.routes";
 
 const app = express();
 app.use(cors());
@@ -24,6 +25,10 @@ app.use("/api/v1/analytics", analyticsRouter);
 
 // Listing from manager route
 app.use("/api/v1/listing", listingRouter);
+
+// rfq router
+app.use("/api/v1/rfq", rfqRouter)
+
 
 app.use("/api/v1/auth", authRouter);
 

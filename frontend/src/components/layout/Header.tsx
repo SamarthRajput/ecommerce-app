@@ -117,7 +117,7 @@ export function Header() {
                       <Link href="/seller/orders">Orders</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/seller/chat">Seller</Link>
+                      <Link href="/seller/chat">Chat</Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

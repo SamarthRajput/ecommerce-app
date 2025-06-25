@@ -1,6 +1,3 @@
--- DropIndex
--- DROP INDEX "Product_id_key";
-
 -- CreateTable
 CREATE TABLE "Review" (
     "id" TEXT NOT NULL,
