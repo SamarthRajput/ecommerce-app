@@ -1,21 +1,72 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import jwt from "jsonwebtoken";
+import { connect } from "http2";
+
+interface BuyerTokenPayload {
+    id: string;
+    iat: number;
+}
 
 // POST /rfq
 export const createRFQ = async (req: Request, res: Response) => {
     const { productId, buyerId, quantity, message } = req.body;
+    console.log('Received buyerId:', buyerId);
+    console.log('Received productId:', productId);
+        if (!productId || !quantity) { 
+            res.status(400).json({ 
+                message: 'productId and quantity are required' 
+            });
+            return;
+        }
+
+        const product = await prisma.product.findUnique({
+            where: { id: productId }
+        });
+
+        if (!product) {
+            res.status(404).json({ 
+                message: 'Product not found' 
+            });
+            return;
+        }
+        
+        const getBuyerIdFromToken = (token: string): string => {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || "jwtsecret") as BuyerTokenPayload;
+            return decoded.id; 
+        };
+        
+    const actualBuyerId = getBuyerIdFromToken(buyerId);
+    const buyerExists = await prisma.buyer.findUnique({
+        where: { id: actualBuyerId }
+    });
+
+    if (!buyerExists) {
+        throw new Error(`Buyer with ID ${actualBuyerId} not found`);
+    } 
+    
 
     try {
         const rfq = await prisma.rFQ.create({
             data: {
-                productId,
-                buyerId,
+                product: {
+                    connect: {
+                        id: productId
+                    }
+                },
+                buyer: {
+                    connect: {
+                        id: actualBuyerId
+                    }
+                },
                 quantity,
                 message,
                 status: "PENDING"
             }
         });
-        res.status(201).json(rfq);
+        res.status(201).json({
+            data: rfq
+        });
     } catch (error) {
         console.error("Error creating RFQ:", error);
         res.status(500).json({ error: "Internal Server Error" });

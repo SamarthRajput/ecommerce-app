@@ -13,8 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 
-
-const API_URL = "http://localhost:3001/api/v1/seller/list-item";
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = `${BACKEND_URL}/seller/list-item`;
 
 // Memoized Form Field Component
 const FormField = React.memo(({

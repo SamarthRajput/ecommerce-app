@@ -74,7 +74,7 @@ const BuyerSignUp = () => {
                 country: formData.country,
             };
             const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${BASE_URL}/api/v1/buyer/signup`, {
+            const response = await fetch(`${BASE_URL}/buyer/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

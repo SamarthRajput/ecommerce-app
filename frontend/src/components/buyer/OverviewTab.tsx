@@ -42,11 +42,6 @@ export const OverviewTab = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col gap-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Buyer Dashboard</h1>
-          <div className="text-sm text-gray-500">Welcome back, Samarth</div>
-        </div>
 
         {/* Summary Cards */}
         <div className="grid gap-4 md:grid-cols-4">

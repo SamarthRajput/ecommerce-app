@@ -30,7 +30,7 @@ const BuyerSignIn = () => {
         try {   
             const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
             console.log(BASE_URL);
-            const response = await fetch(`${BASE_URL}/api/v1/buyer/signin`, {
+            const response = await fetch(`${BASE_URL}/buyer/signin`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

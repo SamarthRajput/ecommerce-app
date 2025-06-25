@@ -20,6 +20,20 @@ export interface LoginResponse {
     token: string;
 }
 
+export interface BuyerDetails {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+}
+
+
 interface BuyerProfile {
     id: string;
     email: string;

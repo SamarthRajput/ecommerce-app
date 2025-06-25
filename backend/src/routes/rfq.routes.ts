@@ -6,7 +6,7 @@ import { requireAdmin } from '../middlewares/authAdmin';
 const rfqRouter = express.Router();
 
 // Post RFQ from logged in buyer
-rfqRouter.post('/', requireBuyer, createRFQ);
+rfqRouter.post('/create', requireBuyer, createRFQ);
 
 // Get all RFQs for a buyer
 rfqRouter.get('/buyer/:buyerId', requireBuyer, getRFQsByBuyer);

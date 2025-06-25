@@ -17,7 +17,7 @@ const Dashboard = () => {
     const fetchProducts = async () => {
       try {
         const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${BASE_URL}/api/v1/analytics/listing/active`);
+        const response = await fetch(`${BASE_URL}/analytics/listing/active`);
         const data = await response.json();
 
         if (data.success) {
