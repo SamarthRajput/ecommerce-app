@@ -1,16 +1,13 @@
 import { Request, Response, Router } from "express";
-import { isAdminLoggedIn } from "../middlewares/admin";
 import { prisma } from "../lib/prisma";
+import { requireAdmin } from "../middlewares/authAdmin";
 
 const adminRouter = Router();
 
 // Base address: https://localhost:3001/api/v1/admin
 
-// Middleware to check if user is logged in as admin
-adminRouter.use(isAdminLoggedIn);
-
 // GET /api/v1/admin/sellers - Get all sellers
-adminRouter.get('/sellers', async (req: Request, res: Response) => {
+adminRouter.get('/sellers', requireAdmin, async (req: Request, res: Response) => {
     try {
         const sellers = await prisma.seller.findMany({
             select: {
@@ -46,7 +43,7 @@ adminRouter.get('/sellers', async (req: Request, res: Response) => {
 });
 
 // GET /api/v1/admin/buyers - Get all buyers
-adminRouter.get('/buyers', async (req: Request, res: Response) => {
+adminRouter.get('/buyers', requireAdmin, async (req: Request, res: Response) => {
     try {
         const buyers = await prisma.buyer.findMany({
             select: {

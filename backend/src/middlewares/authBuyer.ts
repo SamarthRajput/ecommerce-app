@@ -8,15 +8,15 @@ export interface AuthenticatedRequest extends Request {
     }
 }
 
-export const authenticateBuyer = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
-    const JWT_SECRET = process.env.JWT_SECRET as string || 'jwtsecret';
-    const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
+export const requireBuyer = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    const JWT_SECRET = process.env.JWT_SECRET as string;
+    const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN as string;
 
     const authHeader = req.headers.authorization;
 
     // Authorization header will in the form Bearer <token>
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        res.json(403).json({
+        res.status(403).json({
             error: "No token provided"
         });
         return;

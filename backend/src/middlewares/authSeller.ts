@@ -10,16 +10,16 @@ export interface AuthenticatedRequest extends Request {
 }
 
 // authenticate Seller middleware
-export const authenticateSeller = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): void => {
+export const requireSeller = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   try {
-    const JWT_SECRET = process.env.JWT_SECRET as string || "jwtsecret";
-    const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1d";
-    // console.log("Authenticating seller...");
-    // Get token from Authorization header: "Bearer <token>"
+    const JWT_SECRET = process.env.JWT_SECRET as string;
+    const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN as string;
+    
+    if (!JWT_SECRET) {
+      console.error("JWT_SECRET is not defined in environment variables");
+      res.status(500).json({ error: "Internal server error" });
+      return;
+    }
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       res.status(401).json({ error: "Unauthorised, please login" });

@@ -3,15 +3,16 @@ import React, { useCallback, useState, useMemo, useEffect, useRef, use } from 'r
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { listingFormSchema, type ListingFormSchema } from '@/src/lib/validations/listing';
-import { Button } from '@/src/components/ui/button';
-import { Input } from '@/src/components/ui/input';
-import { Textarea } from '@/src/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select';
-import { Label } from '@/src/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/src/components/ui/card';
 import { showSuccess, showError } from '@/src/lib/toast';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+
 
 const API_URL = "http://localhost:3001/api/v1/seller/list-item";
 

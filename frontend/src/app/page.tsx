@@ -1,8 +1,8 @@
 "use client";
 import { useRouter } from 'next/navigation';
 import React from 'react';
-import { Button } from '../components/ui/button';
-import { Card, CardHeader, CardContent } from '../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Card, CardHeader, CardContent } from '../../components/ui/card';
 
 const HomePage = () => {
   const router = useRouter();

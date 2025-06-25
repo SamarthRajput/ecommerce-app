@@ -3,7 +3,8 @@ import { prisma } from "../lib/prisma";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { signinSchema, signupSchema, updateProfileSchema } from "../lib/zod/BuyerZod";
-import { authenticateBuyer, AuthenticatedRequest } from "../middlewares/authBuyer";
+import { AuthenticatedRequest, requireBuyer } from "../middlewares/authBuyer";
+import { requireSeller } from "../middlewares/authSeller";
 export const buyerRouter = Router();
 
 // Signup Route
@@ -11,7 +12,7 @@ buyerRouter.post("/signup", async (req: Request, res: Response) => {
     const body = req.body;
     // doing input validation using zod
     const { success } = signupSchema.safeParse(body);
-    if(!success){
+    if (!success) {
         res.status(403).json({
             message: "Inputs are Incorrect"
         })
@@ -25,7 +26,7 @@ buyerRouter.post("/signup", async (req: Request, res: Response) => {
         }
     });
 
-    if(existingBuyer){
+    if (existingBuyer) {
         res.status(400).json({
             message: "Buyer already Exists"
         });
@@ -50,12 +51,12 @@ buyerRouter.post("/signup", async (req: Request, res: Response) => {
                 country: body.country
             }
         });
-    
+
         // Generate the JWT secret
         const token = jwt.sign({
             buyerId: buyer.id
         }, process.env.JWT_SECRET || "jwtsecret");
-    
+
         res.json({
             message: "Signed Up Successfully",
             token: token,
@@ -63,7 +64,7 @@ buyerRouter.post("/signup", async (req: Request, res: Response) => {
         });
         return;
     }
-    catch(e){
+    catch (e) {
         console.log(e);
         res.status(411);
         res.json({
@@ -71,13 +72,13 @@ buyerRouter.post("/signup", async (req: Request, res: Response) => {
         })
         return;
     }
-}); 
+});
 
 // Signin Route
 buyerRouter.post("/signin", async (req: Request, res: Response) => {
     const body = req.body;
     const { success } = signinSchema.safeParse(body);
-    if(!success){
+    if (!success) {
         res.status(400).json({
             message: "Invalid inputs",
         })
@@ -91,27 +92,27 @@ buyerRouter.post("/signin", async (req: Request, res: Response) => {
                 email: body.email
             }
         });
-    
-        if(!existingBuyer){
+
+        if (!existingBuyer) {
             res.status(400).json({
                 message: "User doesnot exists"
             })
             return;
         }
-    
+
         // If user exists in database then
         const passwordMatch = await bcrypt.compare(body.password, existingBuyer.password);
-        if(!passwordMatch){
+        if (!passwordMatch) {
             res.status(400).json({
                 message: "Incorrect password"
             })
             return;
-        } 
-    
+        }
+
         const token = jwt.sign({
             id: existingBuyer.id
         }, process.env.JWT_SECRET || "jwtsecret");
-    
+
         res.json({
             message: "Signed in successfully",
             token: token,
@@ -121,7 +122,7 @@ buyerRouter.post("/signin", async (req: Request, res: Response) => {
         })
         return;
     }
-    catch(e){
+    catch (e) {
         console.log(e);
         res.status(400).json({
             message: "Invalid!"
@@ -131,17 +132,17 @@ buyerRouter.post("/signin", async (req: Request, res: Response) => {
 });
 
 // get buyer details
-buyerRouter.get("/profile", authenticateBuyer, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+buyerRouter.get("/profile", requireBuyer, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const buyerId = req.buyer?.id;
-    
-        if(!buyerId){
+
+        if (!buyerId) {
             res.status(400).json({
-                error: "Unauthorized"
+                error: "Buyer ID is required"
             });
             return;
         }
-    
+
         const buyer = await prisma.buyer.findUnique({
             where: {
                 id: buyerId
@@ -159,12 +160,12 @@ buyerRouter.get("/profile", authenticateBuyer, async (req: AuthenticatedRequest,
                 country: true
             }
         });
-    
-        if(!buyer){
+
+        if (!buyer) {
             res.status(404).json({ error: 'Buyer not found' });
             return;
         }
-    
+
         res.json({
             message: "Profile received",
             buyer: {
@@ -181,7 +182,7 @@ buyerRouter.get("/profile", authenticateBuyer, async (req: AuthenticatedRequest,
             }
         });
     }
-    catch(error){
+    catch (error) {
         console.log(error);
         res.json({
             error: "Server error"
@@ -190,11 +191,11 @@ buyerRouter.get("/profile", authenticateBuyer, async (req: AuthenticatedRequest,
 });
 
 // update buyer details
-buyerRouter.put("/update", authenticateBuyer, async (req: AuthenticatedRequest, res: Response) => {
+buyerRouter.put("/update", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
     try {
         const buyerId = req.buyer?.id;
 
-        if(!buyerId){
+        if (!buyerId) {
             res.status(401).json({
                 error: "Unauthorized"
             });
@@ -204,7 +205,7 @@ buyerRouter.put("/update", authenticateBuyer, async (req: AuthenticatedRequest, 
         // Validate request body
         const { success } = updateProfileSchema.safeParse(body);
 
-        if(!success){
+        if (!success) {
             res.status(401).json({
                 error: "Wrong Inputs"
             });
@@ -213,11 +214,11 @@ buyerRouter.put("/update", authenticateBuyer, async (req: AuthenticatedRequest, 
 
         // Check if buyer exists
         const existingBuyer = await prisma.buyer.findUnique({
-            where:{
+            where: {
                 id: buyerId
             }
         });
-        if(!existingBuyer){
+        if (!existingBuyer) {
             res.status(401).json({
                 error: "Buyer doesnt exist"
             });
@@ -246,7 +247,7 @@ buyerRouter.put("/update", authenticateBuyer, async (req: AuthenticatedRequest, 
             message: "Profile Updated successfully"
         });
     }
-    catch(error){
+    catch (error) {
         console.log(error);
         res.status(501).json({
             message: "Server error"

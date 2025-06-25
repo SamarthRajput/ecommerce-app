@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { ProductStatus } from "@prisma/client";
-import { requireManager } from "../middlewares/requireManager";
+import { requireAdmin } from "../middlewares/authAdmin";
 import { prisma } from "../lib/prisma";
 
 // Base url: http://localhost:3001/api/v1/listing
@@ -9,7 +9,7 @@ const listingRouter = Router();
 console.log('Listing router called');
 
 // Apply middleware to all routes
-listingRouter.use(requireManager);
+listingRouter.use(requireAdmin);
 
 // GET /api/v1/listing/pending - Get all pending listings
 listingRouter.get('/pending', async (req: Request, res: Response) => {
@@ -175,6 +175,16 @@ listingRouter.post('/reject/:id', async (req: Request, res: Response) => {
             return;
         }
 
+        // get message from request body
+        const { message } = req.body;
+        if (!message) {
+            res.status(400).json({
+                success: false,
+                error: 'Message is required to reject a listing'
+            });
+            return;
+        }
+
         if (existingListing.status !== ProductStatus.PENDING) {
             res.status(400).json({
                 success: false,
@@ -185,7 +195,10 @@ listingRouter.post('/reject/:id', async (req: Request, res: Response) => {
 
         const rejectedListing = await prisma.product.update({
             where: { id },
-            data: { status: ProductStatus.REJECTED }
+            data: {
+                status: ProductStatus.REJECTED,
+                // rejectionMessage: message // Store rejection message
+            }
         });
 
         res.json({
