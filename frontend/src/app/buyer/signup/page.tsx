@@ -73,8 +73,8 @@ const BuyerSignUp = () => {
                 zipCode: formData.zipCode,
                 country: formData.country,
             };
-
-            const response = await fetch('http://localhost:3001/api/v1/buyer/signup', {
+            const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${BASE_URL}/api/v1/buyer/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
