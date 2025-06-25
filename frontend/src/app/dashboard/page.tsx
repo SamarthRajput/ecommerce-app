@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Button } from '@/src/components/ui/button';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Product } from '@/src/lib/types/dashboard';
 
@@ -19,7 +19,7 @@ const Dashboard = () => {
         const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
         const response = await fetch(`${BASE_URL}/api/v1/analytics/listing/active`);
         const data = await response.json();
-        
+
         if (data.success) {
           setProducts(data.data);
         } else {
@@ -63,7 +63,7 @@ const Dashboard = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center text-red-500">
           <p>Error: {error}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
@@ -111,11 +111,10 @@ const Dashboard = () => {
                           {[...Array(5)].map((_, i) => (
                             <svg
                               key={i}
-                              className={`w-4 h-4 ${
-                                i < Math.floor(product.rating)
-                                  ? 'text-yellow-400'
-                                  : 'text-gray-300'
-                              }`}
+                              className={`w-4 h-4 ${i < Math.floor(product.rating)
+                                ? 'text-yellow-400'
+                                : 'text-gray-300'
+                                }`}
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -188,11 +187,10 @@ const Dashboard = () => {
                   {[...Array(5)].map((_, i) => (
                     <svg
                       key={i}
-                      className={`w-5 h-5 ${
-                        i < Math.floor(selectedProduct?.rating || 0)
-                          ? 'text-yellow-400'
-                          : 'text-gray-300'
-                      }`}
+                      className={`w-5 h-5 ${i < Math.floor(selectedProduct?.rating || 0)
+                        ? 'text-yellow-400'
+                        : 'text-gray-300'
+                        }`}
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -231,9 +229,8 @@ const Dashboard = () => {
                           {[...Array(5)].map((_, i) => (
                             <svg
                               key={i}
-                              className={`w-4 h-4 ${
-                                i < review.rating ? 'text-yellow-400' : 'text-gray-300'
-                              }`}
+                              className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'
+                                }`}
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >

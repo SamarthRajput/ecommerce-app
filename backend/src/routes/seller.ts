@@ -3,7 +3,7 @@ import { listingFormSchema, loginSellerSchema, registerSellerSchema, updateProfi
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma";
-import { AuthenticatedRequest, authenticateSeller } from "../middlewares/authSeller";
+import { AuthenticatedRequest, requireSeller } from "../middlewares/authSeller";
 
 export const sellerRouter = Router();
 console.log('Seller router initialized');
@@ -197,7 +197,7 @@ sellerRouter.post("/signin", async (req: Request, res: Response) => {
 });
 
 // Verify seller token
-sellerRouter.get("/verify", authenticateSeller, (req: AuthenticatedRequest, res: Response) => {
+sellerRouter.get("/verify", requireSeller, (req: AuthenticatedRequest, res: Response) => {
     try {
         if (!req.seller) {
             res.status(401).json({ error: 'Unauthorized' });
@@ -217,7 +217,7 @@ sellerRouter.get("/verify", authenticateSeller, (req: AuthenticatedRequest, res:
 });
 
 // Logout route
-sellerRouter.post("/logout", authenticateSeller, (req: AuthenticatedRequest, res: Response) => {
+sellerRouter.post("/logout", requireSeller, (req: AuthenticatedRequest, res: Response) => {
     try {
         res.json({ message: 'Seller logged out successfully' });
     } catch (error) {
@@ -226,8 +226,8 @@ sellerRouter.post("/logout", authenticateSeller, (req: AuthenticatedRequest, res
     }
 });
 
-// get seller details 
-sellerRouter.get("/profile", authenticateSeller, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+// get seller details
+sellerRouter.get("/profile", requireSeller, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         // get token from header and decode it
         const token = req.headers.authorization?.split(" ")[1];
@@ -394,7 +394,7 @@ sellerRouter.put("/details", async (req: AuthenticatedRequest, res: Response) =>
 });
 
 // Get seller listings
-sellerRouter.get("/listings", authenticateSeller, async (req: AuthenticatedRequest, res: Response) => {
+sellerRouter.get("/listings", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
     try {
         // get token from header and decode it
         const token = req.headers.authorization?.split(" ")[1];
@@ -429,8 +429,8 @@ sellerRouter.get("/listings", authenticateSeller, async (req: AuthenticatedReque
 }
 );
 
-// Seller list post 
-sellerRouter.post("/list-item", authenticateSeller, async (req: AuthenticatedRequest, res: Response) => {
+// Seller list post
+sellerRouter.post("/list-item", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
     try {
         // get token from header and decode it
         const token = req.headers.authorization?.split(" ")[1];

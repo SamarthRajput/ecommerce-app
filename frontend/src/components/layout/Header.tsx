@@ -1,12 +1,12 @@
 "use client";
-import { Button } from "@/src/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/src/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import { Search, ShoppingCart, User, Bell, Menu } from "lucide-react";
 import Link from "next/link";
 
@@ -57,7 +57,7 @@ export function Header() {
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-3">
-                        {isBuyerPath ? (
+            {isBuyerPath ? (
               <>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -116,7 +116,7 @@ export function Header() {
                     <DropdownMenuItem asChild>
                       <Link href="/seller/orders">Orders</Link>
                     </DropdownMenuItem>
-                     <DropdownMenuItem asChild>
+                    <DropdownMenuItem asChild>
                       <Link href="/seller/chat">Seller</Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>

@@ -21,7 +21,7 @@ interface User {
     email: string;
 }
 
-export async function requireManager(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         const JWT_SECRET = process.env.JWT_SECRET as string;
         if (!JWT_SECRET) {
@@ -64,7 +64,7 @@ export async function requireManager(req: Request, res: Response, next: NextFunc
         if (!adminUser || adminUser.role !== 'admin') {
             res.status(401).json({
                 success: false,
-                error: 'Invalid or expired token'
+                error: 'Invalid or expired token. You must be an admin to access this resource.'
             });
             return;
         }
