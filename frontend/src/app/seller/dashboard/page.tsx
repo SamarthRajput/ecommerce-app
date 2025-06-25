@@ -6,9 +6,9 @@ import toast from 'react-hot-toast';
 import { Listing, Seller } from '@/src/lib/types/listing';
 import { renderListings } from './Listing';
 import { renderProfile } from './Profile';
-import { fi } from 'zod/v4/locales';
 
-const API_BASE_URL = 'http://localhost:3001/api/v1/seller';
+const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
+const API_BASE_URL = `${API_BACKEND_URL}/seller`;
 
 const SellerDashboard = () => {
     const [seller, setSeller] = useState<Seller | null>(null);
@@ -96,9 +96,7 @@ const SellerDashboard = () => {
             }
             else {
                 const errorData = await response.json();
-                setError(errorData.error || 'Failed to fetch profile');
-                toast.error(errorData.error || 'Failed to fetch profile');
-                console.error('Error fetching profile:', errorData);;
+                throw new Error(errorData.error || 'Failed to fetch profile');
             }
         } catch (err) {
             toast.error('Failed to fetch profile');
@@ -190,6 +188,7 @@ const SellerDashboard = () => {
                             <button
                                 onClick={handleLogout}
                                 className="flex items-center text-gray-600 hover:text-red-600 transition-colors"
+                                title="Click to logout"
                             >
                                 <LogOut size={20} className="mr-1" />
                                 Logout

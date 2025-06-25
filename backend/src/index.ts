@@ -6,6 +6,7 @@ import { analyticsRouter } from "./routes/analytics";
 import { listingRouter } from "./routes/listing";
 import { authRouter } from "./routes/adminAuthRouter";
 import { adminRouter } from "./routes/admin";
+import productRouter from "./routes/product.routes";
 
 const app = express();
 app.use(cors());
@@ -31,6 +32,9 @@ app.use("/api/v1/admin", adminRouter);
 app.get("/", (req, res) => {
     res.send("Welcome to the API");
 });
+
+// Product Router to fetch products (all , by id, by seller id, similar products)
+app.use("/api/v1/products", productRouter);
 
 app.listen(3001, () => {
     console.log(`Server is running on http://localhost:3001`);
