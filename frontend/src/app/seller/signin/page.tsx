@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
+import { useAuth } from '@/src/context/AuthContext';
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
 const API_BASE_URL = `${API_BACKEND_URL}/seller`;
 interface LoginFormData {
@@ -28,67 +28,16 @@ interface LoginResponse {
     token: string;
 }
 
-interface VerifyResponse {
-    message: string;
-    seller: {
-        id: string;
-        email: string;
-    };
-}
-
 const SellerLogin = () => {
     const [formData, setFormData] = useState<LoginFormData>({
-        email: '',
-        password: '',
+        email: 'rohitkuyada@gmail.com',
+        password: '123456'
     });
     const [error, setError] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
-    const [verifying, setVerifying] = useState<boolean>(true);
+    const [verifying, setVerifying] = useState<boolean>(false);
     const router = useRouter();
-
-    // Check if user is already logged in
-    useEffect(() => {
-        const verifyToken = async () => {
-            try {
-                const token = localStorage.getItem('sellerToken');
-
-                if (!token) {
-                    setVerifying(false);
-                    return;
-                }
-
-                const response = await fetch(`${API_BASE_URL}/verify`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                if (response.ok) {
-                    const data: VerifyResponse = await response.json();
-                    console.log('Token verified, redirecting to dashboard');
-
-                    // If token is valid, redirect to dashboard
-                    router.push('/seller/dashboard');
-                    return;
-                } else {
-                    // Token is invalid, remove it
-                    localStorage.removeItem('sellerToken');
-                    localStorage.removeItem('sellerId');
-                }
-            } catch (error) {
-                console.error('Token verification failed:', error);
-                // Remove invalid token
-                localStorage.removeItem('sellerToken');
-                localStorage.removeItem('sellerId');
-            } finally {
-                setVerifying(false);
-            }
-        };
-
-        verifyToken();
-    }, [router]);
+    const { refetch } = useAuth();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -104,11 +53,13 @@ const SellerLogin = () => {
         setLoading(true);
 
         try {
+            // alert(`BASE URL: ${API_BASE_URL}`);
             const response = await fetch(`${API_BASE_URL}/signin`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include', // Include cookies in the request
                 body: JSON.stringify(formData),
             });
 
@@ -117,18 +68,13 @@ const SellerLogin = () => {
             if (!response.ok) {
                 throw new Error(data.message || 'Login failed');
             }
-
-            // Will cache it in cookies instead of localStorage in production
-
-            // Store token in localStorage
-            localStorage.setItem('sellerToken', data.token);
-            localStorage.setItem('sellerId', data.seller._id);
-
+            refetch();
             // Redirect based on role
             if (data.seller.role === 'admin') {
                 router.push('/admin/dashboard');
             } else {
                 router.push('/seller/dashboard');
+                // alert('Login successful! Redirecting to seller dashboard...');
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Login failed');

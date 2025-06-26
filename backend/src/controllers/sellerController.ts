@@ -1,21 +1,14 @@
-import { Request, Response, Router } from "express";
-import { listingFormSchema, loginSellerSchema, registerSellerSchema, updateProfileSchema } from "../lib/zod/SellerZod";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+// /controllers/sellerController.ts
+import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import { AuthenticatedRequest, requireSeller } from "../middlewares/authSeller";
+import { listingFormSchema, loginSellerSchema, registerSellerSchema, updateProfileSchema } from "../lib/zod/SellerZod";
+import { JWT_SECRET } from "../config";
+import { setAuthCookie } from "../utils/setAuthCookie";
 
-export const sellerRouter = Router();
-console.log('Seller router initialized');
-// auth routes: http://localhost:3001/api/v1/seller // Will keep it in .env later
-
-sellerRouter.get("/", (req: Request, res: Response) => {
-    res.send("Welcome to the Seller API");
-}
-);
-
-// SignUp route
-sellerRouter.post("/signup", async (req: Request, res: Response) => {
+export const signupSeller = async (req: Request, res: Response) => {
     try {
         // Validate request body with Zod
         const validationResult = registerSellerSchema.safeParse(req.body)
@@ -80,18 +73,22 @@ sellerRouter.post("/signup", async (req: Request, res: Response) => {
         console.log('Generating JWT for seller:', seller.id)
         const token = jwt.sign(
             { sellerId: seller.id },
-            process.env.JWT_SECRET || 'fallback-secret',
+            JWT_SECRET,
             { expiresIn: '7d' }
         )
 
-        console.log('JWT generated for seller:', seller.id)
+        // Set cookie with JWT
+        setAuthCookie({ res, token, cookieName: 'SellerToken' });
 
+        // Respond with success message and data
+        console.log('Seller registered successfully:', seller.id)
         res.status(201).json({
-            message: 'Seller registered successfully',
+            message: 'Registration successful',
             token,
             seller: {
                 id: seller.id,
                 email: seller.email,
+                role: seller.role,
                 profile: {
                     firstName: seller.firstName,
                     lastName: seller.lastName,
@@ -113,11 +110,10 @@ sellerRouter.post("/signup", async (req: Request, res: Response) => {
         console.error('Registration error:', error)
         res.status(500).json({ error: 'Server error' })
     }
-});
+}
 
-// signin route
-sellerRouter.post("/signin", async (req: Request, res: Response) => {
-    console.log('Received login request:', req.body)
+// Sign in seller
+export const signinSeller = async (req: Request, res: Response) => {
     try {
         // Validate request body with Zod
         const validationResult = loginSellerSchema.safeParse(req.body)
@@ -161,18 +157,21 @@ sellerRouter.post("/signin", async (req: Request, res: Response) => {
         // Generate JWT
         const token = jwt.sign(
             { sellerId: seller.id },
-            process.env.JWT_SECRET || 'fallback-secret',
+            JWT_SECRET,
             { expiresIn: '7d' }
         )
 
-        console.log('JWT generated for seller:', seller.id)
-        res.json({
+        // Set cookie with JWT
+        setAuthCookie({ res, token, cookieName: 'SellerToken' });
+
+        // Respond with success message and data
+        res.status(200).json({
             message: 'Login successful',
             token,
             seller: {
                 id: seller.id,
                 email: seller.email,
-                role: 'seller',
+                role: seller.role,
                 profile: {
                     firstName: seller.firstName,
                     lastName: seller.lastName,
@@ -194,49 +193,12 @@ sellerRouter.post("/signin", async (req: Request, res: Response) => {
         console.error('Login error:', error)
         res.status(500).json({ error: 'Server error' })
     }
-});
+}
 
-// Verify seller token
-sellerRouter.get("/verify", requireSeller, (req: AuthenticatedRequest, res: Response) => {
+// Get seller profile
+export const getSellerProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        if (!req.seller) {
-            res.status(401).json({ error: 'Unauthorized' });
-            return;
-        }
-        res.json({
-            message: 'Seller verified successfully',
-            seller: {
-                id: req.seller.id,
-                email: req.seller.email
-            }
-        });
-    } catch (error) {
-        console.error('Verification error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// Logout route
-sellerRouter.post("/logout", requireSeller, (req: AuthenticatedRequest, res: Response) => {
-    try {
-        res.json({ message: 'Seller logged out successfully' });
-    } catch (error) {
-        console.error('Logout error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// get seller details
-sellerRouter.get("/profile", requireSeller, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-        // get token from header and decode it
-        const token = req.headers.authorization?.split(" ")[1];
-        if (!token) {
-            res.status(401).json({ error: 'Unauthorized' });
-            return;
-        }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { sellerId: string };
-        const sellerId = decoded.sellerId;
+        const sellerId = req.seller?.id;
 
         const seller = await prisma.seller.findUnique({
             where: { id: sellerId },
@@ -290,19 +252,15 @@ sellerRouter.get("/profile", requireSeller, async (req: AuthenticatedRequest, re
         console.error('Get profile error:', error);
         res.status(500).json({ error: 'Server error' });
     }
-});
+}
 
-// update seller details
-sellerRouter.put("/details", async (req: AuthenticatedRequest, res: Response) => {
+// Update seller profile
+export const updateSellerProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1];
-        if (!token) {
-            res.status(401).json({ error: 'Unauthorized' });
-            return;
+        const sellerId = req.seller?.id;
+        if (!sellerId) {
+            return res.status(401).json({ error: 'Unauthorized' });
         }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { sellerId: string };
-        const sellerId = decoded.sellerId;
-        console.log('Updating profile for seller:', sellerId);
 
         // Validate request body with Zod
         const validationResult = updateProfileSchema.safeParse(req.body);
@@ -391,20 +349,15 @@ sellerRouter.put("/details", async (req: AuthenticatedRequest, res: Response) =>
         console.error('Update profile error:', error);
         res.status(500).json({ error: 'Server error' });
     }
-});
+}
 
-// Get seller listings
-sellerRouter.get("/listings", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
+// Get Seller Listings
+export const getSellerListings = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        // get token from header and decode it
-        const token = req.headers.authorization?.split(" ")[1];
-        if (!token) {
-            res.status(401).json({ error: 'Unauthorized' });
-            return;
+        const sellerId = req.seller?.id;
+        if (!sellerId) {
+            return res.status(401).json({ error: 'Unauthorized' });
         }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { sellerId: string };
-        const sellerId = decoded.sellerId;
-        console.log('Retrieving listings for seller:', sellerId);
         const listings = await prisma.product.findMany({
             where: { sellerId },
             select: {
@@ -427,20 +380,14 @@ sellerRouter.get("/listings", requireSeller, async (req: AuthenticatedRequest, r
         res.status(500).json({ error: 'Server error' });
     }
 }
-);
 
-// Seller list post
-sellerRouter.post("/list-item", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
+// Create a new listing by Seller
+export const createListing = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        // get token from header and decode it
-        const token = req.headers.authorization?.split(" ")[1];
-        if (!token) {
-            res.status(401).json({ error: 'Unauthorized' });
-            return;
+        const sellerId = req.seller?.id;
+        if (!sellerId) {
+            return res.status(401).json({ error: 'Unauthorized' });
         }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { sellerId: string };
-        const sellerId = decoded.sellerId;
-        console.log('Creating listing for seller:', sellerId);
 
         // Validate request body with Zod
         const validationResult = listingFormSchema.safeParse(req.body);
@@ -497,7 +444,17 @@ sellerRouter.post("/list-item", requireSeller, async (req: AuthenticatedRequest,
             res.status(404).json({ error: 'Seller not found' });
             return;
         }
-        console.log('Seller found:', existingSeller.id);
+
+        const existingListing = await prisma.product.findFirst({
+            where: {
+                sellerId,
+                productCode
+            }
+        });
+        if (existingListing) {
+            return res.status(400).json({ error: "Listing already exists with this product code" });
+        }
+
         // Create listing
         const listing = await prisma.product.create({
             data: {
@@ -522,7 +479,6 @@ sellerRouter.post("/list-item", requireSeller, async (req: AuthenticatedRequest,
 
         // Will Handle images if provided in future
 
-        console.log('Listing created:', listing.id);
         res.status(201).json({
             message: 'Listing created successfully',
             listing: {
@@ -538,5 +494,4 @@ sellerRouter.post("/list-item", requireSeller, async (req: AuthenticatedRequest,
         console.error('Create listing error:', error);
         res.status(500).json({ error: 'Server error' });
     }
-});
-
+}

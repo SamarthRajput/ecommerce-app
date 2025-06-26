@@ -1,5 +1,8 @@
+// src/app/admin/listings/useListing.tsx
+import { useAuth } from '@/src/context/AuthContext';
 import { Listing, Stats } from '@/src/lib/types/listing';
-import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react'
 import { useCallback } from 'react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1';
@@ -33,8 +36,22 @@ const useListing = () => {
     const [toasts, setToasts] = useState<Toast[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('pending');
-    const [stats, setStats] = useState<Stats>({ pending: 0, active: 0, rejected: 0, total: 0 });
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [stats, setStats] = useState<Stats>({ pending: 0, active: 0, rejected: 0, total: 0 });
+    const { authenticated, role, user: loggedInUser, isSeller, loading: authStatusLoading, isBuyer, logout } = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!authStatusLoading && !authenticated) {
+            router.push('/admin/signin');
+        } else {
+            setIsAuthenticated(authenticated);
+            setStats(prev => ({
+                ...prev,
+                total: prev.pending + prev.active + prev.rejected
+            }));
+        }
+    }, [authenticated, role, router]);
 
     const addToast = useCallback((message: string, type: 'success' | 'error' | 'warning') => {
         const id = generateToastId();
@@ -47,15 +64,8 @@ const useListing = () => {
     // API Functions with better error handling
     const apiCall = async (url: string, options: RequestInit = {}) => {
         try {
-            const token = localStorage.getItem('adminToken');
-            if (!token) {
-                throw new Error('Login required. Please authenticate first.');
-            }
             const response = await fetch(`${API_BASE_URL}${url}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
+                credentials: 'include',
                 ...options,
             });
 
@@ -80,7 +90,7 @@ const useListing = () => {
             } else {
                 throw new Error(data.error || 'Failed to fetch pending listings');
             }
-        } catch (error:any) {
+        } catch (error: any) {
             console.error('Error fetching pending listings:', error);
             addToast(`${error}`, 'error');
         }
@@ -265,7 +275,6 @@ const useListing = () => {
         pendingListings,
         activeListings,
         loading,
-        setLoading,
         selectedListing,
         showViewModal,
         showRejectModal,
@@ -275,15 +284,10 @@ const useListing = () => {
         searchTerm,
         activeTab,
         stats,
-        isAuthenticated,
         setSelectedListing,
         setShowViewModal,
         setShowRejectModal,
         setRejectionReason,
-        setProcessingAction,
-        addToast,
-        fetchPendingListings,
-        fetchActiveListings,
         approveListing,
         rejectListing,
         handleViewListing,
@@ -291,8 +295,7 @@ const useListing = () => {
         refreshData,
         setSearchTerm,
         setActiveTab,
-        getFilteredListings,
-        setIsAuthenticated
+        getFilteredListings
     } as const
     )
 }

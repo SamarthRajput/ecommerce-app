@@ -1,42 +1,35 @@
-import { Request, Response, Router } from "express";
+// /controllers/buyerController.ts
+import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { signinSchema, signupSchema, updateProfileSchema } from "../lib/zod/BuyerZod";
-import { AuthenticatedRequest, requireBuyer } from "../middlewares/authBuyer";
-import { requireSeller } from "../middlewares/authSeller";
-export const buyerRouter = Router();
+import { AuthenticatedRequest } from "../middlewares/authBuyer";
+import { JWT_SECRET } from "../config";
+import { setAuthCookie } from "../utils/setAuthCookie";
 
-// Signup Route
-buyerRouter.post("/signup", async (req: Request, res: Response) => {
+export const signupBuyer = async (req: Request, res: Response) => {
     const body = req.body;
-    // doing input validation using zod
-    const { success } = signupSchema.safeParse(body);
-    if (!success) {
-        res.status(403).json({
-            message: "Inputs are Incorrect"
-        })
-        return;
-    }
 
-    // Check if buyer already exists or not
-    const existingBuyer = await prisma.buyer.findUnique({
-        where: {
-            email: body.email
-        }
-    });
-
-    if (existingBuyer) {
-        res.status(400).json({
-            message: "Buyer already Exists"
+    const validation = signupSchema.safeParse(body);
+    if (!validation.success) {
+        return res.status(400).json({
+            message: "Invalid input",
+            errors: validation.error.flatten().fieldErrors
         });
-        return;
     }
-
-    // Hashing the password before storing it to database
-    const hashPassword = await bcrypt.hash(body.password, 10);
 
     try {
+        const existingBuyer = await prisma.buyer.findUnique({
+            where: { email: body.email }
+        });
+
+        if (existingBuyer) {
+            return res.status(400).json({ message: "Buyer already exists" });
+        }
+
+        const hashPassword = await bcrypt.hash(body.password, 10);
+
         const buyer = await prisma.buyer.create({
             data: {
                 email: body.email,
@@ -52,30 +45,26 @@ buyerRouter.post("/signup", async (req: Request, res: Response) => {
             }
         });
 
-        // Generate the JWT secret
-        const token = jwt.sign({
-            buyerId: buyer.id
-        }, process.env.JWT_SECRET || "jwtsecret");
+        const token = jwt.sign({ buyerId: buyer.id }, JWT_SECRET, { expiresIn: "7d" });
 
-        res.json({
-            message: "Signed Up Successfully",
-            token: token,
-            _id: buyer.id
+        setAuthCookie({ res, token, cookieName: "BuyerToken" });
+
+        return res.status(201).json({
+            message: "Signup successful",
+            buyer: {
+                id: buyer.id,
+                email: buyer.email
+            }
         });
-        return;
-    }
-    catch (e) {
-        console.log(e);
-        res.status(411);
-        res.json({
-            message: "Invalid!"
-        })
-        return;
-    }
-});
 
-// Signin Route
-buyerRouter.post("/signin", async (req: Request, res: Response) => {
+    } catch (error) {
+        console.error("Signup Error:", error);
+        return res.status(500).json({ message: "Something went wrong" });
+    }
+};
+
+// Signin buyer
+export const signinBuyer = async (req: Request, res: Response) => {
     const body = req.body;
     const { success } = signinSchema.safeParse(body);
     if (!success) {
@@ -109,18 +98,26 @@ buyerRouter.post("/signin", async (req: Request, res: Response) => {
             return;
         }
 
-        const token = jwt.sign({
-            id: existingBuyer.id
-        }, process.env.JWT_SECRET || "jwtsecret");
+        const token = jwt.sign(
+            { buyerId: existingBuyer.id },
+            JWT_SECRET,
+            { expiresIn: "7d" }
+        );
 
-        res.json({
+        // Set the token in a cookie
+        setAuthCookie({ res, token, cookieName: "BuyerToken" });
+        res.status(200).json({
             message: "Signed in successfully",
-            token: token,
-            _id: existingBuyer.id,
-            firstName: existingBuyer.firstName,
-            lastName: existingBuyer.lastName
-        })
-        return;
+            buyer: {
+                id: existingBuyer.id,
+                firstName: existingBuyer.firstName,
+                lastName: existingBuyer.lastName,
+                email: existingBuyer.email,
+                city: existingBuyer.city,
+                country: existingBuyer.country
+            }
+        });
+
     }
     catch (e) {
         console.log(e);
@@ -129,10 +126,10 @@ buyerRouter.post("/signin", async (req: Request, res: Response) => {
         })
         return;
     }
-});
+}
 
-// get buyer details
-buyerRouter.get("/profile", requireBuyer, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+// Get buyer profile
+export const getBuyerProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const buyerId = req.buyer?.id;
 
@@ -166,7 +163,7 @@ buyerRouter.get("/profile", requireBuyer, async (req: AuthenticatedRequest, res:
             return;
         }
 
-        res.json({
+        res.status(200).json({
             message: "Profile received",
             buyer: {
                 id: buyer.id,
@@ -188,10 +185,11 @@ buyerRouter.get("/profile", requireBuyer, async (req: AuthenticatedRequest, res:
             error: "Server error"
         });
     }
-});
+};
 
-// update buyer details
-buyerRouter.put("/update", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
+// Update buyer profile
+export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Response) => {
+
     try {
         const buyerId = req.buyer?.id;
 
@@ -227,16 +225,13 @@ buyerRouter.put("/update", requireSeller, async (req: AuthenticatedRequest, res:
 
         // Update buyer profile
         const updateBuyer = await prisma.buyer.update({
-            where: {
-                id: buyerId
-            },
+            where: { id: buyerId },
             data: {
-                password: body.password,
                 firstName: body.firstName,
                 lastName: body.lastName,
-                phoneNumber: body.name,
+                phoneNumber: body.phoneNumber,
                 street: body.street,
-                state: body.name,
+                state: body.state,
                 city: body.city,
                 zipCode: body.zipCode,
                 country: body.country
@@ -244,7 +239,19 @@ buyerRouter.put("/update", requireSeller, async (req: AuthenticatedRequest, res:
         });
 
         res.json({
-            message: "Profile Updated successfully"
+            message: "Profile Updated successfully",
+            buyer: {
+                id: updateBuyer.id,
+                email: updateBuyer.email,
+                firstName: updateBuyer.firstName,
+                lastName: updateBuyer.lastName,
+                phoneNumber: updateBuyer.phoneNumber,
+                street: updateBuyer.street,
+                state: updateBuyer.state,
+                city: updateBuyer.city,
+                zipCode: updateBuyer.zipCode,
+                country: updateBuyer.country
+            }
         });
     }
     catch (error) {
@@ -253,43 +260,4 @@ buyerRouter.put("/update", requireSeller, async (req: AuthenticatedRequest, res:
             message: "Server error"
         })
     }
-});
-
-buyerRouter.get("/verify", requireBuyer, (req: AuthenticatedRequest, res: Response) => {
-    try {
-        if(!req.buyer){
-            res.status(401).json({
-                error: "Unauthorized"
-            });
-            return;
-        }
-        res.json({
-            message: "Buyer verified Successfullly",
-            buyer: {
-                id: req.buyer.id,
-                email: req.buyer.email
-            }
-        })
-    }
-    catch(error){
-        console.log(error);
-        res.status(501).json({
-            message: "server error"
-        })
-    };
-});
-
-buyerRouter.post("/logout", requireBuyer, (req: AuthenticatedRequest, res: Response) => {
-    try{
-        res.json({
-            message: "Buyer logged out successfully"
-        })
-        return;
-    }
-    catch(error){
-        console.log("Logout Error: " + error);
-        res.status(500).json({
-            error: "Server Error"
-        })
-    }
-});
+};

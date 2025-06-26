@@ -1,0 +1,35 @@
+import { Request, Response, Router } from "express";
+import { AuthenticatedRequest, requireBuyer } from "../middlewares/authBuyer";
+import { getBuyerProfile, signinBuyer, signupBuyer, updateBuyerProfile } from "../controllers/buyerController";
+
+export const buyerRouter = Router();
+
+// Signup Route
+buyerRouter.post("/signup", async (req: Request, res: Response) => {
+    await signupBuyer(req, res);
+});
+
+// Signin Route
+buyerRouter.post("/signin", async (req: Request, res: Response) => {
+    await signinBuyer(req, res);
+});
+
+// get buyer details
+buyerRouter.get("/profile", requireBuyer, async (req: AuthenticatedRequest, res: Response) => {
+    await getBuyerProfile(req, res);
+});
+
+// update buyer details
+buyerRouter.put("/update", requireBuyer, async (req: AuthenticatedRequest, res: Response) => {
+    await updateBuyerProfile(req, res);
+});
+
+buyerRouter.post("/logout", requireBuyer, (req, res) => {
+    res.clearCookie("BuyerToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/" // Ensure the path matches where the cookie was set
+    });
+    res.status(200).json({ message: "Logged out successfully" });
+});

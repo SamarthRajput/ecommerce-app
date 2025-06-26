@@ -1,3 +1,4 @@
+// src/app/admin/listings/page.tsx
 "use client";
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +17,6 @@ import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const ListingsManagement = () => {
-  const router = useRouter();
   const {
     pendingListings,
     activeListings,
@@ -30,7 +30,6 @@ const ListingsManagement = () => {
     searchTerm,
     activeTab,
     stats,
-    isAuthenticated,
     setSelectedListing,
     setShowViewModal,
     setShowRejectModal,
@@ -44,34 +43,7 @@ const ListingsManagement = () => {
     setActiveTab,
     getFilteredListings } = useListing();
 
-  // Authentication check
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-8 text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-            <p className="text-gray-600 mb-4">You need manager privileges to access this page.</p>
-            <Button onClick={() => window.location.reload()}>
-              Try Again
-            </Button>
-            {/* // log in as manager */}
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => {
-                router.push('/admin/signin');
-              }}
-            >
-              Log in as Manager
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
+ 
   const renderListingCard = (listing: Listing) => (
     <Card key={listing.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-transparent hover:border-l-blue-500">
       <CardHeader className="pb-3">

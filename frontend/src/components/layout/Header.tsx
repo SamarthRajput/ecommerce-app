@@ -1,152 +1,231 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Search, ShoppingCart, User, Bell, Menu } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
+import { Search, ShoppingCart, User, Bell, Menu, X, LogOut, Settings, Package, MessageSquare, FileText, Plus, BarChart3 } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/src/context/AuthContext";
+import { useState } from "react";
 
 export function Header() {
   const router = useRouter();
-
-  const handleBuyerLogin = () => router.push('/buyer/signin');
-  const handleSellerLogin = () => router.push('/seller/signin');
-  const handleAbout = () => router.push('/about');
-  const handleContact = () => router.push('/contact');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const pathname = usePathname();
-  const isBuyerPath = pathname?.startsWith('/buyer') ?? false;
-  const isSellerPath = pathname?.startsWith('/seller') ?? false;
+  const { authenticated, role, user, isSeller, isBuyer, logout, refetch } = useAuth();
+
+  const handleSignOut = () => {
+    logout();
+  };
+
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
+  // Navigation items for different user types (now for dropdown only)
+  const getNavigationItems = () => {
+    if (isBuyer) {
+      return [
+        { href: "/buyer/dashboard", label: "Dashboard", icon: BarChart3 },
+        { href: "/buyer/orders", label: "My Orders", icon: Package },
+        { href: "/buyer/requests", label: "My Requests", icon: FileText },
+        { href: "/buyer/chat", label: "Messages", icon: MessageSquare },
+      ];
+    }
+
+    if (isSeller) {
+      return [
+        { href: "/seller/dashboard", label: "Dashboard", icon: BarChart3 },
+        { href: "/seller/listings", label: "My Listings", icon: Package },
+        { href: "/seller/create-listing", label: "Create Listing", icon: Plus },
+        { href: "/seller/orders", label: "Orders", icon: FileText },
+        { href: "/seller/chat", label: "Messages", icon: MessageSquare },
+      ];
+    }
+
+    return [];
+  };
+
+  const navigationItems = getNavigationItems();
+
+  // Public navigation - always visible
+  const publicNavigation = [
+    { href: "/#features", label: "Features" },
+    { href: "/#how-it-works", label: "How It Works" },
+    { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
+  ];
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center hover:cursor-pointer" onClick={() => router.push('/')}>
-            <div className="text-2xl font-bold text-gray-900">
+          <div
+            className="flex items-center hover:cursor-pointer flex-shrink-0"
+            onClick={() => router.push('/')}
+          >
+            <div className="text-xl sm:text-2xl font-bold text-gray-900">
               <span className="text-orange-600">Trade</span>Connect
             </div>
           </div>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-gray-600 hover:text-orange-600 transition-colors">
-              Features
-            </a>
-            <a href="#how-it-works" className="text-gray-600 hover:text-orange-600 transition-colors">
-              How It Works
-            </a>
-            <button
-              onClick={handleAbout}
-              className="text-gray-600 hover:text-orange-600 transition-colors"
-            >
-              About
-            </button>
-            <button
-              onClick={handleContact}
-              className="text-gray-600 hover:text-orange-600 transition-colors"
-            >
-              Contact
-            </button>
+          {/* Desktop Navigation - Always show public navigation */}
+          <nav className="hidden lg:flex items-center space-x-6">
+            {publicNavigation.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="text-gray-600 hover:text-orange-600 transition-colors text-sm font-medium"
+              >
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
-          {/* Auth Buttons */}
-          <div className="flex items-center space-x-3">
-            {isBuyerPath ? (
+          {/* Right Side Actions */}
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {authenticated ? (
               <>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-2">
-                      <User className="h-5 w-5" />
-                      <span>Buyer Portal</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href="/buyer/dashboard">Dashboard</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/buyer/orders">My Orders</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/buyer/requests">My Requests</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/buyer/chat">Chat</Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <Button variant="ghost" size="icon" className="relative">
+                {/* Notifications */}
+                <Button variant="ghost" size="icon" className="relative hidden sm:flex">
                   <Bell className="h-5 w-5" />
                   <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
                 </Button>
 
-                <Button variant="ghost" size="icon" className="relative">
-                  <ShoppingCart className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    0
-                  </span>
-                </Button>
-              </>
-            ) : isSellerPath ? (
-              <>
+                {/* Shopping Cart (Buyer only) */}
+                {isBuyer && (
+                  <Button variant="ghost" size="icon" className="relative hidden sm:flex">
+                    <ShoppingCart className="h-5 w-5" />
+                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      0
+                    </span>
+                  </Button>
+                )}
+
+                {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-2">
+                    <Button variant="ghost" className="flex items-center gap-2 px-2 sm:px-3">
                       <User className="h-5 w-5" />
-                      <span>Seller Portal</span>
+                      <span className="hidden sm:inline text-sm font-medium">
+                        {user?.name || user?.email?.split('@')[0] || 'User'}
+                      </span>
+                      <span className="hidden md:inline text-xs text-gray-500 capitalize">
+                        ({role})
+                      </span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-56">
+                    <div className="px-2 py-1.5 text-sm text-gray-700">
+                      <div className="font-medium">{user?.name || 'User'}</div>
+                      <div className="text-xs text-gray-500">{user?.email}</div>
+                    </div>
+                    <DropdownMenuSeparator />
+
+                    {/* Role-specific Navigation Items */}
+                    {navigationItems.length > 0 && (
+                      <>
+                        {navigationItems.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <DropdownMenuItem key={item.label} asChild>
+                              <Link
+                                href={item.href}
+                                className={`flex items-center gap-2 ${pathname === item.href ? "bg-orange-50 text-orange-600" : ""
+                                  }`}
+                              >
+                                <Icon className="h-4 w-4" />
+                                {item.label}
+                              </Link>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+
                     <DropdownMenuItem asChild>
-                      <Link href="/seller/dashboard">Dashboard</Link>
+                      <Link href={`/${role}/settings`} className="flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        Settings
+                      </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/seller/listings">My Listings</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/seller/create-listing">Create Listing</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/seller/orders">Orders</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/seller/chat">Chat</Link>
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign Out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-                </Button>
               </>
             ) : (
               <>
-                <Button asChild variant="ghost">
-                  <Link href="/buyer/signin">Sign In as Buyer</Link>
-                </Button>
-                <Button asChild variant="ghost">
-                  <Link href="/seller/signin">Sign In as Seller</Link>
-                </Button>
+                {/* Sign In Buttons */}
+                <div className="hidden sm:flex items-center space-x-2">
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href="/buyer/signin">Buyer</Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href="/seller/signin">Seller</Link>
+                  </Button>
+                </div>
+
+                {/* Mobile Sign In Dropdown */}
+                <div className="sm:hidden">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        Sign In
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link href="/buyer/signin">Sign In as Buyer</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/seller/signin">Sign In as Seller</Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </>
             )}
 
-            {/* Mobile Menu Button */}
-            <button className="md:hidden p-2 text-gray-600 hover:text-orange-600">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
+            {/* Mobile Menu Button - Always show for public navigation */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu - Always show public navigation */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden mt-4 pb-4 border-t border-gray-200">
+            <nav className="flex flex-col space-y-2 pt-4">
+              {publicNavigation.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="text-gray-600 hover:text-orange-600 transition-colors py-2 px-3 rounded-md hover:bg-gray-50"
+                  onClick={closeMobileMenu}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );
-} 
+}
