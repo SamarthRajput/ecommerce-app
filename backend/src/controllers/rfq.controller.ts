@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import jwt from "jsonwebtoken";
-import { connect } from "http2";
 
 interface BuyerTokenPayload {
     id: string;
