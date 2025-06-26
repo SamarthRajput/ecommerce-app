@@ -1,20 +1,8 @@
 "use client";
-import React from 'react';
-import {
-    BarChart3,
-    Settings,
-    Users,
-    Package,
-    FileText,
-    LogOut,
-    Bell,
-    Search,
-    Menu,
-    Home,
-    Loader2,
-    HomeIcon,
-    MessageSquare
-} from 'lucide-react';
+import React, { useEffect } from 'react';
+import { BarChart3, Settings, Users, Package, FileText, LogOut, Bell, Search, Menu, Home, Loader2, HomeIcon, MessageSquare } from 'lucide-react';
+import { useAuth } from '@/src/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const quickLinks = [
     { href: '/admin/listings', label: 'Manage Listings', icon: Package, description: 'Add, edit, and manage property listings' },
@@ -34,91 +22,72 @@ interface AdminUser {
 
 const AdminDashboard = () => {
     const [isLoading, setIsLoading] = React.useState(false);
-    const [isLoggedIn, setIsLoggedIn] = React.useState(false);
     const [user, setUser] = React.useState<AdminUser | null>(null);
     const [success, setSuccess] = React.useState('');
     const [error, setError] = React.useState('');
+    const { authenticated, role, user: loggedInUser, isSeller, loading, isBuyer, logout } = useAuth();
+    const router = useRouter();
 
-    React.useEffect(() => {
-        checkAuthStatus();
-    }, []);
-
-    const checkAuthStatus = async () => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
-            setIsLoggedIn(false);
-            return;
+    useEffect(() => {
+        if (isSeller || isBuyer) {
+            setError('You do not have access to the admin dashboard. Please log in as an admin.');
+            logout();
+            router.push('/admin/signin');
         }
-
-        try {
-            const response = await fetch('http://localhost:3001/api/v1/auth/admin/verify', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+        if (loggedInUser) {
+            setUser({
+                name: loggedInUser.name ?? '',
+                email: loggedInUser.email ?? '',
+                role: role || '', // fallback to empty string if role is undefined
+                // add other properties as needed
             });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    setIsLoggedIn(true);
-                    setUser(data.data.user);
-                }
-            } else {
-                localStorage.removeItem('adminToken');
-                setIsLoggedIn(false);
-            }
-        } catch (error) {
-            console.error('Auth check failed:', error);
-            localStorage.removeItem('adminToken');
-            setIsLoggedIn(false);
-        }
-    };
-
-    const handleLogout = async () => {
-        setIsLoading(true);
-
-        try {
-            const token = localStorage.getItem('adminToken');
-
-            await fetch('http://localhost:3001/api/v1/auth/admin/logout', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-        } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
-            localStorage.removeItem('adminToken');
-            setIsLoggedIn(false);
+        } else {
             setUser(null);
-            setIsLoading(false);
-            setSuccess('Logged out successfully.');
         }
-    };
+        // if (!authenticated) {
+        //     setError('You are not authenticated. Please log in.');
+        // } else if (role !== 'admin') {
+        //     setError('Access denied. Admins only.');
+        // }
+    }, [authenticated, role, loggedInUser]);
 
-    if (!isLoggedIn) {
+    if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <div className="max-w-md w-full bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Home className="w-8 h-8 text-gray-600" />
-                    </div>
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-2">Access Required</h2>
-                    <p className="text-gray-600 mb-6">Please log in to access the admin dashboard.</p>
-                    <a
-                        href="/admin/signin"
-                        className="inline-flex items-center justify-center w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-4 rounded-md transition duration-200"
-                    >
-                        Go to Login
-                    </a>
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 animate-spin text-gray-600" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-md">
+                    <p className="text-sm">{error}</p>
                 </div>
             </div>
         );
     }
+    const handleLogout = async () => {
+        setIsLoading(true);
+
+        try {
+
+            await fetch('http://localhost:3001/api/v1/auth/admin/logout', {
+                method: 'POST',
+                credentials: 'include',
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            setUser(null);
+            setIsLoading(false);
+            setSuccess('Logged out successfully.');
+            setTimeout(() => {
+                router.push('/admin/signin');
+            }, 2000); // Redirect after 2 seconds
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50">

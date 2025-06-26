@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '../routes/adminAuthRouter';
+import { JWT_SECRET } from '../config';
 import { prisma } from '../lib/prisma';
 
 declare global {
@@ -8,78 +8,63 @@ declare global {
         interface Request {
             user?: {
                 userId: string;
-                role?: string;
-                [key: string]: any;
+                role: string;
+                email?: string;
             };
         }
     }
 }
 
-interface User {
-    id: string;
-    role: string;
-    email: string;
-}
-
 export async function requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-        const JWT_SECRET = process.env.JWT_SECRET as string;
-        if (!JWT_SECRET) {
-            res.status(500).json({
-                success: false,
-                error: 'Server configuration error. JWT secret is not set.'
-            });
-            return;
-        }
-        
-        // Check if user is authenticated
-        const authHeader = req.headers.authorization;
-        const token = authHeader && authHeader.startsWith('Bearer ')
-            ? authHeader.substring(7)
-            : null;
+        const token = req.cookies?.AdminToken;
 
         if (!token) {
             res.status(401).json({
                 success: false,
-                error: 'Access denied. Please log in as a manager.'
+                error: 'Access denied. Admin token missing.'
             });
             return;
         }
 
-        // Verify JWT token
-        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        // Verify JWT
+        const decoded = jwt.verify(token, JWT_SECRET) as {
+            userId: string;
+            role: string;
+            email?: string;
+        };
 
-        // Check if user still exists and is admin
+        // Check if user exists and is an admin
         const adminUser = await prisma.user.findUnique({
             where: { id: decoded.userId },
             select: {
                 id: true,
-                name: true,
-                email: true,
                 role: true,
-                createdAt: true
+                email: true
             }
         });
 
         if (!adminUser || adminUser.role !== 'admin') {
-            res.status(401).json({
+            res.status(403).json({
                 success: false,
-                error: 'Invalid or expired token. You must be an admin to access this resource.'
+                error: 'Forbidden. You must be an admin to access this resource.'
             });
             return;
         }
 
+        // Attach user to request
+        req.user = {
+            userId: adminUser.id,
+            role: adminUser.role,
+            email: adminUser.email
+        };
+
         next();
     } catch (error) {
-        console.error('Manager authentication error:', error);
-        res.status(500).json({
+        console.error('Admin auth error:', error);
+        res.status(403).json({
             success: false,
-            error: 'Internal server error during authentication.'
+            error: 'Invalid or expired admin token.'
         });
     }
 }
-
-// Clean up Prisma connection
-process.on('beforeExit', async () => {
-    await prisma.$disconnect();
-});
