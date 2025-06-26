@@ -211,7 +211,7 @@ const BuyerDashboard = () => {
                     loading,
                     error
                 })}
-                {currentView === 'overview' && <OverviewTab />}
+                {currentView === 'overview' && buyer?.id && <OverviewTab buyerId={buyer?.id} />}
             </main>
         </div>
     );

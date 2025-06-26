@@ -33,10 +33,12 @@ export const createRFQ = async (req: Request, res: Response) => {
         
         const getBuyerIdFromToken = (token: string): string => {
             const decoded = jwt.verify(token, process.env.JWT_SECRET || "jwtsecret") as BuyerTokenPayload;
+            console.log(decoded);
             return decoded.id; 
         };
         
     const actualBuyerId = getBuyerIdFromToken(buyerId);
+    console.log(actualBuyerId);
     const buyerExists = await prisma.buyer.findUnique({
         where: { id: actualBuyerId }
     });
