@@ -11,6 +11,7 @@ const Header = () => {
                     <p>Welcome, {user?.name || user?.email}</p>
                     {isSeller && <p>You are logged in as Seller</p>}
                     {isAdmin && <p>Admin Panel</p>}
+                    {isBuyer && <p>You are logged in as Buyer</p>}
                 </>
             ) : (
                 <>

@@ -89,6 +89,7 @@ export function ListingForm({ token }: { token: string }) {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
+                credentials: 'include', // Include cookies in the request
                 body: JSON.stringify(data),
             });
             console.log("Response status:", response.status);
