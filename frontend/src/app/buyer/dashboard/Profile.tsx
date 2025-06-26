@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Edit3, User, Building, Phone, FileText, MapPin } from 'lucide-react';
+import React  from 'react';
+import { Edit3, User, Phone, MapPin } from 'lucide-react';
 import {  BuyerDetails } from '@/src/lib/types/buyer';
 
 const renderProfile = ({ buyer, isEditing, setIsEditing, profileForm, setProfileForm, handleUpdateProfile, loading, error }: {
