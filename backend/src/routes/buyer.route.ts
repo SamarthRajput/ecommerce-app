@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { AuthenticatedRequest, requireBuyer } from "../middlewares/authBuyer";
-import { getBuyerProfile, signinBuyer, signupBuyer, updateBuyerProfile } from "../controllers/buyerController";
+import { getBuyerProfile, signinBuyer, signupBuyer, updateBuyerProfile, verifyBuyerProfile } from "../controllers/buyerController";
 
 export const buyerRouter = Router();
 
@@ -23,6 +23,12 @@ buyerRouter.get("/profile", requireBuyer, async (req: AuthenticatedRequest, res:
 buyerRouter.put("/update", requireBuyer, async (req: AuthenticatedRequest, res: Response) => {
     await updateBuyerProfile(req, res);
 });
+
+// verify buyer details
+buyerRouter.get("/verify", requireBuyer, async (req: AuthenticatedRequest, res: Response) => {
+    await verifyBuyerProfile(req, res);
+})
+
 
 buyerRouter.post("/logout", requireBuyer, (req, res) => {
     res.clearCookie("BuyerToken", {

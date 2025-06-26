@@ -30,7 +30,7 @@ interface RFQDetails {
 }
 
 interface OverviewTabProps {
-  buyerId: string;
+  buyerId?: string;
 }
 
 export const OverviewTab = ({ buyerId }: OverviewTabProps) => {
@@ -56,7 +56,8 @@ export const OverviewTab = ({ buyerId }: OverviewTabProps) => {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
-          }
+          },
+          credentials: 'include', // Include cookies in the request
         });
 
         if (!response.ok) {
@@ -229,7 +230,7 @@ export const OverviewTab = ({ buyerId }: OverviewTabProps) => {
           <CardFooter className="flex justify-between">
             <Button variant="outline">View All RFQs</Button>
             <Button asChild>
-              <Link href={'/dashboard'}>Create New RFQ</Link>
+              <Link href={'/products'}>Create New RFQ</Link>
             </Button>
           </CardFooter>
         </Card>

@@ -261,3 +261,27 @@ export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Respons
         })
     }
 };
+
+export const verifyBuyerProfile = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        if(!req.buyer){
+            res.status(401).json({
+                error: "Unauthorized"
+            });
+            return;
+        }
+        res.json({
+            message: "Buyer verified Successfullly",
+            buyer: {
+                id: req.buyer.id,
+                email: req.buyer.email
+            }
+        })
+    }
+    catch(error){
+        console.log(error);
+        res.status(501).json({
+            message: "server error"
+        })
+    };
+}

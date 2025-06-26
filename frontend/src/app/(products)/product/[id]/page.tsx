@@ -1,9 +1,9 @@
 // src: frontend/src/app/product/[id]/page.tsx
-// This page will display individual product details based on the product ID in the URL
-
 "use client";
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 interface Product {
@@ -166,6 +166,15 @@ const IndividualProductPage = () => {
                                     </div>
                                 </div>
                             </div>
+                            <div style={{ marginTop: 24 }}>
+                                <div className="flex gap-4">
+                                    <Button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors" asChild size="lg">
+                                        <Link href={`/buyer/request-quote/${product.id}`}>
+                                            Request RFQ
+                                        </Link>
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     {product.specifications && (
@@ -206,7 +215,6 @@ const IndividualProductPage = () => {
                             <p>Be the first to review this product!</p>
                         </div>
                     )}
-
                 </>
             )}
         </div>
