@@ -12,7 +12,6 @@ const API_BASE_URL = `${API_BACKEND_URL}/buyer`;
 
 const BuyerDashboard = () => {
     const [buyer, setBuyer] = useState<BuyerDetails | null>(null);
-    const [token, setToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [isEditing, setIsEditing] = useState(false);
@@ -33,44 +32,16 @@ const BuyerDashboard = () => {
     });
 
     useEffect(() => {
-        const savedToken = localStorage.getItem('buyerToken');
-        if (savedToken) {
-            setToken(savedToken);
-            verifyToken(savedToken);
-        }
+        fetchProfile();
     }, []);
 
-    const verifyToken = async (tokenToVerify: string) => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/verify`, {
-                headers: { Authorization: `Bearer ${tokenToVerify}` }
-            });
-            if (response.ok) {
-                fetchProfile(tokenToVerify);
-            } else {
-                localStorage.removeItem('buyerToken');
-                router.push('/buyer/signin');
-            }
-        } catch (err) {
-            localStorage.removeItem('buyerToken');
-            router.push('/buyer/signin');
-            setError('Failed to verify token. Please sign in again.');
-        } finally {
-            setDashboardLoading(false);
-        }
-    };
-
-    const fetchProfile = async (tokenToUse = token) => {
+    const fetchProfile = async () => {
         setDashboardLoading(true);
         setError('');
         try {
-            if (!tokenToUse) {
-                toast.error('Please sign in to access your dashboard');
-                router.push('/buyer/signin');
-                return;
-            }
             const response = await fetch(`${API_BASE_URL}/profile`, {
-                headers: { Authorization: `Bearer ${tokenToUse}` }
+                method: 'GET',
+                credentials: 'include',
             });
 
             if (response.ok) {
@@ -105,42 +76,43 @@ const BuyerDashboard = () => {
     };
 
     const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>) => {
-            e.preventDefault();
-            setLoading(true);
-            setError('');
-    
-            try {
-                const response = await fetch(`${API_BASE_URL}/details`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`
-                    },
-                    body: JSON.stringify(profileForm)
-                });
-    
-                const data = await response.json();
-    
-                if (response.ok) {
-                    setBuyer(data.seller);
-                    setIsEditing(false);
-                    setError('Profile updated successfully');
-                    setTimeout(() => setError(''), 3000);
-                } else {
-                    setError(data.error || 'Update failed');
-                }
-            } catch (err) {
-                setError('Network error. Please try again.');
-            } finally {
-                setLoading(false);
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/details`, {
+                method: 'PUT',
+                credentials: 'include',
+                body: JSON.stringify(profileForm)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setBuyer(data.seller);
+                setIsEditing(false);
+                setError('Profile updated successfully');
+                setTimeout(() => setError(''), 3000);
+            } else {
+                setError(data.error || 'Update failed');
             }
+        } catch (err) {
+            setError('Network error. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
-    
+
 
     const handleLogout = () => {
-        localStorage.removeItem('buyerToken');
-        setToken(null);
-        setBuyer(null);
+        const response = fetch(`${API_BASE_URL}/logout`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
         router.push('/buyer/signin');
     };
 
@@ -227,21 +199,7 @@ const BuyerDashboard = () => {
 
     return (
         <>
-            {token ? (
-                renderDashboard()
-            ) : (
-                <div className="flex items-center justify-center min-h-screen">
-                    <div className="text-center">
-                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Please sign in to access your dashboard</h2>
-                        <button
-                            onClick={() => router.push('/buyer/signin')}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                        >
-                            Sign In
-                        </button>
-                    </div>
-                </div>
-            )}
+            {renderDashboard()}
         </>
     );
 }

@@ -7,8 +7,8 @@ import { LoginFormData, LoginResponse } from '@/src/lib/types/buyer';
 
 const BuyerSignIn = () => {
     const [formData, setFormData] = useState<LoginFormData>({
-        email: '',
-        password: ''
+        email: 'rohitkuyada@gmail.com',
+        password: '123456789'
     });
     const [error, setError] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
@@ -27,14 +27,15 @@ const BuyerSignIn = () => {
         setError('');
         setLoading(true);
 
-        try {   
+        try {
             const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
             console.log(BASE_URL);
             const response = await fetch(`${BASE_URL}/buyer/signin`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                },
+                },// header are added to specify the content typey
                 body: JSON.stringify(formData),
             });
 
@@ -44,12 +45,8 @@ const BuyerSignIn = () => {
                 throw new Error(data.message || 'Login failed');
             }
 
-            // Store token in localStorage
-            localStorage.setItem('buyerToken', data.token);
-            localStorage.setItem('buyerId', data._id);
-
             alert(`Welcome back, ${data.firstName}!`);
-            router.push('/dashboard');
+            // router.push('/dashboard');
 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Login failed');

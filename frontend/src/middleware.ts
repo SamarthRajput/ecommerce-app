@@ -1,58 +1,76 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
+const secret = new TextEncoder().encode(JWT_SECRET);
 
-// Define route patterns
+// Public routes
 const publicRoutes = [
-    '/', '/seller-signin', '/buyer-signin', '/admin-signin',
-    '/signup', '/about', '/contact', '/privacy-policy', '/terms-of-service'
+    '/', '/about', '/contact', '/terms', '/privacy',
+    '/seller/forgot-password', '/buyer/forgot-password'
 ];
 
-// Will improve this later to use a more dynamic approach
-const roleConfigs = [
+// Role-based route configuration
+const roles = [
     {
         role: 'admin',
-        routes: ['/admin', '/admin/dashboard'],
         tokenName: 'AdminToken',
         idKey: 'userId',
-        loginPath: '/admin-signin'
+        dashboard: '/admin/',
+        loginPages: ['/admin/signin', '/admin/signup'],
+        protectedPrefixes: ['/admin']
     },
     {
         role: 'seller',
-        routes: ['/seller', '/seller/dashboard', '/seller/listings'],
         tokenName: 'SellerToken',
         idKey: 'sellerId',
-        loginPath: '/seller-signin'
+        dashboard: '/seller/dashboard',
+        loginPages: ['/seller/signin', '/seller/signup'],
+        protectedPrefixes: ['/seller']
     },
     {
         role: 'buyer',
-        routes: ['/buyer', '/buyer/dashboard', '/buyer/orders'],
         tokenName: 'BuyerToken',
         idKey: 'buyerId',
-        loginPath: '/buyer-signin'
+        dashboard: '/buyer/dashboard',
+        loginPages: ['/buyer/signin', '/buyer/signup'],
+        protectedPrefixes: ['/buyer']
     }
 ];
 
 export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
-    console.log('Middleware triggered for:', pathname);
 
-    // Allow public routes
-    if (publicRoutes.some(route => pathname.startsWith(route))) {
+    // Allow all public routes
+    if (publicRoutes.includes(pathname)) {
         return NextResponse.next();
     }
 
-    // Role-based protection
-    for (const { routes, tokenName, idKey, loginPath } of roleConfigs) {
-        if (routes.some(route => pathname.startsWith(route))) {
-            const token = req.cookies.get(tokenName)?.value;
+    // Role-based route handling
+    for (const { role, tokenName, idKey, dashboard, loginPages, protectedPrefixes } of roles) {
+        const token = req.cookies.get(tokenName)?.value;
 
-            if (!token || !verifyToken(token, idKey)) {
-                console.warn(`Unauthorized access to ${pathname}, redirecting to ${loginPath}`);
-                return NextResponse.redirect(new URL(loginPath, req.url));
-            }
+        const isLoginPage = loginPages.includes(pathname);
+        const isProtectedRoute = protectedPrefixes.some(prefix =>
+            pathname.startsWith(prefix) && !loginPages.includes(pathname) // exclude login/signup
+        );
 
+        const isValid = token && await isValidToken(token, idKey);
+
+        // Block login/signup if already logged in
+        if (isLoginPage && isValid) {
+            return NextResponse.redirect(new URL(dashboard, req.url));
+        }
+
+        // If route is protected but not logged in → redirect to login
+        if (isProtectedRoute && !isValid) {
+            const loginUrl = new URL(loginPages[0], req.url);
+            loginUrl.searchParams.set('redirect', 'dashboard');
+            return NextResponse.redirect(loginUrl);
+        }
+
+        // If protected and logged in → allow
+        if (isProtectedRoute && isValid) {
             return NextResponse.next();
         }
     }
@@ -61,27 +79,18 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
 }
 
-// Helper: Verify token and check for required ID field
-function verifyToken(token: string, expectedIdKey: string): boolean {
+// JWT validation for Edge Runtime
+async function isValidToken(token: string, expectedIdKey: string): Promise<boolean> {
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as any;
-        return !!decoded[expectedIdKey];
-    } catch (err: any) {
-        console.error('JWT verification failed:', err.message);
+        const { payload } = await jwtVerify(token, secret);
+        return payload && expectedIdKey in payload;
+    } catch {
         return false;
     }
 }
 
 export const config = {
     matcher: [
-        '/',
-        '/seller/:path*',
-        '/buyer/:path*',
-        '/admin/:path*',
-        '/signup',
-        '/about',
-        '/contact',
-        '/privacy-policy',
-        '/terms-of-service'
+        '/((?!_next|favicon.ico|sw\\.js).*)'
     ]
 };
