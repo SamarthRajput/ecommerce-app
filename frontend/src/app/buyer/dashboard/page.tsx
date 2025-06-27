@@ -133,7 +133,7 @@ const EnhancedBuyerDashboard = () => {
     const [error, setError] = useState<string | null>(null);
 
     const router = useRouter();
-    
+
     // State and handlers for profile editing
     const [isEditing, setIsEditing] = useState(false);
     const [profileForm, setProfileForm] = useState<any>(buyer);
@@ -172,7 +172,7 @@ const EnhancedBuyerDashboard = () => {
             router.push('/buyer/signin');
             return;
         }
-        
+
         initializeDashboard();
     }, [user, isBuyer]);
 
@@ -198,8 +198,7 @@ const EnhancedBuyerDashboard = () => {
     const fetchProfile = async () => {
         try {
             const response = await fetch(`${API_BASE_URL}/profile`, {
-                method: 'GET',
-                credentials: 'include',
+                credentials: 'include'
             });
 
             if (response.ok) {
@@ -241,59 +240,37 @@ const EnhancedBuyerDashboard = () => {
     //         console.error('Error fetching dashboard stats:', error);
     //     }
     // };
-    
-    const fetchRFQs = async () => {    
-    const buyerId = buyer?.id;
-      try {
-        const token = localStorage.getItem('buyerToken');
-        if (!token) {
-          throw new Error('Authentication token not found');
+
+    const fetchRFQs = async () => {
+        const buyerId = buyer?.id;
+        try {
+            const token = localStorage.getItem('buyerToken');
+            if (!token) {
+                throw new Error('Authentication token not found');
+            }
+
+            const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${BASE_URL}/rfq/buyer/${buyerId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include', // Include cookies in the request
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to fetch RFQs');
+            }
+
+            const data = await response.json();
+            setRfqs(data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        } finally {
+            setLoading(false);
         }
-
-        const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${BASE_URL}/rfq/buyer/${buyerId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include', // Include cookies in the request
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Failed to fetch RFQs');
-        }
-
-        const data = await response.json();
-        setRfqs(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
-      } finally {
-        setLoading(false);
-      }
     };
-
-
-    const handleLogout = () => {
-        const response = fetch(`${API_BASE_URL}/logout`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        router.push('/buyer/signin');
-    };
-
-    const renderDashboard = () => (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center">
-                            <Building className="text-blue-600 mr-3" size={24} />
-                            <h1 className="text-xl font-semibold text-gray-800">Buyer Dashboard</h1>
 
     // const fetchOrders = async () => {
     //     try {
