@@ -18,7 +18,7 @@ const roles = [
         idKey: 'userId',
         dashboard: '/admin/',
         loginPages: ['/admin/signin', '/admin/signup'],
-        protectedPrefixes: ['/admin']
+        protectedPrefixes: ['/admin', '/admin/users', '/admin/products', '/admin/orders','/admin/chats']
     },
     {
         role: 'seller',
@@ -62,7 +62,7 @@ export async function middleware(req: NextRequest) {
             return NextResponse.redirect(new URL(dashboard, req.url));
         }
 
-        // If route is protected but not logged in → redirect to login
+        // If route is protected but not logged in ---> redirect to login
         if (isProtectedRoute && !isValid) {
             const loginUrl = new URL(loginPages[0], req.url);
             loginUrl.searchParams.set('redirect', 'dashboard');

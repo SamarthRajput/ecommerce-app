@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../config";
+import { DEFAULT_ADMIN_ID, JWT_SECRET } from "../config";
 
 interface BuyerTokenPayload {
     id: string;
@@ -10,8 +10,17 @@ interface BuyerTokenPayload {
 
 // POST /rfq
 export const createRFQ = async (req: Request, res: Response) => {
-    const { productId, buyerId, quantity, message } = req.body;
-    console.log('Received buyerId:', buyerId);
+    console.log('Creating RFQ with body:', req.body);
+    const { productId, quantity, message } = req.body;
+    const buyerId = req.user?.userId;
+    console.log('Buyer ID from request:', buyerId);
+    if (!buyerId) {
+        res.status(401).json({
+            message: 'Unauthorized: Buyer ID is required'
+        });
+        return;
+    }
+    
     console.log('Received productId:', productId);
     if (!productId || !quantity) {
         res.status(400).json({
@@ -31,20 +40,13 @@ export const createRFQ = async (req: Request, res: Response) => {
         return;
     }
 
-    const getBuyerIdFromToken = (token: string): string => {
-        const decoded = jwt.verify(token, JWT_SECRET) as BuyerTokenPayload;
-        console.log(decoded);
-        return decoded.id;
-    };
-
-    const actualBuyerId = getBuyerIdFromToken(buyerId);
-    console.log(actualBuyerId);
+    console.log(buyerId);
     const buyerExists = await prisma.buyer.findUnique({
-        where: { id: actualBuyerId }
+        where: { id: buyerId }
     });
 
     if (!buyerExists) {
-        throw new Error(`Buyer with ID ${actualBuyerId} not found`);
+        throw new Error(`Buyer with ID ${buyerId} not found`);
     }
 
 
@@ -58,7 +60,7 @@ export const createRFQ = async (req: Request, res: Response) => {
                 },
                 buyer: {
                     connect: {
-                        id: actualBuyerId
+                        id: buyerId
                     }
                 },
                 quantity,
@@ -66,6 +68,16 @@ export const createRFQ = async (req: Request, res: Response) => {
                 status: "PENDING"
             }
         });
+        // Create a chatroom for the RFQ between the buyer and admin
+        await prisma.chatRoom.create({
+            data: {
+                rfqId: rfq.id,
+                type: 'BUYER',
+                buyerId: buyerId,
+                adminId: DEFAULT_ADMIN_ID
+            }
+        });
+
         res.status(201).json({
             data: rfq
         });

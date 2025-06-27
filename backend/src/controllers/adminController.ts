@@ -4,12 +4,16 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { JWT_SECRET, JWT_EXPIRES_IN } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
+import { requireAdmin } from "../middlewares/authAdmin";
+import { adminRouter } from "../routes/admin";
+import { Prisma } from "@prisma/client";
 
 interface SigninBody {
     email: string;
     password: string;
 }
 
+// Admin Signin Route
 export const adminSignin = async (req: Request, res: Response) => {
     try {
         // Validate presence of body
@@ -111,6 +115,7 @@ export const adminSignin = async (req: Request, res: Response) => {
     }
 };
 
+// General me route
 export const meRoute = async (req: Request, res: Response) => {
     try {
         console.log('Checking authentication for user...');
@@ -165,6 +170,15 @@ export const meRoute = async (req: Request, res: Response) => {
 
         if (!user) {
             console.warn(`User not found for ID: ${userId}, Role: ${role}`);
+            // Clear the cookie if user not found
+            if (role === 'seller') {
+                res.clearCookie('SellerToken');
+            } else if (role === 'buyer') {
+                res.clearCookie('BuyerToken');
+            } else if (role === 'admin') {
+                res.clearCookie('AdminToken');
+            }
+            console.warn('Cleared cookie for invalid user session');
             return res.status(404).json({ authenticated: false, error: "User not found" });
         }
 
@@ -189,5 +203,132 @@ export const meRoute = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error in meRoute:', error);
         res.status(401).json({ authenticated: false, error: 'Unauthorized or invalid token' });
+    }
+};
+
+// get all sellers
+export const getAllSellers = async (req: Request, res: Response) => {
+    try {
+        const sellers = await prisma.seller.findMany({
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                businessName: true,
+                businessType: true,
+                phone: true,
+                street: true,
+                city: true,
+                state: true,
+                zipCode: true,
+                country: true,
+                taxId: true,
+                createdAt: true,
+                updatedAt: true
+            }
+        });
+        res.json({
+            success: true,
+            data: sellers
+        });
+    } catch (error) {
+        console.error('Error fetching sellers:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch sellers'
+        });
+    }
+};
+
+// get all buyers
+export const getAllBuyers = async (req: Request, res: Response) => {
+    try {
+        const buyers = await prisma.buyer.findMany({
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                phoneNumber: true,
+                street: true,
+                city: true,
+                state: true,
+                zipCode: true,
+                country: true,
+            }
+        });
+        res.json({
+            success: true,
+            data: buyers
+        });
+    } catch (error) {
+        console.error('Error fetching buyers:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch buyers'
+        });
+    }
+};
+
+// get admin summary
+export const getAdminSummary = async (req: Request, res: Response) => {
+    try {
+        const totalSellers = await prisma.seller.count();
+        const totalBuyers = await prisma.buyer.count();
+        const totalRFQs = await prisma.rFQ.count();
+        const completedTrades = await prisma.trade.count({
+            where: {
+                status: 'COMPLETED'
+            }
+        });
+        const pendingProducts = await prisma.product.count({
+            where: {
+                status: 'PENDING'
+            }
+        });
+
+        const totalProducts = await prisma.product.count();
+
+        res.json({
+            success: true,
+            summary: {
+                totalSellers,
+                totalBuyers,
+                totalRFQs,
+                completedTrades,
+                pendingProducts,
+                totalProducts
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching admin summary:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch admin summary'
+        });
+    }
+}
+
+// get recent RFQs
+export const getRecentRFQs = async (req: Request, res: Response) => {
+    try {
+        const recentRFQs = await prisma.rFQ.findMany({
+            orderBy: {
+                createdAt: 'desc'
+            },
+            take: 5
+        });
+        res.json({
+            success: true,
+            data: recentRFQs
+        });
+    } catch (error) {
+        console.error('Error fetching recent RFQs:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch recent RFQs'
+        });
     }
 };

@@ -28,8 +28,8 @@ interface LoginResponse {
 
 const BuyerLogin = () => {
   const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: ''
+    email: 'rohitkuyada@gmail.com',
+    password: '12345678',
   });
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);

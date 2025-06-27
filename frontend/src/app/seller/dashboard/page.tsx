@@ -2,39 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import {
-    User,
-    Package,
-    LogOut,
-    Building,
-    BarChart3,
-    MessageSquare,
-    FileText,
-    Settings,
-    Plus,
-    DollarSign,
-    TrendingUp,
-    Users,
-    Eye,
-    Bell,
-    Search,
-    Filter,
-    Download,
-    Calendar,
-    Star,
-    Shield,
-    AlertCircle,
-    CheckCircle,
-    Clock,
-    ArrowUpRight
-} from 'lucide-react';
+import { User, Package, LogOut, Building, BarChart3, MessageSquare, FileText, Settings, Plus, DollarSign, TrendingUp, Users, Eye, Bell, Search, Filter, Download, Calendar, Star, Shield, AlertCircle, CheckCircle, Clock, ArrowUpRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { renderProfile } from './Profile';
-
 
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
 const API_BASE_URL = `${API_BACKEND_URL}/seller`;
@@ -173,11 +147,11 @@ const EnhancedSellerDashboard = () => {
             setDashboardLoading(true);
 
             await Promise.all([
-                fetchProfile(tokenToVerify),
-                fetchDashboardStats(tokenToVerify),
-                fetchListings(tokenToVerify),
-                fetchRFQRequests(tokenToVerify)
-                
+                fetchProfile(),
+                fetchDashboardStats(),
+                fetchListings(),
+                fetchRFQRequests()
+
             ]);
         } catch (error) {
             console.error('Dashboard initialization error:', error);
@@ -188,10 +162,10 @@ const EnhancedSellerDashboard = () => {
         }
     };
 
-    const fetchProfile = async (tokenToUse = token) => {
+    const fetchProfile = async (    ) => {
         try {
             const response = await fetch(`${API_BASE_URL}/profile`, {
-                headers: { Authorization: `Bearer ${tokenToUse}` }
+                credentials: 'include'
             });
 
             if (response.ok) {
@@ -206,10 +180,10 @@ const EnhancedSellerDashboard = () => {
         }
     };
 
-    const fetchDashboardStats = async (tokenToUse = token) => {
+    const fetchDashboardStats = async () => {
         try {
             const response = await fetch(`${API_BASE_URL}/dashboard-stats`, {
-                headers: { Authorization: `Bearer ${tokenToUse}` }
+                credentials: 'include',
             });
 
             if (response.ok) {
@@ -235,10 +209,10 @@ const EnhancedSellerDashboard = () => {
         }
     };
 
-    const fetchListings = async (tokenToUse = token) => {
+    const fetchListings = async () => {
         try {
             const response = await fetch(`${API_BASE_URL}/listings`, {
-                headers: { Authorization: `Bearer ${tokenToUse}` }
+                credentials: 'include'
             });
 
             if (response.ok) {
@@ -292,7 +266,6 @@ const EnhancedSellerDashboard = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('sellerToken');
         setToken(null);
         setSeller(null);
         router.push('/seller/signin');
