@@ -40,13 +40,13 @@ export function requireAuth(options: AuthOptions) {
                 const decoded = jwt.verify(token, JWT_SECRET) as {
                     buyerId?: string;
                     sellerId?: string;
-                    adminId?: string;
+                    userId?: string;
                     email?: string;
                     role?: Role;
                 };
 
                 // Choose the appropriate ID based on role
-                const userId = decoded.buyerId || decoded.sellerId || decoded.adminId;
+                const userId = decoded.buyerId || decoded.sellerId || decoded.userId;
                 const email = decoded.email;
 
                 console.log(`Decoded token for role: ${role}, id: ${userId} email: ${email}`);

@@ -20,7 +20,7 @@ export const createRFQ = async (req: Request, res: Response) => {
         });
         return;
     }
-    
+
     console.log('Received productId:', productId);
     if (!productId || !quantity) {
         res.status(400).json({
@@ -69,14 +69,35 @@ export const createRFQ = async (req: Request, res: Response) => {
             }
         });
         // Create a chatroom for the RFQ between the buyer and admin
-        await prisma.chatRoom.create({
-            data: {
+        // check if chat room already exists
+        const existingChatRoom = await prisma.chatRoom.findFirst({
+            where: {
                 rfqId: rfq.id,
                 type: 'BUYER',
-                buyerId: buyerId,
-                adminId: DEFAULT_ADMIN_ID
+                buyerId: buyerId
             }
         });
+        if (!existingChatRoom) {
+            const newChatRoom = await prisma.chatRoom.create({
+                data: {
+                    rfqId: rfq.id,
+                    type: 'BUYER',
+                    buyerId: buyerId,
+                    adminId: DEFAULT_ADMIN_ID
+                }
+            });
+            // send a welcome message to the buyer
+            await prisma.chatMessage.create({
+                data: {
+                    chatRoomId: newChatRoom.id,
+                    senderId: buyerId,
+                    senderRole: "ADMIN",
+                    content: "Welcome to the chat! How can we assist you?",
+                    sentAt: new Date(),
+                    read: false
+                }
+            });
+        }
 
         res.status(201).json({
             data: rfq
