@@ -72,7 +72,7 @@ export const signupSeller = async (req: Request, res: Response) => {
         // Generate JWT
         console.log('Generating JWT for seller:', seller.id)
         const token = jwt.sign(
-            { userId: seller.id },
+            { sellerId: seller.id },
             JWT_SECRET,
             { expiresIn: '7d' }
         )
@@ -156,7 +156,7 @@ export const signinSeller = async (req: Request, res: Response) => {
         console.log('Password match for seller:', seller.id)
         // Generate JWT
         const token = jwt.sign(
-            { userId: seller.id },
+            { sellerId: seller.id },
             JWT_SECRET,
             { expiresIn: '7d' }
         )
@@ -198,7 +198,7 @@ export const signinSeller = async (req: Request, res: Response) => {
 // Get seller profile
 export const getSellerProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const sellerId = req.seller?.userId;
+        const sellerId = req.seller?.sellerId;
 
         const seller = await prisma.seller.findUnique({
             where: { id: sellerId },
@@ -257,7 +257,7 @@ export const getSellerProfile = async (req: AuthenticatedRequest, res: Response)
 // Update seller profile
 export const updateSellerProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const sellerId = req.seller?.userId;
+        const sellerId = req.seller?.sellerId;
         if (!sellerId) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
@@ -354,7 +354,7 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
 // Get Seller Listings
 export const getSellerListings = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const sellerId = req.seller?.userId;
+        const sellerId = req.seller?.sellerId;
         if (!sellerId) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
@@ -384,7 +384,7 @@ export const getSellerListings = async (req: AuthenticatedRequest, res: Response
 // Create a new listing by Seller
 export const createListing = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const sellerId = req.seller?.userId;
+        const sellerId = req.seller?.sellerId;
         if (!sellerId) {
             return res.status(401).json({ error: 'Unauthorized' });
         }

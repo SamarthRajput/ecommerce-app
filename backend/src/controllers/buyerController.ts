@@ -45,7 +45,7 @@ export const signupBuyer = async (req: Request, res: Response) => {
             }
         });
 
-        const token = jwt.sign({ userId: buyer.id, email: buyer.email, role: 'buyer' }, JWT_SECRET, { expiresIn: "7d" });
+        const token = jwt.sign({ buyerId: buyer.id, email: buyer.email, role: 'buyer' }, JWT_SECRET, { expiresIn: "7d" });
 
         setAuthCookie({ res, token, cookieName: "BuyerToken" });
 
@@ -101,7 +101,7 @@ export const signinBuyer = async (req: Request, res: Response) => {
 
         const token = jwt.sign(
             {
-                userId: existingBuyer.id,
+                buyerId: existingBuyer.id,
                 email: existingBuyer.email,
                 role: 'buyer'
             },
@@ -136,7 +136,7 @@ export const signinBuyer = async (req: Request, res: Response) => {
 // Get buyer profile
 export const getBuyerProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const buyerId = req.buyer?.userId;
+        const buyerId = req.buyer?.buyerId;
 
         if (!buyerId) {
             res.status(400).json({
@@ -196,7 +196,7 @@ export const getBuyerProfile = async (req: AuthenticatedRequest, res: Response) 
 export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Response) => {
 
     try {
-        const buyerId = req.buyer?.userId;
+        const buyerId = req.buyer?.buyerId;
 
         if (!buyerId) {
             res.status(401).json({
@@ -278,7 +278,7 @@ export const verifyBuyerProfile = async (req: AuthenticatedRequest, res: Respons
         res.json({
             message: "Buyer verified Successfullly",
             buyer: {
-                id: req.buyer.userId,
+                id: req.buyer.buyerId,
                 email: req.buyer.email
             }
         })
