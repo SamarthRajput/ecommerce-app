@@ -28,7 +28,7 @@ interface LoginResponse {
 
 const BuyerLogin = () => {
   const [formData, setFormData] = useState<LoginFormData>({
-    email: 'rohitkuyada@gmail.com',
+    email: 'test@gmail.com',
     password: '12345678',
   });
   const [error, setError] = useState<string>('');
@@ -60,7 +60,6 @@ const BuyerLogin = () => {
       });
 
       const data: LoginResponse = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
       }
