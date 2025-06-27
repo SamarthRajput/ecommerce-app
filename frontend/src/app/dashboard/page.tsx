@@ -17,7 +17,13 @@ const Dashboard = () => {
     const fetchProducts = async () => {
       try {
         const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${BASE_URL}/analytics/listing/active`);
+        const response = await fetch(`${BASE_URL}/analytics/listing/active`, {
+          method: 'GET',
+          credentials: 'include', // Include cookies for authentication
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         const data = await response.json();
 
         if (data.success) {

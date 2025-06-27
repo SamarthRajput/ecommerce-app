@@ -198,7 +198,8 @@ const EnhancedBuyerDashboard = () => {
     const fetchProfile = async () => {
         try {
             const response = await fetch(`${API_BASE_URL}/profile`, {
-                credentials: 'include'
+                method: 'GET',
+                credentials: 'include',
             });
 
             if (response.ok) {
@@ -271,6 +272,28 @@ const EnhancedBuyerDashboard = () => {
         setLoading(false);
       }
     };
+
+
+    const handleLogout = () => {
+        const response = fetch(`${API_BASE_URL}/logout`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        router.push('/buyer/signin');
+    };
+
+    const renderDashboard = () => (
+        <div className="min-h-screen bg-gray-50">
+            {/* Header */}
+            <header className="bg-white shadow-sm border-b">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center h-16">
+                        <div className="flex items-center">
+                            <Building className="text-blue-600 mr-3" size={24} />
+                            <h1 className="text-xl font-semibold text-gray-800">Buyer Dashboard</h1>
 
     // const fetchOrders = async () => {
     //     try {

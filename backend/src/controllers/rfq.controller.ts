@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../config";
 
 interface BuyerTokenPayload {
     id: string;
@@ -12,30 +13,30 @@ export const createRFQ = async (req: Request, res: Response) => {
     const { productId, buyerId, quantity, message } = req.body;
     console.log('Received buyerId:', buyerId);
     console.log('Received productId:', productId);
-        if (!productId || !quantity) { 
-            res.status(400).json({ 
-                message: 'productId and quantity are required' 
-            });
-            return;
-        }
-
-        const product = await prisma.product.findUnique({
-            where: { id: productId }
+    if (!productId || !quantity) {
+        res.status(400).json({
+            message: 'productId and quantity are required'
         });
+        return;
+    }
 
-        if (!product) {
-            res.status(404).json({ 
-                message: 'Product not found' 
-            });
-            return;
-        }
-        
-        const getBuyerIdFromToken = (token: string): string => {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || "jwtsecret") as BuyerTokenPayload;
-            console.log(decoded);
-            return decoded.id; 
-        };
-        
+    const product = await prisma.product.findUnique({
+        where: { id: productId }
+    });
+
+    if (!product) {
+        res.status(404).json({
+            message: 'Product not found'
+        });
+        return;
+    }
+
+    const getBuyerIdFromToken = (token: string): string => {
+        const decoded = jwt.verify(token, JWT_SECRET) as BuyerTokenPayload;
+        console.log(decoded);
+        return decoded.id;
+    };
+
     const actualBuyerId = getBuyerIdFromToken(buyerId);
     console.log(actualBuyerId);
     const buyerExists = await prisma.buyer.findUnique({
@@ -44,8 +45,8 @@ export const createRFQ = async (req: Request, res: Response) => {
 
     if (!buyerExists) {
         throw new Error(`Buyer with ID ${actualBuyerId} not found`);
-    } 
-    
+    }
+
 
     try {
         const rfq = await prisma.rFQ.create({

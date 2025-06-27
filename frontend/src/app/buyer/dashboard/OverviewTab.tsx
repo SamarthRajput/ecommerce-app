@@ -46,18 +46,14 @@ export const OverviewTab = ({ buyerId }: OverviewTabProps) => {
 
     const fetchRFQs = async () => {
       try {
-        const token = localStorage.getItem('buyerToken');
-        if (!token) {
-          throw new Error('Authentication token not found');
-        }
 
         const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
         const response = await fetch(`${BASE_URL}/rfq/buyer/${buyerId}`, {
+          method: 'GET',
+          credentials: 'include', // Include cookies for authentication
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
-          credentials: 'include', // Include cookies in the request
         });
 
         if (!response.ok) {
@@ -203,8 +199,8 @@ export const OverviewTab = ({ buyerId }: OverviewTabProps) => {
                         <TableCell>{formatDate(rfq.createdAt)}</TableCell>
                         <TableCell>
                           <Badge variant={
-                            rfq.status === 'COMPLETED' ? 'default' : 
-                            rfq.status === 'PENDING' ? 'secondary' : 'outline'
+                            rfq.status === 'COMPLETED' ? 'default' :
+                              rfq.status === 'PENDING' ? 'secondary' : 'outline'
                           }>
                             {rfq.status}
                           </Badge>
