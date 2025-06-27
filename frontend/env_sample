@@ -1,2 +1,8 @@
 NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 NEXT_PUBLIC_BACKEND_URL=http://localhost:3001/api/v1
+NEXT_PUBLIC_BASE_URL=http://localhost:3000/
+BASE_URL=http://localhost:3000/
+JWT_SECRET=YOUR_JWT_SECRET
+
+
+
