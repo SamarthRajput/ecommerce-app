@@ -7,48 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Buyer Schema
-model Buyer {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  password  String
-  firstName String  
-  lastName  String  
-  phoneNumber   String
-  street     String
-  state      String
-  city       String
-  zipCode    String 
-  country    String 
-  rfq        RFQ[]
-  trades     Trade[]  @relation("BuyerTrades")
-  reviews    Review[] 
-}
+//
+// ========================
+// ===== ENUMS ============
+// ========================
+//
 
-// Seller Schema
-model Seller {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  firstName String
-  lastName  String
-  role      String
-  businessName String
-  businessType String
-  phone     String
-  street    String
-  city      String
-  state     String
-  zipCode   String
-  country   String
-  taxId     String
-  product   Product[]
-  trades    Trade[]   @relation("SellerTrades")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-enum ProductStatus { 
+enum ProductStatus {
   ACTIVE
   INACTIVE
   ARCHIVED
@@ -57,55 +22,9 @@ enum ProductStatus {
   REJECTED
 }
 
-// Listing = Product, therefore the product model is for listing model 
-model Product {
-  id            String     @id @default(uuid())
-  name          String
-  description     String
-  price           Float
-  quantity        Int
-  listingType     String     // e.g., 'SELL'
-  condition       String     // e.g., 'NEW'
-  validityPeriod  Int        // days till expiration
-  industry        String
-  category        String
-  productCode     String
-  model           String
-  specifications  String
-  countryOfSource String
-  hsnCode         String
-  images          String[]   // Array of image URLs or paths
-
-  status          ProductStatus  @default(ACTIVE)
-
-  sellerId        String
-  seller          Seller    @relation(fields: [sellerId], references: [id])
-
-  rfqs            RFQ[]
-  trades          Trade[]
-
-  reviews         Review[]
-
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-}
-
-
 enum RFQStatus {
   PENDING
   COMPLETED
-}
-
-model RFQ {
-  id            String    @unique @default(uuid())
-  productId     String
-  product       Product   @relation(fields: [productId], references: [id])
-  buyerId       String
-  buyer         Buyer     @relation(fields: [buyerId], references: [id])
-  quantity      Int
-  message       String?
-  status        RFQStatus   
-  trade         Trade?
 }
 
 enum TradeStatus {
@@ -113,48 +32,197 @@ enum TradeStatus {
   IN_PROGRESS
 }
 
-model Trade {
-  id        String    @unique @default(uuid())
-  rfqId     String    @unique
-  rfq       RFQ       @relation(fields: [rfqId], references: [id])
+enum ChatRoomType {
+  BUYER
+  SELLER
+}
 
-  productId String
-  product   Product   @relation(fields: [productId], references: [id])
+enum Role {
+  ADMIN
+  BUYER
+  SELLER
+}
 
-  buyerId   String
-  buyer     Buyer     @relation("BuyerTrades", fields: [buyerId], references: [id]) 
+//
+// ========================
+// ===== MODELS ===========
+// ========================
+//
 
-  sellerId  String  
-  seller    Seller    @relation("SellerTrades", fields: [sellerId], references: [id])
+model Buyer {
+  id          String     @id @default(uuid())
+  email       String     @unique
+  password    String
+  firstName   String
+  lastName    String
+  phoneNumber String
+  street      String
+  state       String
+  city        String
+  zipCode     String
+  country     String
 
-  quantity  Int
-  price     Float
-  deliveryDate  DateTime
-  status     TradeStatus 
+  rfq         RFQ[]
+  chatRooms   ChatRoom[]
+  trades      Trade[]    @relation("BuyerTrades")
+  reviews     Review[]
+}
+
+model Seller {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  password     String
+  firstName    String
+  lastName     String
+  role         String
+  businessName String
+  businessType String
+  phone        String
+  street       String
+  city         String
+  state        String
+  zipCode      String
+  country      String
+  taxId        String
+
+  product      Product[]
+  chatRooms    ChatRoom[]
+  trades       Trade[]    @relation("SellerTrades")
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Product {
+  id              String        @id @default(uuid())
+  name            String
+  description     String
+  price           Float
+  quantity        Int
+  listingType     String        // e.g., 'SELL'
+  condition       String        // e.g., 'NEW'
+  validityPeriod  Int           // days until expiration
+  industry        String
+  category        String
+  productCode     String
+  model           String
+  specifications  String
+  countryOfSource String
+  hsnCode         String
+  images          String[]      // array of image URLs
+
+  status          ProductStatus @default(ACTIVE)
+
+  sellerId        String
+  seller          Seller        @relation(fields: [sellerId], references: [id])
+
+  rfqs            RFQ[]
+  trades          Trade[]
+  reviews         Review[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model RFQ {
+  id         String     @id @default(uuid())
+  productId  String
+  product    Product    @relation(fields: [productId], references: [id])
+  buyerId    String
+  buyer      Buyer      @relation(fields: [buyerId], references: [id])
+  quantity   Int
+  message    String?
+  status     RFQStatus
+  trade      Trade?
+
+  chatRooms  ChatRoom[]
 
   createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 }
 
-// Model User for admin
-model User {
-  id    String @id @default(uuid())
-  name  String
-  email String @unique
-  role  String @default("admin")
-  password String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Trade {
+  id           String     @id @default(uuid())
+  rfqId        String     @unique
+  rfq          RFQ        @relation(fields: [rfqId], references: [id])
+
+  productId    String
+  product      Product    @relation(fields: [productId], references: [id])
+
+  buyerId      String
+  buyer        Buyer      @relation("BuyerTrades", fields: [buyerId], references: [id])
+
+  sellerId     String
+  seller       Seller     @relation("SellerTrades", fields: [sellerId], references: [id])
+
+  quantity     Int
+  price        Float
+  deliveryDate DateTime
+  status       TradeStatus
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @default(now())
 }
 
-// Review of the product 
 model Review {
   id        String   @id @default(uuid())
-  product   Product  @relation(fields: [productId], references: [id])
   productId String
-  buyer     Buyer    @relation(fields: [buyerId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
   buyerId   String
+  buyer     Buyer    @relation(fields: [buyerId], references: [id])
+
   rating    Int      // 1 to 5
   comment   String
+
   createdAt DateTime @default(now())
+}
+
+model User {
+  id        String     @id @default(uuid())
+  name      String
+  email     String     @unique
+  password  String
+  role      String     @default("admin")
+
+  chatRooms ChatRoom[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model ChatRoom {
+  id        String        @id @default(uuid())
+  rfqId     String
+  rfq       RFQ           @relation(fields: [rfqId], references: [id])
+
+  buyerId   String?       // Admin ↔ Buyer
+  buyer     Buyer?        @relation(fields: [buyerId], references: [id])
+
+  sellerId  String?       // Admin ↔ Seller
+  seller    Seller?       @relation(fields: [sellerId], references: [id])
+
+  adminId   String
+  admin     User          @relation(fields: [adminId], references: [id])
+
+  type      ChatRoomType
+
+  messages  ChatMessage[]
+
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([rfqId, type]) // only one chat room per RFQ type
+}
+
+model ChatMessage {
+  id          String   @id @default(uuid())
+  chatRoomId  String
+  chatRoom    ChatRoom @relation(fields: [chatRoomId], references: [id])
+
+  senderRole  Role
+  senderId    String
+  content     String
+  read        Boolean  @default(false)
+  sentAt      DateTime @default(now())
 }

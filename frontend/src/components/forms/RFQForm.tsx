@@ -43,13 +43,13 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
     // Memoized default values
     const defaultValues = useMemo<RFQFormSchema>(() => ({
         listingId,
-        quantity: 1,
+        quantity: 10,
         currency: 'USD',
-        deliveryDate: '',
-        budget: 0,
-        paymentTerms: '',
-        specialRequirements: '',
-        additionalNotes: '',
+        deliveryDate: '2024-01-01',
+        budget: 1000,
+        paymentTerms: '30 days after delivery',
+        specialRequirements: 'No special requirements',
+        additionalNotes: 'Please contact me for any clarifications.'
     }), [listingId]);
 
     const {
@@ -66,16 +66,9 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
     const onSubmit = useCallback(async (data: RFQFormSchema) => {
         try {
             setIsSubmitting(true);
-            
-            const buyerId = localStorage.getItem('buyerToken'); 
-            
-            if (!buyerId) {
-                throw new Error('Buyer ID not found. Please log in again.');
-            }
-            
+
             const payload = {
                 productId: data.listingId,
-                buyerId,
                 quantity: data.quantity,
                 message: JSON.stringify({
                     deliveryDate: data.deliveryDate,
@@ -87,30 +80,34 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
                 }),
                 status: "PENDING"
             };
+            // alert('Submitting RFQ...');
             const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-            // console.log(BASE_URL + "/rfq/create");
+            console.log(BASE_URL + "/rfq/create");
             const response = await fetch(`${BASE_URL}/rfq/create`, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${buyerId}`
                 },
                 body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
+                alert(`Error: ${response.status} - ${response.statusText}`);
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to submit RFQ');
             }
+            alert('RFQ submitted successfully!');
 
             const result = await response.json();
             console.log('RFQ created:', result);
-            
+
             showSuccess('RFQ submitted successfully!');
             reset(); // Reset form after successful submission
             onSuccess?.();
             router.push('/buyer/dashboard'); // Redirect to RFQs page after success
         } catch (error) {
+            alert(`Error submitting RFQ: ${error instanceof Error ? error.message : 'Unknown error'}`);
             console.error('Error submitting RFQ:', error);
             showError(error instanceof Error ? error.message : 'Failed to submit RFQ. Please try again.');
         } finally {

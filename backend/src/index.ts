@@ -12,6 +12,7 @@ import { rfqRouter } from "./routes/rfq.routes";
 import { authRouter } from "./routes/adminAuthRouter";
 import { adminRouter } from "./routes/admin";
 import productRouter from "./routes/product.routes";
+import chatRouter from "./routes/chat.route";
 
 // Configs
 dotenv.config();
@@ -35,6 +36,7 @@ app.use("/api/v1/rfq", rfqRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/products", productRouter);
+app.use("/api/v1/chat", chatRouter);
 
 // Root route
 app.get("/", (req, res) => {

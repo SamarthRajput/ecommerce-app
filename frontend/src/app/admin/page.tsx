@@ -70,22 +70,14 @@ const AdminDashboard = () => {
     }
     const handleLogout = async () => {
         setIsLoading(true);
-
         try {
-
-            await fetch('http://localhost:3001/api/v1/auth/admin/logout', {
-                method: 'POST',
-                credentials: 'include',
-            });
-        } catch (error) {
-            console.error('Logout error:', error);
+            await logout();
+            setSuccess('Successfully logged out.');
+            router.push('/admin/signin');
+        } catch (err) {
+            setError('Failed to log out. Please try again.');
         } finally {
-            setUser(null);
             setIsLoading(false);
-            setSuccess('Logged out successfully.');
-            setTimeout(() => {
-                router.push('/admin/signin');
-            }, 2000); // Redirect after 2 seconds
         }
     };
 

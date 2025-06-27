@@ -45,7 +45,7 @@ export const signupBuyer = async (req: Request, res: Response) => {
             }
         });
 
-        const token = jwt.sign({ buyerId: buyer.id }, JWT_SECRET, { expiresIn: "7d" });
+        const token = jwt.sign({ userId: buyer.id, email: buyer.email, role: 'buyer' }, JWT_SECRET, { expiresIn: "7d" });
 
         setAuthCookie({ res, token, cookieName: "BuyerToken" });
 
@@ -53,7 +53,8 @@ export const signupBuyer = async (req: Request, res: Response) => {
             message: "Signup successful",
             buyer: {
                 id: buyer.id,
-                email: buyer.email
+                email: buyer.email,
+                role: 'buyer'
             }
         });
 
@@ -99,7 +100,11 @@ export const signinBuyer = async (req: Request, res: Response) => {
         }
 
         const token = jwt.sign(
-            { buyerId: existingBuyer.id },
+            {
+                userId: existingBuyer.id,
+                email: existingBuyer.email,
+                role: 'buyer'
+            },
             JWT_SECRET,
             { expiresIn: "7d" }
         );
@@ -131,7 +136,7 @@ export const signinBuyer = async (req: Request, res: Response) => {
 // Get buyer profile
 export const getBuyerProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const buyerId = req.buyer?.id;
+        const buyerId = req.buyer?.userId;
 
         if (!buyerId) {
             res.status(400).json({
@@ -191,7 +196,7 @@ export const getBuyerProfile = async (req: AuthenticatedRequest, res: Response) 
 export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Response) => {
 
     try {
-        const buyerId = req.buyer?.id;
+        const buyerId = req.buyer?.userId;
 
         if (!buyerId) {
             res.status(401).json({
@@ -264,7 +269,7 @@ export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Respons
 
 export const verifyBuyerProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        if(!req.buyer){
+        if (!req.buyer) {
             res.status(401).json({
                 error: "Unauthorized"
             });
@@ -273,12 +278,12 @@ export const verifyBuyerProfile = async (req: AuthenticatedRequest, res: Respons
         res.json({
             message: "Buyer verified Successfullly",
             buyer: {
-                id: req.buyer.id,
+                id: req.buyer.userId,
                 email: req.buyer.email
             }
         })
     }
-    catch(error){
+    catch (error) {
         console.log(error);
         res.status(501).json({
             message: "server error"
