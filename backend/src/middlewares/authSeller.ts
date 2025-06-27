@@ -5,7 +5,7 @@ import { JWT_SECRET } from "../config";
 // Extend Express Request to include seller
 export interface AuthenticatedRequest extends Request {
   seller?: {
-    userId: string;
+    sellerId: string;
     email?: string;
   };
 }
@@ -22,17 +22,17 @@ export const requireSeller = (req: AuthenticatedRequest, res: Response, next: Ne
     }
 
     const decoded = jwt.verify(token, JWT_SECRET) as {
-      userId: string;
+      sellerId: string;
       email?: string;
     };
 
-    if (!decoded?.userId) {
+    if (!decoded?.sellerId) {
       res.status(403).json({ error: "Invalid token payload" });
       return;
     }
 
     req.seller = {
-      userId: decoded.userId,
+      sellerId: decoded.sellerId,
       email: decoded.email || "", // optional
     };
 

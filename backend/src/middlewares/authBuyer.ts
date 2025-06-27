@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 export interface AuthenticatedRequest extends Request {
     buyer?: {
-        userId: string;
+        buyerId: string;
         email?: string;
     };
 }
@@ -22,17 +22,17 @@ export const requireBuyer = (req: AuthenticatedRequest, res: Response, next: Nex
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET) as {
-            userId: string;
+            buyerId: string;
             email?: string;
         };
 
-        if (!decoded?.userId) {
-            res.status(403).json({ error: "Invalid token: userId missing" });
+        if (!decoded?.buyerId) {
+            res.status(403).json({ error: "Invalid token: buyerId missing" });
             return;
         }
 
         req.buyer = {
-            userId: decoded.userId,
+            buyerId: decoded.buyerId,
             email: decoded.email || ""
         };
 

@@ -29,46 +29,50 @@ export function requireAuth(options: AuthOptions) {
             seller: "SellerToken",
             buyer: "BuyerToken"
         };
-        let decodedToken: any = null;
+
         let authenticatedRole: Role | null = null;
 
-        // Try decoding token for each role
         for (const role of allowedRoles) {
             const token = req.cookies?.[cookieNames[role]];
             if (!token) continue;
-            console.warn(`Token found for role: ${role}, token: ${token}`);
+
             try {
-                const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email?: string; role?: Role };
-                if (!decoded || !decoded.userId) {
-                    // remove invalid token from cookies
-                    // res.clearCookie(cookieNames[role]);
-                    console.error(`Invalid token for role: ${role}`);
-                    continue;
-                }
-                console.log(`Decoded token for role: ${role}, id: ${decoded.userId} email: ${decoded.email}`);
+                const decoded = jwt.verify(token, JWT_SECRET) as {
+                    buyerId?: string;
+                    sellerId?: string;
+                    adminId?: string;
+                    email?: string;
+                    role?: Role;
+                };
+
+                // Choose the appropriate ID based on role
+                const userId = decoded.buyerId || decoded.sellerId || decoded.adminId;
+                const email = decoded.email;
+
+                console.log(`Decoded token for role: ${role}, id: ${userId} email: ${email}`);
+
+                if (!userId) continue;
 
                 let user: any = null;
                 if (role === "admin") {
                     user = await prisma.user.findUnique({
-                        where: { id: decoded.userId },
+                        where: { id: userId },
                         select: { id: true, role: true, email: true }
                     });
-                    // console.warn(`User found for admin role: ${user?.email}`);
                 } else if (role === "seller") {
                     user = await prisma.seller.findUnique({
-                        where: { id: decoded.userId },
+                        where: { id: userId },
                         select: { id: true, role: true, email: true }
                     });
                 } else if (role === "buyer") {
                     user = await prisma.buyer.findUnique({
-                        where: { id: decoded.userId },
+                        where: { id: userId },
                         select: { id: true, email: true }
                     });
                     if (user) user.role = "buyer";
                 }
 
                 if (user) {
-                    // console.log(`Authenticated user found: ${user.email}, role: ${role}`);
                     authenticatedRole = role;
                     req.user = {
                         userId: user.id,
@@ -77,8 +81,8 @@ export function requireAuth(options: AuthOptions) {
                     };
                     break;
                 }
-            } catch (_) {
-                // console.error(`Error: Invalid token for role: ${role}`);
+            } catch (err) {
+                console.warn(`Invalid token for role: ${role}`, err);
                 continue;
             }
         }
