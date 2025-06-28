@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 const quickLinks = [
     { href: '/admin/listings', label: 'Manage Listings', icon: Package, description: 'Add, edit, and manage property listings' },
     { href: '/admin/users', label: 'Manage Users', icon: Users, description: 'View and manage user accounts' },
-    { href: '/admin/orders', label: 'Manage Orders', icon: FileText, description: 'Track and process orders' },
+    { href: '/admin/rfqs', label: 'Manage RFQs', icon: FileText, description: 'Accept, Reject and manage RFQs' },
     { href: '/admin/reports', label: 'View Reports', icon: BarChart3, description: 'Analytics and performance reports' },
     { href: '/admin/chat', label: 'Chat Dashboard', icon: MessageSquare, description: 'Communicate with buyers and sellers' },
     { href: '/admin/settings', label: 'Settings', icon: Settings, description: 'System configuration and preferences' },

@@ -34,6 +34,7 @@ adminRouter.get('/chats/recent', requireAdmin, async (req: Request, res: Respons
     await getRecentChats(req, res);
 });
 
+
 // Clean up Prisma connection
 process.on('beforeExit', async () => {
     await prisma.$disconnect();

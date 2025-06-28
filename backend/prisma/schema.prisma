@@ -24,7 +24,8 @@ enum ProductStatus {
 
 enum RFQStatus {
   PENDING
-  COMPLETED
+  APPROVED
+  REJECTED
 }
 
 enum TradeStatus {
@@ -139,6 +140,8 @@ model RFQ {
   quantity   Int
   message    String?
   status     RFQStatus
+  rejectionReason     String? 
+  reviewedAt  DateTime?
   trade      Trade?
 
   chatRooms  ChatRoom[]

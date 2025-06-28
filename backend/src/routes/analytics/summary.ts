@@ -20,7 +20,7 @@ summaryRouter.get("/", async (req: Request, res: Response) => {
             }),
             prisma.rFQ.count({
                 where: {
-                    status: "COMPLETED"
+                    status: 'APPROVED'
                 }
             }),
             prisma.trade.count({

@@ -185,7 +185,7 @@ const EnhancedBuyerDashboard = () => {
                 // fetchDashboardStats(),
                 fetchRFQs(),
                 // fetchOrders(),
-                fetchSavedListings()
+                // fetchSavedListings()
             ]);
         } catch (error) {
             console.error('Dashboard initialization error:', error);
@@ -312,40 +312,40 @@ const EnhancedBuyerDashboard = () => {
     //     }
     // };
 
-    const fetchSavedListings = async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/saved-listings`, {
-                credentials: 'include'
-            });
+    // const fetchSavedListings = async () => {
+    //     try {
+    //         const response = await fetch(`${API_BASE_URL}/saved-listings`, {
+    //             credentials: 'include'
+    //         });
 
-            if (response.ok) {
-                const data = await response.json();
-                setSavedListings(data.listings || []);
-            } else {
-                // Mock data for development
-                setSavedListings([
-                    {
-                        id: '1',
-                        productName: 'Industrial Pump Model X2',
-                        price: 1350,
-                        sellerName: 'Global Pumps Inc.',
-                        rating: 4.7,
-                        savedDate: '2024-01-05'
-                    },
-                    {
-                        id: '2',
-                        productName: 'Stainless Steel Valves',
-                        price: 245,
-                        sellerName: 'Metal Works Ltd.',
-                        rating: 4.5,
-                        savedDate: '2024-01-08'
-                    }
-                ]);
-            }
-        } catch (error) {
-            console.error('Error fetching saved listings:', error);
-        }
-    };
+    //         if (response.ok) {
+    //             const data = await response.json();
+    //             setSavedListings(data.listings || []);
+    //         } else {
+    //             // Mock data for development
+    //             setSavedListings([
+    //                 {
+    //                     id: '1',
+    //                     productName: 'Industrial Pump Model X2',
+    //                     price: 1350,
+    //                     sellerName: 'Global Pumps Inc.',
+    //                     rating: 4.7,
+    //                     savedDate: '2024-01-05'
+    //                 },
+    //                 {
+    //                     id: '2',
+    //                     productName: 'Stainless Steel Valves',
+    //                     price: 245,
+    //                     sellerName: 'Metal Works Ltd.',
+    //                     rating: 4.5,
+    //                     savedDate: '2024-01-08'
+    //                 }
+    //             ]);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error fetching saved listings:', error);
+    //     }
+    // };
 
     const handleLogout = async () => {
         try {
@@ -589,7 +589,7 @@ const EnhancedBuyerDashboard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Button
                             className="h-auto p-4 flex flex-col items-center space-y-2 bg-blue-600 hover:bg-blue-700"
-                            onClick={() => router.push('/marketplace')}
+                            onClick={() => router.push('/products')}
                         >
                             <Plus className="w-6 h-6" />
                             <span>Create New RFQ</span>

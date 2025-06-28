@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction, Router } from "express";
-import { getProductById, getProductReviews, getProducts, getProductsBySellerId, getSimilarProducts } from "../controllers/product.controller";
+import { getProductById, getProductReviews, getProducts, getProductsBySellerId, getSimilarProducts, postProductReviews } from "../controllers/product.controller";
+import { AuthenticatedRequest, requireBuyer } from "../middlewares/authBuyer";
 
 const productRouter = Router();
 const BASE_API_URL = "/api/v1/products";
@@ -49,4 +50,9 @@ productRouter.get("/:id/reviews", async (req: Request, res: Response, next: Next
         next(error);
     }
 });
+
+productRouter.post("/:id/reviews", requireBuyer, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    await postProductReviews(req, res);
+})
+
 export default productRouter;
