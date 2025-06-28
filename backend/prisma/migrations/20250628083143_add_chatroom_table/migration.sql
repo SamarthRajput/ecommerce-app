@@ -13,6 +13,9 @@ CREATE TYPE "ChatRoomType" AS ENUM ('BUYER', 'SELLER');
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'BUYER', 'SELLER');
 
+-- CreateEnum
+CREATE TYPE "ChatRoomStatus" AS ENUM ('ACTIVE', 'CLOSED', 'ARCHIVED');
+
 -- CreateTable
 CREATE TABLE "Buyer" (
     "id" TEXT NOT NULL,
@@ -88,7 +91,9 @@ CREATE TABLE "RFQ" (
     "message" TEXT,
     "status" "RFQStatus" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "RFQ_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -103,20 +108,9 @@ CREATE TABLE "Trade" (
     "deliveryDate" TIMESTAMP(3) NOT NULL,
     "status" "TradeStatus" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
--- CreateTable
-CREATE TABLE "User" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "role" TEXT NOT NULL DEFAULT 'admin',
-    "password" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Trade_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -132,6 +126,19 @@ CREATE TABLE "Review" (
 );
 
 -- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'admin',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "ChatRoom" (
     "id" TEXT NOT NULL,
     "rfqId" TEXT NOT NULL,
@@ -139,6 +146,8 @@ CREATE TABLE "ChatRoom" (
     "sellerId" TEXT,
     "adminId" TEXT NOT NULL,
     "type" "ChatRoomType" NOT NULL,
+    "status" "ChatRoomStatus" NOT NULL DEFAULT 'ACTIVE',
+    "lastMessageAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -152,10 +161,29 @@ CREATE TABLE "ChatMessage" (
     "senderRole" "Role" NOT NULL,
     "senderId" TEXT NOT NULL,
     "content" TEXT NOT NULL,
+    "edited" BOOLEAN NOT NULL DEFAULT false,
+    "deleted" BOOLEAN NOT NULL DEFAULT false,
+    "attachmentUrl" TEXT,
+    "attachmentType" TEXT,
+    "replyToId" TEXT,
+    "isPinned" BOOLEAN NOT NULL DEFAULT false,
+    "isStarred" BOOLEAN NOT NULL DEFAULT false,
     "read" BOOLEAN NOT NULL DEFAULT false,
     "sentAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "ChatMessage_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "MessageReaction" (
+    "id" TEXT NOT NULL,
+    "messageId" TEXT NOT NULL,
+    "reactorId" TEXT NOT NULL,
+    "reactorRole" "Role" NOT NULL,
+    "emoji" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "MessageReaction_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -165,16 +193,13 @@ CREATE UNIQUE INDEX "Buyer_email_key" ON "Buyer"("email");
 CREATE UNIQUE INDEX "Seller_email_key" ON "Seller"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "RFQ_id_key" ON "RFQ"("id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Trade_id_key" ON "Trade"("id");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Trade_rfqId_key" ON "Trade"("rfqId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ChatRoom_rfqId_type_key" ON "ChatRoom"("rfqId", "type");
 
 -- AddForeignKey
 ALTER TABLE "Product" ADD CONSTRAINT "Product_sellerId_fkey" FOREIGN KEY ("sellerId") REFERENCES "Seller"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -217,3 +242,9 @@ ALTER TABLE "ChatRoom" ADD CONSTRAINT "ChatRoom_adminId_fkey" FOREIGN KEY ("admi
 
 -- AddForeignKey
 ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_chatRoomId_fkey" FOREIGN KEY ("chatRoomId") REFERENCES "ChatRoom"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_replyToId_fkey" FOREIGN KEY ("replyToId") REFERENCES "ChatMessage"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MessageReaction" ADD CONSTRAINT "MessageReaction_messageId_fkey" FOREIGN KEY ("messageId") REFERENCES "ChatMessage"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -75,6 +75,12 @@ const Products = () => {
         <div>
             <h1 className="text-3xl font-bold mb-6">Products</h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {/* // if no products are available, show a message */}
+                {products.length === 0 && (
+                    <div className="col-span-1 sm:col-span-2 md:col-span-3 text-center text-gray-500">
+                        No products available at the moment.
+                    </div>
+                )}
                 {products.map(product => (
                     <div
                         key={product.id}

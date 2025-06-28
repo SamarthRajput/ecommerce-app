@@ -2,13 +2,42 @@ import { AuthenticatedRequest } from "../middlewares/authBuyer";
 import { Response } from "express";
 import { prisma } from "../lib/prisma";
 import { DEFAULT_ADMIN_ID } from "../config";
+import validator from 'validator';
+import sanitizeHtml from 'sanitize-html';
 
 // Create a new chat room between admin and seller
 export const createChatRoomBetweenAdminAndSeller = async (req: AuthenticatedRequest, res: Response) => {
-    const { rfqId, sellerId } = req.body;
+    const { rfqId } = req.body;
     const adminId = DEFAULT_ADMIN_ID;
-    if (!rfqId || !sellerId) {
-        res.status(400).json({ error: "RFQ ID and Seller ID are required" });
+    if (!rfqId) {
+        res.status(400).json({ error: "RFQ ID is required" });
+        return;
+    }
+    // get product details from RFQ
+    const rfq = await prisma.rFQ.findUnique({
+        where: { id: rfqId },
+        select: {
+            id: true,
+            product: {
+                select: {
+                    name: true,
+                    sellerId: true,
+                }
+            }
+        }
+    });
+    if (!rfq) {
+        res.status(404).json({ error: "RFQ not found" });
+        return;
+    }
+    if (!rfq.product) {
+        res.status(404).json({ error: "Product not found for the RFQ" });
+        return;
+    }
+    // Get sellerId details from product
+    const sellerId = rfq.product.sellerId;
+    if (!sellerId) {
+        res.status(404).json({ error: "Seller not found for the product" });
         return;
     }
     try {
@@ -54,14 +83,38 @@ export const createChatRoomBetweenAdminAndSeller = async (req: AuthenticatedRequ
 // send a message to a chat room
 export const sendChatMessage = async (req: AuthenticatedRequest, res: Response) => {
     // Validate request body
-    const { chatRoomId, senderRole, content } = req.body;
-    if (!chatRoomId || !senderRole || !content) {
-        res.status(400).json({ error: "Chat Room ID, sender role, and message content are required" });
+    const { chatRoomId, content } = req.body;
+    if (!chatRoomId || !content) {
+        res.status(400).json({ error: "Chat Room ID and message content are required" });
         return;
     }
+    if (!validator.isUUID(chatRoomId)) {
+        res.status(400).json({ error: "Invalid Chat Room ID format" });
+        return;
+    }
+    if (typeof content !== 'string' || content.trim().length === 0) {
+        res.status(400).json({ error: "Message content cannot be empty" });
+        return;
+    }
+    if (validator.isLength(content, { max: 5000 })) {
+        res.status(400).json({ error: "Message content exceeds maximum length of 5000 characters" });
+        return;
+    }
+    // sanitize content
+    const sanitizedContent = sanitizeHtml(content);
+    if (sanitizedContent !== content) {
+        console.warn("Content was sanitized, potential XSS attack prevented");
+    }
+    // get sender details
+    const senderRole = req.user?.role;
+    if (!senderRole) {
+        res.status(401).json({ error: "User unauthenticated" });
+        return;
+    }
+
     // Only valid roles are 'ADMIN', 'BUYER', or 'SELLER'
     if (!['ADMIN', 'BUYER', 'SELLER'].includes(senderRole)) {
-        res.status(400).json({ error: "Invalid sender role" });
+        res.status(400).json({ error: "Unauthorized request" });
         return;
     }
     const senderId = req.user?.userId;
@@ -89,8 +142,8 @@ export const sendChatMessage = async (req: AuthenticatedRequest, res: Response) 
             data: {
                 chatRoomId: chatRoomId,
                 senderId: senderId,
-                senderRole: senderRole,
-                content: content,
+                senderRole: senderRole as any,
+                content: sanitizedContent,
             }
         });
         res.status(201).json({ message: "Message sent successfully", chatMessage: newMessage });
@@ -103,9 +156,12 @@ export const sendChatMessage = async (req: AuthenticatedRequest, res: Response) 
 // Get all message of a chat room
 export const getChatMessages = async (req: AuthenticatedRequest, res: Response) => {
     const chatRoomId = req.params.id;
+    const limit = parseInt(req.query.limit as string) || 20; // Default limit to 20
+    const page = parseInt(req.query.page as string) || 1;
     const userId = req.user?.userId;
-    if (!chatRoomId) {
-        res.status(400).json({ error: "Chat Room ID is required" });
+
+    if (!chatRoomId || !validator.isUUID(chatRoomId)) {
+        res.status(400).json({ error: "Invalid Chat Room ID format" });
         return;
     }
     // Validate user ID
@@ -116,17 +172,20 @@ export const getChatMessages = async (req: AuthenticatedRequest, res: Response) 
     // find chatroom and the user in this chatroom
     try {
         const chatRoom = await prisma.chatRoom.findUnique({
-            where: { id: chatRoomId }
+            where: { id: chatRoomId }, select: {
+                id: true,
+                type: true,
+                rfqId: true,
+                adminId: true,
+                sellerId: true,
+                buyerId: true,
+            }
         });
         if (!chatRoom) {
             res.status(404).json({ error: "Chat room not found" });
             return;
         }
 
-        if (!userId) {
-            res.status(401).json({ error: "User not authenticated" });
-            return;
-        }
         const isUserInChatRoom = userId === chatRoom.adminId || userId === chatRoom.sellerId || userId === chatRoom.buyerId;
         if (!isUserInChatRoom) {
             res.status(403).json({ error: "User not authorized to access this chat room" });
@@ -134,15 +193,29 @@ export const getChatMessages = async (req: AuthenticatedRequest, res: Response) 
         }
         const messages = await prisma.chatMessage.findMany({
             where: { chatRoomId: chatRoomId },
-            orderBy: { sentAt: 'asc' }
+            orderBy: { sentAt: 'asc' },
+            skip: (page - 1) * limit,
+            take: limit,
+            select: {
+                id: true,
+                content: true,
+                senderId: true,
+                senderRole: true,
+                sentAt: true,
+                read: true,
+                edited: true,
+                isPinned: true,
+            }
         });
         res.status(200).json(messages);
     } catch (error) {
-        console.error("Error fetching chat messages:", error);
+        if (process.env.NODE_ENV !== 'production') {
+            console.error("Chat fetch error:", error);
+        }
+
         res.status(500).json({ error: "Internal server error" });
     }
 }
-
 
 // get recent chats
 export const getRecentChats = async (req: AuthenticatedRequest, res: Response) => {
@@ -232,6 +305,25 @@ export const getRecentChats = async (req: AuthenticatedRequest, res: Response) =
 export const getAdminChatRooms = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const adminId = req.user?.userId;
+        if (!adminId || !validator.isUUID(adminId)) {
+            res.status(400).json({ error: "Invalid Admin ID format" });
+            return;
+        }
+
+        // fetch admin and verify if the user is admin
+        const admin = await prisma.user.findUnique({
+            where: { id: adminId },
+            select: {
+                role: true,
+            }
+        });
+        if (!admin || admin.role !== 'admin') {
+            res.status(403).json({ error: "User not authorized to access admin chat rooms" });
+            return;
+        }
+
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20; // Default limit
 
         const chatRooms = await prisma.chatRoom.findMany({
             where: {
@@ -242,6 +334,11 @@ export const getAdminChatRooms = async (req: AuthenticatedRequest, res: Response
                 seller: true,
                 messages: true,
             },
+            orderBy: {
+                updatedAt: 'desc',
+            },
+            skip: (page - 1) * limit,
+            take: limit,
         });
 
         res.status(200).json({
@@ -257,84 +354,321 @@ export const getAdminChatRooms = async (req: AuthenticatedRequest, res: Response
     }
 };
 
-// export const sampleDataInsert = async () => {
-//     try {
-//         await prisma.chatRoom.create({
-//             data: {
-//                 rfqId: 'sample-rfq-id',
-//                 buyerId: 'sample-buyer-id',
-//                 sellerId: 'sample-seller-id',
-//                 adminId: 'sample-admin-id',
-//                 type: 'BUYER',
-//                 messages: {
-//                     create: {
-//                         content: 'Hello, this is a sample message.',
-//                         senderRole: 'ADMIN',
-//                     },
-//                 },
-//             },
-//         });
+// Mark messages as read
+export const markMessagesAsRead = async (req: AuthenticatedRequest, res: Response) => {
+    const chatRoomId = req.params.id;
+    const messageIds = req.body.messageIds;
+    const userId = req.user?.userId;
 
-//         console.log('Sample data inserted successfully.');
-//     } catch (error) {
-//         console.error('Error inserting sample data:', error);
-//     }
-// };
+    if (!chatRoomId || !messageIds || !Array.isArray(messageIds) || messageIds.length === 0) {
+        console.log("Invalid request data:", { chatRoomId, messageIds });
+        res.status(400).json({ error: "Chat Room ID and message IDs are required" });
+        return;
+    }
 
-/*
+    if (messageIds.length > 100) {
+        res.status(400).json({ error: "Too many message IDs provided. Maximum allowed is 100." });
+        return;
+    }
 
-model ChatRoom {
-  id        String        @id @default(uuid())
-  rfqId     String
-  rfq       RFQ           @relation(fields: [rfqId], references: [id])
+    if (!validator.isUUID(chatRoomId)) {
+        res.status(400).json({ error: "Invalid Chat Room ID format" });
+        return;
+    }
+    if (!messageIds.every(id => validator.isUUID(id))) {
+        res.status(400).json({ error: "Invalid Message IDs format" });
+        return;
+    }
 
-  buyerId   String?       // Admin ↔ Buyer
-  buyer     Buyer?        @relation(fields: [buyerId], references: [id])
+    // Validate user ID
+    if (!userId) {
+        res.status(401).json({ error: "User unauthenticated" });
+        return;
+    }
 
-  sellerId  String?       // Admin ↔ Seller
-  seller    Seller?       @relation(fields: [sellerId], references: [id])
+    // Check if the user is part of the chat room
+    const chatRoom = await prisma.chatRoom.findUnique({
+        where: {
+            id: chatRoomId,
+        },
+        select: {
+            adminId: true,
+            sellerId: true,
+            buyerId: true,
+        }
+    });
+    if (!chatRoom) {
+        res.status(404).json({ error: "Chat room not found" });
+        return;
+    }
+    const isUserInChatRoom = userId === chatRoom.adminId || userId === chatRoom.sellerId || userId === chatRoom.buyerId;
+    if (!isUserInChatRoom) {
+        res.status(403).json({ error: "User not authorized to mark messages as read" });
+        return;
+    }
+    try {
+        const updatedMessages = await prisma.chatMessage.updateMany({
+            where: {
+                id: { in: messageIds },
+                chatRoomId,
+                read: false,
+                senderId: { not: userId }, // Only mark messages sent by others as read
+            },
+            data: {
+                read: true,
+            }
+        });
+        console.log(`Marked ${updatedMessages.count} messages as read in chat room ${chatRoomId}`);
+        if (updatedMessages.count === 0) {
+            res.status(404).json({ message: "No unread messages found to mark as read" });
+            return;
+        }
+        res.status(200).json({ message: "Messages marked as read", updatedCount: updatedMessages.count });
+    } catch (error) {
+        console.error("Error marking messages as read:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
 
-  adminId   String
-  admin     User          @relation(fields: [adminId], references: [id])
+// Edit a single message
+export const editChatMessage = async (req: AuthenticatedRequest, res: Response) => {
+    const { content } = req.body;
+    const messageId = req.params.id;
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
 
-  type      ChatRoomType
+    // Basic validation
+    if (!messageId || !content) {
+        return res.status(400).json({ error: "Message ID and new content are required" });
+    }
+    if (!validator.isUUID(messageId)) {
+        return res.status(400).json({ error: "Invalid Message ID format" });
+    }
 
-  messages  ChatMessage[]
+    if (!userId || !userRole || !['ADMIN', 'BUYER', 'SELLER'].includes(userRole)) {
+        return res.status(401).json({ error: "Unauthorized access" });
+    }
 
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+    if (typeof content !== "string" || content.trim().length === 0) {
+        return res.status(400).json({ error: "Message content cannot be empty" });
+    }
 
-  @@unique([rfqId, type]) // only one chat room per RFQ type
+    try {
+        // Find the message
+        const message = await prisma.chatMessage.findUnique({
+            where: { id: messageId }
+        });
+
+        if (!message) {
+            return res.status(404).json({ error: "Message not found" });
+        }
+
+        // Ownership check
+        if (message.senderId !== userId) {
+            return res.status(403).json({ error: "You can only edit your own messages" });
+        }
+
+        const now = new Date();
+        const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
+        if (message.sentAt < fifteenMinutesAgo) {
+            return res.status(403).json({ error: "Message editing time window has expired" });
+        }
+        // Sanitize content
+        const sanitizedContent = sanitizeHtml(content);
+        if (sanitizedContent !== content) {
+            console.warn("Content was sanitized, potential XSS attack prevented");
+        }
+
+        if (validator.isLength(sanitizedContent, { max: 5000 }) || sanitizedContent.trim().length === 0) {
+            return res.status(400).json({ error: "Message content exceeds maximum length of 5000 characters or is empty" });
+        }
+
+        // if no changes in content, return early
+        if (message.content.trim() === sanitizedContent.trim()) {
+            return res.status(200).json({
+                message: "No changes made to the message content",
+                updatedMessage: message
+            });
+        }
+
+        // Update content and mark as edited
+        const updatedMessage = await prisma.chatMessage.update({
+            where: { id: messageId },
+            data: {
+                content: sanitizedContent.trim(),
+                edited: true
+            }
+        });
+
+        return res.status(200).json({
+            message: "Message updated successfully",
+            updatedMessage
+        });
+
+    } catch (error) {
+        console.error("Error editing chat message:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+// Soft delete a message
+export const deleteChatMessage = async (req: AuthenticatedRequest, res: Response) => {
+    const messageId = req.params.id;
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    // Basic validation
+    if (!messageId || !validator.isUUID(messageId)) {
+        return res.status(400).json({ error: "Message ID is required and must be a valid UUID" });
+    }
+
+    if (!userId || !userRole || !['ADMIN', 'BUYER', 'SELLER'].includes(userRole)) {
+        return res.status(401).json({ error: "Unauthorized access" });
+    }
+
+    try {
+        // Find the message
+        const message = await prisma.chatMessage.findUnique({
+            where: { id: messageId }
+        });
+
+        if (!message) {
+            return res.status(404).json({ error: "Message not found" });
+        }
+
+        // Ownership check
+        if (message.senderId !== userId) {
+            return res.status(403).json({ error: "You can only delete your own messages" });
+        }
+
+        const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+        if (message.sentAt < fifteenMinutesAgo) {
+            return res.status(403).json({ error: "You can only delete messages within 15 minutes" });
+        }
+
+        // Check if the message is already deleted
+        if (message.deleted) {
+            return res.status(400).json({ error: "Message is already deleted" });
+        }
+
+        // Soft delete the message
+        await prisma.chatMessage.update({
+            where: { id: messageId },
+            data: { deleted: true }
+        });
+
+        return res.status(200).json({ message: "Message deleted successfully" });
+
+    } catch (error) {
+        console.error("Error deleting chat message:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
 }
-*/
-interface ChatRoom {
-    id: string;
-    rfqId: string;
-    type: 'BUYER' | 'SELLER';
-    buyerId?: string;
-    sellerId?: string;
-    adminId: string;
-    createdAt: Date;
-    updatedAt: Date;
+
+// Pin a message in a chat room
+export const pinChatMessage = async (req: AuthenticatedRequest, res: Response) => {
+    const messageId = req.params.id;
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    // Basic validation
+    if (!messageId || !validator.isUUID(messageId)) {
+        return res.status(400).json({ error: "Message ID is required and must be a valid UUID" });
+    }
+
+    if (!userId || !userRole || !['ADMIN', 'BUYER', 'SELLER'].includes(userRole)) {
+        return res.status(401).json({ error: "Unauthorized access" });
+    }
+
+    try {
+        // Find the message
+        const message = await prisma.chatMessage.findUnique({
+            where: { id: messageId }
+        });
+
+        if (!message) {
+            return res.status(404).json({ error: "Message not found" });
+        }
+
+        // check for already pinned messages in the same chat room
+        if (message.isPinned) {
+            return res.status(400).json({ error: "Message is already pinned" });
+        } else {
+            const pinnedCount = await prisma.chatMessage.count({
+                where: {
+                    chatRoomId: message.chatRoomId,
+                    isPinned: true,
+                    deleted: false, // Ensure we only count non-deleted messages
+                }
+            });
+
+            if (pinnedCount >= 3) {
+                return res.status(400).json({ error: "Pin limit reached (max 3 messages per room)" });
+            }
+        }
+
+        // Update the message to pin it
+        const updatedMessage = await prisma.chatMessage.update({
+            where: { id: messageId },
+            data: { isPinned: true }
+        });
+
+        return res.status(200).json({
+            message: "Message pinned successfully",
+            updatedMessage
+        });
+
+    } catch (error) {
+        console.error("Error pinning chat message:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
 }
-interface ChatMessage {
-    id: string;
-    chatRoomId: string;
-    senderId: string;
-    senderRole: 'ADMIN' | 'BUYER' | 'SELLER';
-    content: string;
-    sentAt: Date;
-    read: boolean;
-}
-interface RFQ {
-    id: string;
-    product: {
-        name: string;
-    };
-    status: string;
-}
-interface API_RESPONSE {
-    success: boolean;
-    error?: string;
-    chatRooms?: ChatRoom[];
+
+// Unpin a message in a chat room
+export const unpinChatMessage = async (req: AuthenticatedRequest, res: Response) => {
+    const messageId = req.params.id;
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    // Basic validation
+    if (!messageId || !validator.isUUID(messageId)) {
+        return res.status(400).json({ error: "Message ID is required and must be a valid UUID" });
+    }
+
+    if (!userId || !userRole || !['ADMIN', 'BUYER', 'SELLER'].includes(userRole)) {
+        return res.status(401).json({ error: "Unauthorized access" });
+    }
+
+    try {
+
+        // Find the message
+        const message = await prisma.chatMessage.findUnique({
+            where: { id: messageId }
+        });
+
+        if (!message) {
+            return res.status(404).json({ error: "Message not found" });
+        }
+
+        // check if the message is already unpinned
+        if (!message.isPinned) {
+            return res.status(400).json({ error: "Message is not pinned" });
+        }
+
+
+        // Update the message to unpin it
+        const updatedMessage = await prisma.chatMessage.update({
+            where: { id: messageId },
+            data: { isPinned: false }
+        });
+
+        return res.status(200).json({
+            message: "Message unpinned successfully",
+            updatedMessage
+        });
+
+    } catch (error) {
+        console.error("Error unpinning chat message:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
 }

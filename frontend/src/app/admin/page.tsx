@@ -19,12 +19,25 @@ interface AdminUser {
     email: string;
     // add other properties as needed
 };
+interface AdminSummary {
+    totalSellers: number;
+    totalBuyers: number;
+    totalRFQs: number;
+    completedTrades: number;
+    pendingProducts: number;
+    totalProducts: number;
+}
+interface AdminResponse {
+    success: boolean;
+    summary: AdminSummary;
+}
 
 const AdminDashboard = () => {
     const [isLoading, setIsLoading] = React.useState(false);
     const [user, setUser] = React.useState<AdminUser | null>(null);
     const [success, setSuccess] = React.useState('');
     const [error, setError] = React.useState('');
+    const [adminSummary, setAdminSummary] = React.useState<AdminSummary | null>(null);
     const { authenticated, role, user: loggedInUser, isSeller, loading, isBuyer, logout } = useAuth();
     const router = useRouter();
 
@@ -44,12 +57,41 @@ const AdminDashboard = () => {
         } else {
             setUser(null);
         }
-        // if (!authenticated) {
-        //     setError('You are not authenticated. Please log in.');
-        // } else if (role !== 'admin') {
-        //     setError('Access denied. Admins only.');
-        // }
     }, [authenticated, role, loggedInUser]);
+
+    useEffect(() => {
+        const fetchAdminSummary = async () => {
+            setIsLoading(true);
+            try {
+                const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+                const response = await fetch(`${BASE_URL}/admin/dashboard-summary`, {
+                    method: 'GET',
+                    credentials: 'include', // Include cookies for authentication
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to fetch admin summary');
+                }
+
+                const data: AdminResponse = await response.json();
+                if (data.success) {
+                    setAdminSummary(data.summary);
+                } else {
+                    throw new Error('Failed to fetch admin summary');
+                }
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchAdminSummary();
+    }, []);
 
     if (loading) {
         return (
@@ -83,47 +125,6 @@ const AdminDashboard = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <header className="bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center">
-                            <div className="flex items-center">
-                                <HomeIcon className="h-6 w-6 text-gray-600 mr-3" />
-                                <h1 className="text-xl font-semibold text-gray-900">Admin Dashboard</h1>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center space-x-4">
-                            <div className="relative">
-                                <Search className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                                <input
-                                    type="text"
-                                    placeholder="Search..."
-                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-                                />
-                            </div>
-
-                            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md">
-                                <Bell className="h-5 w-5" />
-                            </button>
-
-                            {user && (
-                                <div className="flex items-center space-x-3">
-                                    <div className="text-right">
-                                        <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                                        <p className="text-xs text-gray-500">{user.role}</p>
-                                    </div>
-                                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                                        <span className="text-sm font-medium text-gray-700">
-                                            {user.name ? user.name.charAt(0).toUpperCase() : 'A'}
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </header>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {success && (
@@ -187,16 +188,22 @@ const AdminDashboard = () => {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Overview</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="text-center">
-                            <div className="text-2xl font-bold text-gray-900">24</div>
-                            <div className="text-sm text-gray-500">Active Listings</div>
+                            <div className="text-2xl font-bold text-gray-900">
+                                {adminSummary ? adminSummary.totalProducts : <Loader2 className="w-5 h-5 animate-spin mx-auto" />}
+                            </div>
+                            <div className="text-sm text-gray-500">Total Products</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-2xl font-bold text-gray-900">156</div>
+                            <div className="text-2xl font-bold text-gray-900">
+                                {adminSummary ? adminSummary.totalSellers + adminSummary.totalBuyers : <Loader2 className="w-5 h-5 animate-spin mx-auto" />}
+                            </div>
                             <div className="text-sm text-gray-500">Total Users</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-2xl font-bold text-gray-900">89</div>
-                            <div className="text-sm text-gray-500">Pending Orders</div>
+                            <div className="text-2xl font-bold text-gray-900">
+                                {adminSummary ? adminSummary.pendingProducts : <Loader2 className="w-5 h-5 animate-spin mx-auto" />}
+                            </div>
+                            <div className="text-sm text-gray-500">Pending Products</div>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React from 'react';
 import { Edit3, User, Building, Phone, FileText, MapPin } from 'lucide-react';
 import { Seller } from '@/src/lib/types/listing';
 
@@ -292,4 +291,4 @@ const renderProfile = ({ seller, isEditing, setIsEditing, profileForm, setProfil
     </div>
 );
 
-export {renderProfile};
+export { renderProfile };

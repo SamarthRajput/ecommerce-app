@@ -44,6 +44,12 @@ enum Role {
   SELLER
 }
 
+enum ChatRoomStatus {
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
 //
 // ========================
 // ===== MODELS ===========
@@ -195,37 +201,68 @@ model User {
 }
 
 model ChatRoom {
-  id        String        @id @default(uuid())
-  rfqId     String
-  rfq       RFQ           @relation(fields: [rfqId], references: [id])
+  id             String        @id @default(uuid())
+  rfqId          String
+  rfq            RFQ           @relation(fields: [rfqId], references: [id])
 
-  buyerId   String?       // Admin ↔ Buyer
-  buyer     Buyer?        @relation(fields: [buyerId], references: [id])
+  buyerId        String?       // Admin <--> Buyer
+  buyer          Buyer?        @relation(fields: [buyerId], references: [id])
 
-  sellerId  String?       // Admin ↔ Seller
-  seller    Seller?       @relation(fields: [sellerId], references: [id])
+  sellerId       String?       // Admin <--> Seller
+  seller         Seller?       @relation(fields: [sellerId], references: [id])
 
-  adminId   String
-  admin     User          @relation(fields: [adminId], references: [id])
+  adminId        String
+  admin          User          @relation(fields: [adminId], references: [id])
 
-  type      ChatRoomType
+  type           ChatRoomType
 
-  messages  ChatMessage[]
+  status         ChatRoomStatus @default(ACTIVE)
+  lastMessageAt  DateTime       @default(now())
 
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  messages       ChatMessage[]
 
-  @@unique([rfqId, type]) // only one chat room per RFQ type
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([rfqId, type])
 }
 
 model ChatMessage {
-  id          String   @id @default(uuid())
-  chatRoomId  String
-  chatRoom    ChatRoom @relation(fields: [chatRoomId], references: [id])
+  id              String        @id @default(uuid())
+  chatRoomId      String
+  chatRoom        ChatRoom      @relation(fields: [chatRoomId], references: [id])
 
-  senderRole  Role
-  senderId    String
-  content     String
-  read        Boolean  @default(false)
-  sentAt      DateTime @default(now())
+  senderRole      Role
+  senderId        String        // Can be admin/buyer/seller ID
+  content         String
+
+  edited          Boolean       @default(false)
+  deleted         Boolean       @default(false)
+
+  attachmentUrl   String?       // Optional file/image
+  attachmentType  String?       // "image", "pdf", etc.
+
+  replyToId       String?
+  replyTo         ChatMessage?   @relation("ReplyTo", fields: [replyToId], references: [id])
+  replies         ChatMessage[]  @relation("ReplyTo")
+
+  isPinned        Boolean       @default(false)
+  isStarred       Boolean       @default(false)
+
+  read            Boolean       @default(false)
+  sentAt          DateTime      @default(now())
+
+  reactions       MessageReaction[]
+}
+
+model MessageReaction {
+  id          String     @id @default(uuid())
+  messageId   String
+  message     ChatMessage @relation(fields: [messageId], references: [id])
+
+  reactorId   String     // User ID who reacted
+  reactorRole Role       // BUYER / SELLER / ADMIN
+
+  emoji       String     // like "❤️", "👍", etc.
+  createdAt   DateTime   @default(now())
 }

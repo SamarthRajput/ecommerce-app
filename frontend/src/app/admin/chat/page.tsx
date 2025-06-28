@@ -26,19 +26,35 @@ interface API_RESPONSE {
   error?: string;
   chatRooms?: ChatRoom[];
 }
-
+interface RFQ {
+  id: string;
+  product: {
+    id: string;
+    name: string;
+  };
+  buyer: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  status: "PENDING" | "COMPLETED";
+  createdAt: Date;
+  updatedAt: Date;
+}
 export default function AdminChat() {
   const [activeTab, setActiveTab] = useState<"buyer" | "seller">("buyer");
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
+  const [rfqs, setRfqs] = useState<RFQ[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [loadingRfqs, setLoadingRfqs] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [showModal, setShowModal] = useState(false);
 
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-  const CHAT = "/chatroom/id/messages";
 
   useEffect(() => {
     const fetchChatRooms = async () => {
@@ -64,7 +80,29 @@ export default function AdminChat() {
       }
       setLoadingRooms(false);
     };
+
+    const fetchRFQs = async () => {
+      setLoadingRfqs(true);
+      try {
+        const response = await fetch(`${BASE_URL}/rfq/admin/pending`, {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to fetch RFQs");
+        }
+        const data = await response.json();
+        setRfqs(data);
+      } catch (err) {
+        setError((err as Error).message);
+      }
+      setLoadingRfqs(false);
+    };
+
     fetchChatRooms();
+    fetchRFQs();
   }, [BASE_URL]);
 
   const fetchChatMessages = async (chatRoomId: string) => {
@@ -90,6 +128,7 @@ export default function AdminChat() {
     }
     setLoadingMessages(false);
   };
+
   const sendMessage = async (chatRoomId: string, content: string) => {
     if (!content.trim()) return;
     try {
@@ -107,17 +146,70 @@ export default function AdminChat() {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to send message");
       }
-
       fetchChatMessages(chatRoomId);
     } catch (err) {
       setError((err as Error).message);
     }
-  }
+  };
+
+  const markMessagesAsRead = async (chatRoomId: string) => {
+    try {
+      const responseMessages = await fetch(
+        `${BASE_URL}/chat/chatroom/${chatRoomId}/messages`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      const data: ChatMessage[] = await responseMessages.json();
+      const unreadMessageIds = data
+        .filter(msg => msg.senderRole !== "ADMIN" && !msg.read)
+        .map(msg => msg.id);
+
+      if (unreadMessageIds.length === 0) return;
+
+      await fetch(`${BASE_URL}/chat/chatroom/${chatRoomId}/mark-read`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messageIds: unreadMessageIds,
+          chatRoomId,
+        }),
+      });
+      fetchChatMessages(chatRoomId);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const createChatRoom = async (rfqId: string) => {
+    try {
+      const response = await fetch(`${BASE_URL}/chat/chatroom`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rfqId,
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create chat room");
+      }
+      const data = await response.json();
+      setChatRooms((prev) => [...prev, data]);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
 
   const handleViewMessages = (room: ChatRoom) => {
     setSelectedRoom(room);
     setShowModal(true);
     fetchChatMessages(room.id);
+    markMessagesAsRead(room.id);
   };
 
   const closeModal = () => {
@@ -132,6 +224,60 @@ export default function AdminChat() {
       {error && (
         <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>
       )}
+
+      {/* RFQ List */}
+      <section className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4">Pending RFQs</h2>
+        {loadingRfqs ? (
+          <div className="text-center py-4 text-blue-500">Loading RFQs...</div>
+        ) : (
+          <div>
+            {rfqs.length === 0 ? (
+              <div className="text-gray-500 text-center py-4">No pending RFQs.</div>
+            ) : (
+              rfqs.map((rfq) => {
+                const sellerChatExists = chatRooms.some(
+                  (room) => room.rfqId === rfq.id && room.type === "SELLER"
+                );
+                return (
+                  <div
+                    key={rfq.id}
+                    className="border p-4 mb-4 rounded-lg shadow-sm flex justify-between items-center hover:bg-gray-50 transition"
+                  >
+                    <div>
+                      <div className="font-semibold">
+                        Product: {rfq.product.name}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Buyer: {rfq.buyer.firstName} {rfq.buyer.lastName} ({rfq.buyer.email})
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        RFQ ID: <span className="font-mono">{rfq.id}</span>
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Created: {new Date(rfq.createdAt).toLocaleString()}
+                      </div>
+                    </div>
+                    <div>
+                      {sellerChatExists ? (
+                        <span className="text-green-600 font-semibold">Seller Chat Exists</span>
+                      ) : (
+                        <button
+                          className="px-4 py-2 bg-blue-500 text-white rounded shadow hover:bg-blue-600 transition"
+                          onClick={() => createChatRoom(rfq.id)}
+                        >
+                          Start Seller Chat
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+      </section>
+
       <div className="flex justify-center mb-6">
         <button
           className={`px-4 py-2 mr-2 rounded transition ${activeTab === "buyer"
@@ -161,10 +307,8 @@ export default function AdminChat() {
             .map((room) => (
               <div
                 key={room.id}
-                className={`border p-4 mb-4 rounded-lg shadow-sm transition ${selectedRoom?.id === room.id
-                  ? "border-blue-500 bg-blue-50"
-                  : "hover:border-blue-300"
-                  }`}
+                className={`border p-4 mb-4 rounded-lg shadow-sm transition ${selectedRoom?.id === room.id ? "border-blue-500 bg-blue-50" : "hover:border-blue-300 hover:bg-blue-50 cursor-pointer"}`}
+                onClick={() => handleViewMessages(room)}
               >
                 <div className="flex justify-between items-center">
                   <div>
@@ -223,55 +367,55 @@ export default function AdminChat() {
             {loadingMessages ? (
               <div className="text-blue-500 py-8 text-center">Loading messages...</div>
             ) : (
-                <div className="mb-4">
+              <div className="mb-4">
                 <div className="max-h-60 overflow-y-auto scroll-m-2 flex flex-col gap-2">
                   {messages.length > 0 ? (
-                  messages.map((message) => (
-                    <div
-                    key={message.id}
-                    className={`flex ${message.senderRole === "ADMIN" ? "justify-end" : "justify-start"}`}
-                    >
-                    <div
-                      className={`p-3 mb-2 rounded max-w-xs break-words
+                    messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.senderRole === "ADMIN" ? "justify-end" : "justify-start"}`}
+                      >
+                        <div
+                          className={`p-3 mb-2 rounded max-w-xs break-words
                       ${message.senderRole === "ADMIN"
-                        ? "bg-blue-100 text-blue-900 ml-16"
-                        : "bg-gray-100 text-gray-800 mr-16"
-                      }`}
-                    >
-                      <div className="font-semibold text-xs mb-1">{message.senderRole}</div>
-                      <div>{message.content}</div>
-                      <div className="text-xs text-gray-500 mt-1 text-right">
-                      {new Date(message.sentAt).toLocaleString()}
+                              ? "bg-blue-100 text-blue-900 ml-16"
+                              : "bg-gray-100 text-gray-800 mr-16"
+                            }`}
+                        >
+                          <div className="font-semibold text-xs mb-1">{message.senderRole}</div>
+                          <div>{message.content}</div>
+                          <div className="text-xs text-gray-500 mt-1 text-right">
+                            {new Date(message.sentAt).toLocaleString()}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    </div>
-                  ))
+                    ))
                   ) : (
-                  <div className="text-gray-500">No messages in this chat room.</div>
+                    <div className="text-gray-500">No messages in this chat room.</div>
                   )}
                 </div>
                 <div className="mt-4 flex flex-col gap-4">
                   <p className="text-sm text-gray-500">
-                  Type your message below and press Enter to send. Use Shift + Enter for a new line.
+                    Type your message below and press Enter to send. Use Shift + Enter for a new line.
                   </p>
                   <div className="flex items-center gap-4">
-                  <CameraIcon className="h-6 w-6 text-blue-500 mb-4" />
-                  <File className="h-6 w-6 text-blue-500 mb-4" />
-                  <textarea
-                    className="w-full p-2 border rounded"
-                    rows={3}
-                    placeholder="Type your message..."
-                    onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      sendMessage(selectedRoom.id, (e.target as HTMLTextAreaElement).value);
-                      (e.target as HTMLTextAreaElement).value = "";
-                    }
-                    }}
-                  />
+                    <CameraIcon className="h-6 w-6 text-blue-500 mb-4" />
+                    <File className="h-6 w-6 text-blue-500 mb-4" />
+                    <textarea
+                      className="w-full p-2 border rounded"
+                      rows={3}
+                      placeholder="Type your message..."
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage(selectedRoom.id, (e.target as HTMLTextAreaElement).value);
+                          (e.target as HTMLTextAreaElement).value = "";
+                        }
+                      }}
+                    />
                   </div>
                 </div>
-                </div>
+              </div>
             )}
           </div>
         </div>
