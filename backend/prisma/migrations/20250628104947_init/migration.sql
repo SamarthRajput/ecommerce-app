@@ -2,7 +2,7 @@
 CREATE TYPE "ProductStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'ARCHIVED', 'APPROVED', 'PENDING', 'REJECTED');
 
 -- CreateEnum
-CREATE TYPE "RFQStatus" AS ENUM ('PENDING', 'COMPLETED');
+CREATE TYPE "RFQStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 
 -- CreateEnum
 CREATE TYPE "TradeStatus" AS ENUM ('COMPLETED', 'IN_PROGRESS');
@@ -90,8 +90,11 @@ CREATE TABLE "RFQ" (
     "quantity" INTEGER NOT NULL,
     "message" TEXT,
     "status" "RFQStatus" NOT NULL,
+    "rejectionReason" TEXT,
+    "reviewedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "tect" TEXT NOT NULL,
 
     CONSTRAINT "RFQ_pkey" PRIMARY KEY ("id")
 );
