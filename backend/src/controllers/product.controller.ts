@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import { AuthenticatedRequest } from "../middlewares/authBuyer";
 
 export const getProducts = async (req: Request, res: Response) => {
     const { page = 1, limit = 10 } = req.query; // Default to page 1 and limit 10 if not provided
@@ -178,3 +179,59 @@ export const getProductReviews = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+export const postProductReviews = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+    const { id: productId } = req.params;
+    const buyerId = req.buyer?.buyerId;
+    const { rating, comment } = req.body;
+
+    if(!rating || rating < 1 || rating > 5){
+        res.status(400).json({
+            message: "Invalid Inputs"
+        })
+        return;
+    }
+
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product) {
+      res.status(404).json({ message: 'Product not found' });
+      return;
+    }
+
+    // Check if buyer already reviewed this product or not 
+    const existingReview = await prisma.review.findFirst({
+      where: { productId, buyerId },
+    });
+
+    if (existingReview) {
+      return res.status(400).json({ message: 'You have already reviewed this product' });
+    }
+
+    const review = await prisma.review.create({
+      data: {
+        rating: Number(rating),
+        comment,
+        product: { connect: { id: productId } },
+        buyer: { connect: { id: buyerId } },
+      },
+      include: {
+        buyer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            city: true,
+            country: true,
+          },
+        },
+      },
+    });
+
+    res.status(201).json({ review, message: 'Review submitted successfully' });
+    } catch (error) {
+        console.error('Error creating review:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+        return;
+    }
+}
