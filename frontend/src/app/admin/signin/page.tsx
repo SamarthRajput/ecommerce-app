@@ -107,12 +107,10 @@ const AdminLoginPage = () => {
                 // Clear form
                 setFormData({ email: '', password: '' });
 
-                // Redirect after a short delay to show success message
                 setTimeout(() => {
                     router.push('/admin');
                 }, 1000);
             } else {
-                // Handle various error scenarios with better messaging
                 switch (response.status) {
                     case 400:
                         setError(data.error || 'Invalid request. Please check your input.');
