@@ -8,7 +8,6 @@ import { listingFormSchema, loginSellerSchema, registerSellerSchema, updateProfi
 import { JWT_SECRET } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
 import validator from "validator";
-import { Prisma } from "@prisma/client";
 
 // Sign up seller
 export const signupSeller = async (req: Request, res: Response) => {
@@ -260,6 +259,7 @@ export const getSellerProfile = async (req: AuthenticatedRequest, res: Response)
 // Update seller profile
 export const updateSellerProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
+        console.log('Updating seller profile:', req.body);
         const sellerId = req.seller?.sellerId;
         if (!sellerId) {
             return res.status(401).json({ error: 'Unauthorized' });
