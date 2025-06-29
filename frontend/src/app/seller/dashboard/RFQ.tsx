@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 interface RFQ {
     id: string;
@@ -22,53 +22,83 @@ const parseMessage = (message?: string) => {
     }
 };
 
+const statusColor = {
+    PENDING: 'bg-amber-400',
+    ACCEPTED: 'bg-green-400',
+    REJECTED: 'bg-red-400',
+};
+
 const RFQComponent = ({ rfqRequests }: { rfqRequests: RFQ[] }) => {
     return (
-        <div>
-            <h2>RFQ Requests</h2>
-            {rfqRequests.map((rfq) => {
-                const parsedMessage = parseMessage(rfq.message);
-                return (
-                    <div key={rfq.id}>
-                        <h3>RFQ ID: {rfq.id}</h3>
-                        <p>Product ID: {rfq.productId}</p>
-                        <p>Buyer ID: {rfq.buyerId}</p>
-                        <p>Quantity: {rfq.quantity}</p>
-                        <p>Status: {rfq.status}</p>
-                        {parsedMessage && typeof parsedMessage === 'object' ? (
-                            <div>
-                                <p><strong>Delivery Date:</strong> {parsedMessage.deliveryDate}</p>
-                                <p><strong>Budget:</strong> {parsedMessage.budget} {parsedMessage.currency}</p>
-                                <p><strong>Payment Terms:</strong> {parsedMessage.paymentTerms}</p>
-                                <p><strong>Special Requirements:</strong> {parsedMessage.specialRequirements}</p>
-                                <p><strong>Additional Notes:</strong> {parsedMessage.additionalNotes}</p>
+        <div className="max-w-3xl mx-auto my-8 p-6">
+            <h2 className="text-2xl font-bold mb-6">RFQ Requests</h2>
+            {rfqRequests.length === 0 && (
+                <div className="bg-gray-100 p-8 rounded-xl text-center text-gray-500">
+                    No RFQ requests available.
+                </div>
+            )}
+            <div className="flex flex-col gap-6">
+                {rfqRequests.map((rfq) => {
+                    const parsedMessage = parseMessage(rfq.message);
+                    return (
+                        <div
+                            key={rfq.id}
+                            className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 flex flex-col gap-2"
+                        >
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-lg font-semibold m-0">RFQ ID: {rfq.id}</h3>
+                                <span
+                                    className={`px-3 py-1 rounded-lg text-white font-semibold text-sm tracking-wider ${statusColor[rfq.status]}`}
+                                >
+                                    {rfq.status}
+                                </span>
                             </div>
-                        ) : (
-                            rfq.message && <p>Message: {rfq.message}</p>
-                        )}
-                        {rfq.rejectionReason && <p>Rejection Reason: {rfq.rejectionReason}</p>}
-                        <p>Created At: {new Date(rfq.createdAt).toLocaleString()}</p>
-                        <p>Updated At: {new Date(rfq.updatedAt).toLocaleString()}</p>
-                    </div>
-                );
-            })}
-            {rfqRequests.length === 0 && <p>No RFQ requests available.</p>}
-            <style jsx>{`
-                div {
-                    border: 1px solid #eee;
-                    border-radius: 8px;
-                    padding: 16px;
-                    margin-bottom: 16px;
-                }
-                h3 {
-                    margin: 0 0 8px;
-                }
-                p {
-                    margin: 4px 0;
-                }
-            `}</style>
+                            <div className="flex gap-8 flex-wrap mt-2">
+                                <div>
+                                    <p className="m-0 text-gray-500">Product ID</p>
+                                    <p className="m-0 font-medium">{rfq.productId}</p>
+                                </div>
+                                <div>
+                                    <p className="m-0 text-gray-500">Buyer ID</p>
+                                    <p className="m-0 font-medium">{rfq.buyerId}</p>
+                                </div>
+                                <div>
+                                    <p className="m-0 text-gray-500">Quantity</p>
+                                    <p className="m-0 font-medium">{rfq.quantity}</p>
+                                </div>
+                            </div>
+                            <div className="mt-3">
+                                {parsedMessage && typeof parsedMessage === 'object' ? (
+                                    <div className="bg-gray-50 rounded-lg p-3 mb-2">
+                                        <p className="m-0"><strong>Delivery Date:</strong> {parsedMessage.deliveryDate || '-'}</p>
+                                        <p className="m-0"><strong>Budget:</strong> {parsedMessage.budget ? `${parsedMessage.budget} ${parsedMessage.currency || ''}` : '-'}</p>
+                                        <p className="m-0"><strong>Payment Terms:</strong> {parsedMessage.paymentTerms || '-'}</p>
+                                        <p className="m-0"><strong>Special Requirements:</strong> {parsedMessage.specialRequirements || '-'}</p>
+                                        <p className="m-0"><strong>Additional Notes:</strong> {parsedMessage.additionalNotes || '-'}</p>
+                                    </div>
+                                ) : (
+                                    rfq.message && (
+                                        <div className="bg-gray-50 rounded-lg p-3 mb-2">
+                                            <strong>Message:</strong> {rfq.message}
+                                        </div>
+                                    )
+                                )}
+                                {rfq.rejectionReason && (
+                                    <div className="text-red-500 font-medium mb-2">
+                                        Rejection Reason: {rfq.rejectionReason}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex gap-6 text-gray-500 text-xs">
+                                <span>Created: {new Date(rfq.createdAt).toLocaleString()}</span>
+                                <span>Updated: {new Date(rfq.updatedAt).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
         </div>
-    )
-}
+    );
+};
 
-export default RFQComponent
+export default RFQComponent;
