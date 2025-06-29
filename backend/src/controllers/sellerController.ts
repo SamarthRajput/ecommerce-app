@@ -7,7 +7,10 @@ import { AuthenticatedRequest, requireSeller } from "../middlewares/authSeller";
 import { listingFormSchema, loginSellerSchema, registerSellerSchema, updateProfileSchema } from "../lib/zod/SellerZod";
 import { JWT_SECRET } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
+import validator from "validator";
+import { Prisma } from "@prisma/client";
 
+// Sign up seller
 export const signupSeller = async (req: Request, res: Response) => {
     try {
         // Validate request body with Zod
@@ -364,10 +367,21 @@ export const getSellerListings = async (req: AuthenticatedRequest, res: Response
                 id: true,
                 name: true,
                 description: true,
+                listingType: true,
+                industry: true,
+                condition: true,
+                productCode: true,
+                model: true,
+                specifications: true,
+                hsnCode: true,
+                countryOfSource: true,
+                validityPeriod: true,
+                images: true,
                 price: true,
                 quantity: true,
                 category: true,
-                status: true
+                status: true,
+                createdAt: true,
             }
         });
 
@@ -380,6 +394,7 @@ export const getSellerListings = async (req: AuthenticatedRequest, res: Response
         res.status(500).json({ error: 'Server error' });
     }
 }
+
 
 // Create a new listing by Seller
 export const createListing = async (req: AuthenticatedRequest, res: Response) => {
@@ -495,3 +510,256 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
         res.status(500).json({ error: 'Server error' });
     }
 }
+
+// Edit a listing by Seller
+export const editListing = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const sellerId = req.seller?.sellerId;
+        if (!sellerId || validator.isUUID(sellerId)) {
+            return res.status(401).json({ error: 'Unauthorized Access' });
+        }
+
+        const listingId = req.params.listingId;
+        // console.log(`Request.params:`, req.params);
+        // console.log(`Request.body:`, req.body);
+        if (!listingId) {
+            return res.status(400).json({ error: 'Listing ID is required' });
+        }
+
+        // Validate request body with Zod
+        const validationResult = listingFormSchema.safeParse(req.body);
+        if (!validationResult.success) {
+            console.error('Validation error:', validationResult.error.issues);
+            res.status(400).json({
+                error: `Validation failed: ${validationResult.error.issues[0]?.message} ${validationResult.error.issues[0]?.path.join('.')}`,
+                details: validationResult.error.issues.map(issue => ({
+                    field: issue.path.join('.'),
+                    message: issue.message
+                }))
+            });
+            return;
+        }
+        const {
+            listingType,
+            industry,
+            category,
+            condition,
+            productCode,
+            productName,
+            description,
+            model,
+            specifications,
+            hsnCode,
+            quantity,
+            countryOfSource,
+            validityPeriod,
+            notes,
+        } = validationResult.data;
+
+        // Check if listing exists
+        const existingListing = await prisma.product.findUnique({
+            where: { id: listingId, sellerId }
+        });
+        if (!existingListing) {
+            res.status(404).json({ error: 'Listing not found' });
+            return;
+        }
+
+        // if (existingListing.stat)
+        // Update listing
+        const updatedListing = await prisma.product.update({
+            where: { id: listingId },
+            data: {
+                listingType,
+                industry,
+                category,
+                condition,
+                productCode,
+                name: productName,
+                description,
+                model,
+                specifications,
+                hsnCode,
+                quantity,
+                price: 100,
+                validityPeriod: Number(validityPeriod),
+                countryOfSource,
+                status: "PENDING"
+            }
+        });
+
+        res.json({
+            message: 'Listing updated successfully',
+            listing: {
+                id: updatedListing.id,
+                name: updatedListing.name,
+                description: updatedListing.description,
+                price: updatedListing.price,
+                category: updatedListing.category,
+                status: updatedListing.status
+            }
+        });
+    }
+    catch (error) {
+        console.error('Edit listing error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+// Deactivate/Activate/Archive a listing by Seller
+export const toggleListingStatus = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const sellerId = req.seller?.sellerId;
+        if (!sellerId || validator.isUUID(sellerId)) {
+            return res.status(401).json({ error: 'Unauthorized Access' });
+        }
+
+        const listingId = req.params.listingId;
+        if (!listingId) {
+            return res.status(400).json({ error: 'Listing ID is required' });
+        }
+
+        const { action } = req.body; // action can be 'deactivate', 'activate', or 'archive'
+
+        // Check if listing exists
+        const existingListing = await prisma.product.findUnique({
+            where: { id: listingId, sellerId }
+        });
+        if (!existingListing) {
+            res.status(404).json({ error: 'Listing not found' });
+            return;
+        }
+
+        let updatedStatus: "INACTIVE" | "ACTIVE" | "ARCHIVED";
+        switch (action) {
+            case 'deactivate':
+                updatedStatus = "INACTIVE";
+                break;
+            case 'activate':
+                updatedStatus = "ACTIVE";
+                break;
+            case 'archive':
+                updatedStatus = "ARCHIVED";
+                break;
+            default:
+                return res.status(400).json({ error: 'Invalid action' });
+        }
+
+        // Update listing status
+        const updatedListing = await prisma.product.update({
+            where: { id: listingId },
+            data: { status: updatedStatus }
+        });
+
+        res.json({
+            message: `Listing ${action}d successfully`,
+            listing: {
+                id: updatedListing.id,
+                name: updatedListing.name,
+                description: updatedListing.description,
+                price: updatedListing.price,
+                category: updatedListing.category,
+                status: updatedListing.status
+            }
+        });
+    } catch (error) {
+        console.error('Toggle listing status error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+// Get Dashboard Overview Stats
+export const getDashboardStats = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const sellerId = req.seller?.sellerId;
+        if (!sellerId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        // Get total listings
+        const totalListings = await prisma.product.count({
+            where: { sellerId }
+        });
+
+        // Get active listings
+        const activeListings = await prisma.product.count({
+            where: { sellerId, status: 'ACTIVE' }
+        });
+
+        // Get inactive listings
+        const inactiveListings = await prisma.product.count({
+            where: { sellerId, status: 'INACTIVE' }
+        });
+
+        // Get archived listings
+        const archivedListings = await prisma.product.count({
+            where: { sellerId, status: 'ARCHIVED' }
+        });
+
+        // Get total revenue (assuming price is stored in the product)
+        const totalRevenue = await prisma.product.aggregate({
+            _sum: {
+                price: true
+            },
+            where: { sellerId, status: 'ACTIVE' }
+        });
+
+        const totalListingsWithStatus = await prisma.product.count({
+            where: {
+                sellerId,
+                status: {
+                    in: ['ACTIVE', 'INACTIVE', 'ARCHIVED']
+                }
+            }
+        });
+
+        const totalRFQs = await prisma.rFQ.count({
+            where: { product: { sellerId } }
+        });
+
+        return res.json({
+            message: 'Dashboard stats retrieved successfully',
+            stats: {
+                totalListings,
+                activeListings,
+                inactiveListings,
+                archivedListings,
+                totalRevenue: totalRevenue._sum.price || 0,
+                totalRFQs,
+                totalViews: 0, // Assuming you will implement views tracking later
+                totalOrders: totalListingsWithStatus,
+                recentOrders: 0, // Assuming you will implement recent orders tracking later
+                pendingOrders: 0, // Assuming you will implement pending orders tracking later  
+                responseRate: 0, // Assuming you will implement response rate tracking later
+                avgRating: 0, // Assuming you will implement average rating tracking later
+                monthlyRevenue: 0 // Assuming you will implement monthly revenue tracking later
+            }
+        });
+    } catch (error) {
+        console.error('Get dashboard stats error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+// Get Seller RFQ Requests
+export const getSellerRFQRequests = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const sellerId = req.seller?.sellerId;
+        if (!sellerId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const rfqRequests = await prisma.rFQ.findMany({
+            where: { product: { sellerId } },
+            include: { product: true }
+        });
+        console.log(`RFQ requests for seller ${sellerId}:`, rfqRequests);
+        return res.json({
+            message: 'RFQ requests retrieved successfully',
+            rfqRequests
+        });
+    } catch (error) {
+        console.error('Get seller RFQ requests error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};

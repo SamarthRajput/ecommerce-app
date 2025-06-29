@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { AuthenticatedRequest, requireSeller } from "../middlewares/authSeller";
-import { createListing, getSellerListings, getSellerProfile, signinSeller, signupSeller, updateSellerProfile } from "../controllers/sellerController";
+import { createListing, editListing, getDashboardStats, getSellerListings, getSellerProfile, getSellerRFQRequests, signinSeller, signupSeller, toggleListingStatus, updateSellerProfile } from "../controllers/sellerController";
 
 export const sellerRouter = Router();
 
@@ -52,4 +52,24 @@ sellerRouter.get("/listings", requireSeller, async (req: AuthenticatedRequest, r
 // Seller list post
 sellerRouter.post("/list-item", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
     await createListing(req, res);
+});
+
+// Edit a listing by Seller
+sellerRouter.put("/edit-listing/:listingId", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
+    await editListing(req, res);
+});
+
+// Toggle listing status (deactivate/activate/archive)
+sellerRouter.post("/toggle-listing-status/:listingId", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
+    await toggleListingStatus(req, res);
+});
+
+// Get Dashboard Overview Stats
+sellerRouter.get("/dashboard-stats", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
+    await getDashboardStats(req, res);
+});
+
+// Get seller RFQ requests
+sellerRouter.get("/rfq-requests", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
+    await getSellerRFQRequests(req, res);
 });
