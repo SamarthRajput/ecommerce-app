@@ -90,7 +90,6 @@ const useSellerDashboard = () => {
     const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
     const [listings, setListings] = useState<Listing[]>([]);
     const [rfqRequests, setRfqRequests] = useState<RFQ[]>([]);
-    const [notifications, setNotifications] = useState<number>(3);
     const { user, loading } = useAuth();
 
     const router = useRouter();
@@ -278,21 +277,7 @@ const useSellerDashboard = () => {
             dashboardLoading,
             currentView,
             setCurrentView,
-            dashboardStats,
-            listings,
             rfqRequests,
-            notifications,
-            isEditing,
-            setIsEditing,
-            profileForm,
-            setProfileForm,
-            handleUpdateProfile,
-            profileLoading,
-            profileError,
-            fetchProfile,
-            fetchDashboardStats,
-            fetchListings,
-            fetchRFQRequests,
             renderCurrentView,
             NAVIGATION_ITEMS
         }
