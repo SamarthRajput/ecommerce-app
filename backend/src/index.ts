@@ -7,7 +7,7 @@ import cookieParser from "cookie-parser";
 import { buyerRouter } from "./routes/buyer.route";
 import { sellerRouter } from "./routes/seller.route";
 import { analyticsRouter } from "./routes/analytics";
-import { listingRouter } from "./routes/listing";
+import { listingRouter } from "./routes/listing.routes";
 import { rfqRouter } from "./routes/rfq.routes";
 import { authRouter } from "./routes/adminAuthRouter";
 import { adminRouter } from "./routes/admin";
