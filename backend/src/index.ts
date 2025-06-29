@@ -38,7 +38,6 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/chat", chatRouter);
-// app.use("/api/v1/uploadthing", uploadThingRouter);
 
 // Root route
 app.get("/", (req, res) => {

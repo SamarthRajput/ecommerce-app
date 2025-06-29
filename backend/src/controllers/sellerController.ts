@@ -9,6 +9,11 @@ import { JWT_SECRET } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
 import validator from "validator";
 import { Prisma } from "@prisma/client";
+import cloudinary from '../config/cloudinary';
+import multer from 'multer';
+
+const storage = multer.memoryStorage();
+export const upload = multer({ storage });
 
 // Sign up seller
 export const signupSeller = async (req: Request, res: Response) => {
@@ -404,10 +409,29 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
+        // Handle images
+        let imageUrls: string[] = [];
+        const files = req.files as Express.Multer.File[];
+        if (files && files.length > 0) {
+            for (const file of files) {
+                const uploadResult = await new Promise<string>((resolve, reject) => {
+                    const stream = cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
+                        if (error || !result) return reject(error);
+                        resolve(result.secure_url);
+                    });
+                    stream.end(file.buffer);
+                });
+                imageUrls.push(uploadResult);
+            }
+        }
+
+        req.body.quantity = parseInt(req.body.quantity || '0');
+        req.body.validityPeriod = parseInt(req.body.validityPeriod || '0');
+        req.body.images = imageUrls;
+
         // Validate request body with Zod
         const validationResult = listingFormSchema.safeParse(req.body);
         if (!validationResult.success) {
-            console.error('Validation error:', validationResult.error.issues);
             res.status(400).json({
                 error: 'Validation failed',
                 details: validationResult.error.issues.map(issue => ({
@@ -432,25 +456,7 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
             countryOfSource,
             validityPeriod,
             notes,
-            // images
         } = validationResult.data;
-        console.log('Creating listing with data:', {
-            listingType,
-            industry,
-            category,
-            condition,
-            productCode,
-            productName,
-            description,
-            model,
-            specifications,
-            hsnCode,
-            quantity,
-            countryOfSource,
-            validityPeriod,
-            notes,
-            // images: images?.length || 0
-        });
 
         // Check if seller exists
         const existingSeller = await prisma.seller.findUnique({
@@ -489,12 +495,10 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 price: 0,
                 validityPeriod: Number(validityPeriod),
                 countryOfSource,
-                // images: images || [],
+                images: imageUrls,
                 status: 'PENDING' // Default status
             }
         });
-
-        // Will Handle images if provided in future
 
         res.status(201).json({
             message: 'Listing created successfully',
@@ -505,7 +509,7 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 price: listing.price,
                 category: listing.category,
                 status: listing.status,
-                // images: listing.images,
+                images: listing.images,
             }
         });
     } catch (error) {

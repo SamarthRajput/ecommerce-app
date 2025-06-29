@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { AuthenticatedRequest, requireSeller } from "../middlewares/authSeller";
-import { createListing, editListing, getDashboardStats, getSellerListings, getSellerProfile, getSellerRFQRequests, signinSeller, signupSeller, toggleListingStatus, updateSellerProfile } from "../controllers/sellerController";
+import { createListing, editListing, getDashboardStats, getSellerListings, getSellerProfile, getSellerRFQRequests, signinSeller, signupSeller, toggleListingStatus, updateSellerProfile, upload } from "../controllers/sellerController";
 
 export const sellerRouter = Router();
 
@@ -50,7 +50,8 @@ sellerRouter.get("/listings", requireSeller, async (req: AuthenticatedRequest, r
 });
 
 // Seller list post
-sellerRouter.post("/list-item", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
+// the upload array need images
+sellerRouter.post("/list-item", requireSeller, upload.array('images', 5), async (req: AuthenticatedRequest, res: Response) => {
     await createListing(req, res);
 });
 
