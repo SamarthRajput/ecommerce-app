@@ -14,6 +14,7 @@ import { adminRouter } from "./routes/admin";
 import productRouter from "./routes/product.routes";
 import chatRouter from "./routes/chat.route";
 
+
 // Configs
 dotenv.config();
 const app = express();
@@ -37,6 +38,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/chat", chatRouter);
+// app.use("/api/v1/uploadthing", uploadThingRouter);
 
 // Root route
 app.get("/", (req, res) => {

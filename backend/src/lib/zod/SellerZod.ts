@@ -55,8 +55,5 @@ export const listingFormSchema = z.object({
     countryOfSource: z.string().min(1, 'Country of source is required'),
     validityPeriod: z.number().min(1, 'Validity period is required'),
     notes: z.string().optional(),
-    // images: z.array(z.string().url('Image URL must be valid')).min(1, 'At least one image is required').optional()
-    // images: z.array(z.instanceof(File))
-    //     .min(1, 'At least one image is required')
-    //     .max(5, 'Maximum 5 images allowed'),
+    // images: z.array(z.string().url('Image URL must be valid')).min(1, 'At least one image is required').max(5, 'Maximum 5 images allowed').optional() 
 });

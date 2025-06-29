@@ -448,7 +448,8 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
             quantity,
             countryOfSource,
             validityPeriod,
-            notes
+            notes,
+            // images: images?.length || 0
         });
 
         // Check if seller exists
@@ -488,6 +489,7 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 price: 0,
                 validityPeriod: Number(validityPeriod),
                 countryOfSource,
+                // images: images || [],
                 status: 'PENDING' // Default status
             }
         });
@@ -502,7 +504,8 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 description: listing.description,
                 price: listing.price,
                 category: listing.category,
-                status: listing.status
+                status: listing.status,
+                // images: listing.images,
             }
         });
     } catch (error) {
