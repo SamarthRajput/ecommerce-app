@@ -1,7 +1,13 @@
 export type SummaryData = {
-  activeListingCount: number;
   pendingRFQsCount: number;
   completedRFQsCount: number;
+  rejectedRFQsCount: number;
   completedTradesCount: number;
   inprogressTradesCount: number;
+  activeListingCount: number;
+  approvedListingCount: number;
+  archivedListingCount: number;
+  inactiveListingCount: number;
+  pendingListingCount: number;
+  rejectedListingCount: number;
 };
