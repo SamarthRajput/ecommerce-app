@@ -7,12 +7,9 @@ export const summaryRouter = Router();
 // Summary router which returns the summary of the active listing, pending rfqs, completed trade
 summaryRouter.get("/", async (req: Request, res: Response) => {
     try {
-        const [activeListingCount, pendingRFQsCount, completedRFQsCount, completedTradesCount, inprogressTradesCount] = await Promise.all([
-            prisma.product.count({
-                where: {
-                    status: "ACTIVE"
-                }
-            }),
+        const [pendingRFQsCount, completedRFQsCount, rejectedRFQsCount, completedTradesCount, inprogressTradesCount, activeListingCount,
+            approvedListingCount, archivedListingCount, inactiveListingCount, pendingListingCount, rejectedListingCount
+        ] = await Promise.all([
             prisma.rFQ.count({
                 where: {
                     status: "PENDING"
@@ -21,6 +18,11 @@ summaryRouter.get("/", async (req: Request, res: Response) => {
             prisma.rFQ.count({
                 where: {
                     status: 'APPROVED'
+                }
+            }),
+            prisma.rFQ.count({
+                where: {
+                    status: "REJECTED"
                 }
             }),
             prisma.trade.count({
@@ -32,17 +34,53 @@ summaryRouter.get("/", async (req: Request, res: Response) => {
                 where: {
                     status: "IN_PROGRESS"
                 }
-            })
+            }),
+            prisma.product.count({
+                where: {
+                    status: "ACTIVE"
+                }
+            }),
+            prisma.product.count({
+                where: {
+                    status: "APPROVED"
+                }
+            }),
+            prisma.product.count({
+                where: {
+                    status: "ARCHIVED"
+                }
+            }),
+            prisma.product.count({
+                where: {
+                    status: "INACTIVE"
+                }
+            }),
+            prisma.product.count({
+                where: {
+                    status: "PENDING"
+                }
+            }),
+            prisma.product.count({
+                where: {
+                    status: "REJECTED"
+                }
+            }),
         ]);
 
         res.json({
             message: "Summary Cards data fetched successfully",
             data: {
-                activeListingCount: activeListingCount,
                 pendingRFQsCount: pendingRFQsCount,
                 completedRFQsCount: completedRFQsCount,
+                rejectedRFQsCount: rejectedRFQsCount,
                 completedTradesCount: completedTradesCount,
-                inprogressTradesCount: inprogressTradesCount
+                inprogressTradesCount: inprogressTradesCount,
+                activeListingCount: activeListingCount,
+                approvedListingCount: approvedListingCount,
+                archivedListingCount: archivedListingCount, 
+                inactiveListingCount: inactiveListingCount, 
+                pendingListingCount: pendingListingCount, 
+                rejectedListingCount: rejectedListingCount
             }
         });
     }

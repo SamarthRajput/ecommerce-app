@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SummaryData } from '@/src/lib/types/summary';
+import BarChart from '@/src/components/BarChart';
 
 export default function ReportsPage() {
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
@@ -67,14 +68,6 @@ export default function ReportsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {/* Summary Cards */}
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">Active Listings</h3>
-            <p className="text-3xl font-bold text-blue-600">
-              {summaryData?.activeListingCount || 0}
-            </p>
-            <p className="text-sm text-gray-500 mt-2">Currently available products</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-700 mb-2">Pending RFQs</h3>
             <p className="text-3xl font-bold text-yellow-500">
               {summaryData?.pendingRFQsCount || 0}
@@ -105,6 +98,55 @@ export default function ReportsPage() {
             </p>
             <p className="text-sm text-gray-500 mt-2">Ongoing transactions</p>
           </div>
+
+           <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">Active Listings</h3>
+            <p className="text-3xl font-bold text-blue-600">
+              {summaryData?.activeListingCount || 0}
+            </p>
+            <p className="text-sm text-gray-500 mt-2">Currently available products</p>
+          </div>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+          {/* RFQ Chart */}
+          <BarChart
+            title="RFQ Summary"
+            labels={['Pending', 'Completed', 'Rejected']}
+            data={[
+              summaryData?.pendingRFQsCount || 0,
+              summaryData?.completedRFQsCount || 0,
+              summaryData?.rejectedRFQsCount || 0,
+            ]}
+            backgroundColor={['#facc15', '#22c55e', '#ef4444']}
+          />
+          <br />
+          {/* Listing Chart */}
+          <BarChart
+            title="Listing Status"
+            labels={['Active', 'Approved', 'Archived', 'Inactive', 'Pending', 'Rejected']}
+            data={[
+              summaryData?.activeListingCount || 0,
+              summaryData?.approvedListingCount || 0,
+              summaryData?.archivedListingCount || 0,
+              summaryData?.inactiveListingCount || 0,
+              summaryData?.pendingListingCount || 0,
+              summaryData?.rejectedListingCount || 0,
+            ]}
+            backgroundColor={['#3b82f6', '#10b981', '#6b7280', '#f59e0b', '#6366f1', '#ef4444']}
+          />
+          <br />
+          {/* Trades Chart */}
+          <BarChart
+            title="Trades Overview"
+            labels={['Completed', 'In Progress']}
+            data={[
+              summaryData?.completedTradesCount || 0,
+              summaryData?.inprogressTradesCount || 0,
+            ]}
+            backgroundColor={['#22c55e', '#3b82f6']}
+          />
         </div>
 
         {/* Export Section */}
