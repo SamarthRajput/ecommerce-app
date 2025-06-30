@@ -4,7 +4,6 @@ import { Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import useSellerDashboard from './useSellerDashboard';
 
-
 const EnhancedSellerDashboard = () => {
     const {
         seller,

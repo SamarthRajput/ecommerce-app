@@ -13,7 +13,6 @@ import multer from 'multer';
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 
-
 // Sign up seller
 export const signupSeller = async (req: Request, res: Response) => {
     try {
@@ -760,7 +759,7 @@ export const getSellerRFQRequests = async (req: AuthenticatedRequest, res: Respo
             where: { product: { sellerId } },
             include: { product: true }
         });
-        console.log(`RFQ requests for seller ${sellerId}:`, rfqRequests);
+        // console.log(`RFQ requests for seller ${sellerId}:`, rfqRequests);
         return res.json({
             message: 'RFQ requests retrieved successfully',
             rfqRequests

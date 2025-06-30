@@ -101,34 +101,49 @@ model Seller {
 }
 
 model Product {
-  id              String        @id @default(uuid())
-  name            String
-  description     String
-  price           Float
-  quantity        Int
-  listingType     String        // e.g., 'SELL'
-  condition       String        // e.g., 'NEW'
-  validityPeriod  Int           // days until expiration
-  industry        String
-  category        String
-  productCode     String
-  model           String
-  specifications  String
-  countryOfSource String
-  hsnCode         String
-  images          String[]      // array of image URLs
+  id                 String        @id @default(uuid())
+  name               String
+  description        String
+  price              Float
+  currency           String?       // e.g., "USD", "INR"
+  quantity           Int
+  minimumOrderQuantity Int?
+  listingType        String        // e.g., 'SELL', 'LEASE'
+  condition          String        // e.g., 'NEW', 'USED'
+  validityPeriod     Int           // days until expiration
+  expiryDate         DateTime?
+  deliveryTimeInDays Int?
+  logisticsSupport   String?       // e.g., 'SELF', 'INTERLINK', 'BOTH'
 
-  status          ProductStatus @default(ACTIVE)
+  industry           String
+  category           String
+  productCode        String
+  model              String
+  specifications     String
+  countryOfSource    String
+  hsnCode            String
+  certifications     String[]
+  warrantyPeriod     String?
+  licenses           String[]
 
-  sellerId        String
-  seller          Seller        @relation(fields: [sellerId], references: [id])
+  brochureUrl        String?
+  videoUrl           String?
+  images             String[]
 
-  rfqs            RFQ[]
-  trades          Trade[]
-  reviews         Review[]
+  tags               String[]
+  keywords           String[]
 
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  status             ProductStatus @default(ACTIVE)
+
+  sellerId           String
+  seller             Seller        @relation(fields: [sellerId], references: [id])
+
+  rfqs               RFQ[]
+  trades             Trade[]
+  reviews            Review[]
+
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 }
 
 model RFQ {
