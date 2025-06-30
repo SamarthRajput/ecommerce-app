@@ -49,7 +49,7 @@ export function requireAuth(options: AuthOptions) {
                 const userId = decoded.buyerId || decoded.sellerId || decoded.userId;
                 const email = decoded.email;
 
-                console.log(`Decoded token for role: ${role}, id: ${userId} email: ${email}`);
+                // console.log(`Decoded token for role: ${role}, id: ${userId} email: ${email}`);
 
                 if (!userId) continue;
 

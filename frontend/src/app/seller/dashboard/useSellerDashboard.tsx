@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { User, Package, BarChart3, MessageSquare, Settings } from 'lucide-react';
+import { User, Package, BarChart3, MessageSquare, Settings, MessageCircle } from 'lucide-react';
 import { renderProfile } from './Profile';
 import ListingComponent from './Listing';
 import RenderOverview from './Overview';
 import { useAuth } from '@/src/context/AuthContext';
 import RFQComponent from './RFQ';
+import SettingsDashboard from './Settings';
 
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
 const API_BASE_URL = `${API_BACKEND_URL}/seller`;
@@ -78,6 +79,7 @@ const NAVIGATION_ITEMS = [
     { id: 'listings', label: 'My Listings', icon: Package },
     { id: 'rfqs', label: 'RFQ Requests', icon: MessageSquare },
     { id: 'profile', label: 'Profile', icon: User },
+    { id: 'chats', label: 'Chats', icon: MessageCircle },
     { id: 'settings', label: 'Settings', icon: Settings },
 ] as const;
 
@@ -265,8 +267,11 @@ const useSellerDashboard = () => {
                     loading: profileLoading,
                     error: profileError
                 });
+            case 'chats':
+                router.push('/seller/chats');
+                return;
             case 'settings':
-                return <div className="p-4 text-center text-gray-500">Settings view - Coming soon</div>;
+                return <SettingsDashboard />
             default:
                 return <div className="p-4 text-center text-gray-500">Select a view from the sidebar</div>;
         }

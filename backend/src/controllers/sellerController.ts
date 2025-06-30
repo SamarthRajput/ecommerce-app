@@ -13,7 +13,6 @@ import multer from 'multer';
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 
-
 // Sign up seller
 export const signupSeller = async (req: Request, res: Response) => {
     try {
