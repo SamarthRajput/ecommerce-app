@@ -68,6 +68,9 @@ const IndividualProductPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
+    // Image gallery state
+    const [activeImage, setActiveImage] = useState(0);
+
     useEffect(() => {
         const fetchProductDetails = async () => {
             setLoading(true);
@@ -186,12 +189,34 @@ const IndividualProductPage = () => {
                 <>
                     <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
                         <div style={{ flex: "1 1 320px", minWidth: 320 }}>
+                            {/* Image Gallery */}
                             {product.images && product.images.length > 0 ? (
-                                <img
-                                    src={product.images[0]}
-                                    alt={product.name}
-                                    style={{ width: "100%", borderRadius: 8, objectFit: "cover", maxHeight: 350 }}
-                                />
+                                <div>
+                                    <img
+                                        src={product.images[activeImage]}
+                                        alt={product.name}
+                                        style={{ width: "100%", borderRadius: 8, objectFit: "cover", maxHeight: 350, marginBottom: 8 }}
+                                    />
+                                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                                        {product.images.map((img, idx) => (
+                                            <img
+                                                key={idx}
+                                                src={img}
+                                                alt={`Product ${idx + 1}`}
+                                                style={{
+                                                    width: 56,
+                                                    height: 56,
+                                                    objectFit: 'cover',
+                                                    borderRadius: 4,
+                                                    border: idx === activeImage ? '2px solid #1976d2' : '1px solid #eee',
+                                                    cursor: 'pointer',
+                                                    opacity: idx === activeImage ? 1 : 0.7
+                                                }}
+                                                onClick={() => setActiveImage(idx)}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
                             ) : (
                                 <div style={{ width: "100%", height: 350, background: "#eee", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
                                     <span>No Image</span>

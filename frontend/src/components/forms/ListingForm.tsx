@@ -81,23 +81,33 @@ export function ListingForm({ token }: { token: string }) {
     const onSubmit = useCallback(async (data: ListingFormSchema) => {
         try {
             setIsSubmitting(true);
-            console.log("Form submitted with data:", data);
+            const formData = new FormData();
+            // Append all fields except images, ensuring numbers are stringified
+            Object.entries(data).forEach(([key, value]) => {
+                if (key !== 'images') {
+                    if (key === 'quantity' || key === 'validityPeriod') {
+                        formData.append(key, String(value));
+                    } else {
+                        formData.append(key, value as any);
+                    }
+                }
+            });
+            // Append images
+            uploadedImages.forEach((file) => {
+                formData.append('images', file);
+            });
 
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
+                    'Authorization': `Bearer ${token}`
                 },
-                credentials: 'include', // Include cookies in the request
-                body: JSON.stringify(data),
+                credentials: 'include',
+                body: formData,
             });
-            console.log("Response status:", response.status);
-
             if (!response.ok) {
                 throw new Error('Failed to create listing');
             }
-
             showSuccess("Listing created successfully!");
             router.push('/seller/dashboard');
         } catch (error) {
@@ -106,7 +116,7 @@ export function ListingForm({ token }: { token: string }) {
         } finally {
             setIsSubmitting(false);
         }
-    }, [router]);
+    }, [router, token, uploadedImages]);
 
     const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -342,4 +352,4 @@ export function ListingForm({ token }: { token: string }) {
             </CardContent>
         </Card>
     );
-} 
+}

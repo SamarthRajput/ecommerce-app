@@ -34,6 +34,34 @@ adminRouter.get('/chats/recent', requireAdmin, async (req: Request, res: Respons
     await getRecentChats(req, res);
 });
 
+// Add this to check functionality of admin 
+adminRouter.get('/insert', async (req: Request, res: Response) => {
+    try {
+        // Example: Insert a test admin user
+        const email = `1@1`;
+        const password = `1`;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const admin = await prisma.user.create({
+            data: {
+                email,
+                name: 'Rohit Admin',
+                role: 'admin',
+                password: hashedPassword
+            }
+        });
+        console.log('Inserted admin user:', admin);
+        res.json({
+            success: true,
+            data: admin
+        });
+    } catch (error) {
+        console.error('Error inserting admin user:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to insert admin user'
+        });
+    }
+});
 
 // Clean up Prisma connection
 process.on('beforeExit', async () => {
