@@ -822,3 +822,44 @@ export const getSellerRFQRequests = async (req: AuthenticatedRequest, res: Respo
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+// Upload business documents
+// This endpoint allows sellers to upload business documents like GST registration, business license, etc.
+export const uploadDocuments = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const sellerId = req.seller?.sellerId;
+        if (!sellerId) {
+            res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        const files = req.files as Express.Multer.File[];
+        if (!files || files.length === 0) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        const file = files[0];
+        if (file.mimetype !== 'application/pdf') {
+            return res.status(400).json({ error: 'Only PDF files are allowed' });
+        }
+        // Upload PDF to Cloudinary
+        const pdfUrl = await new Promise<string>((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+                { 
+                    resource_type: 'raw', 
+                    folder: 'business_documents', 
+                    public_id: `business_doc_${sellerId}_${Date.now()}` 
+                },
+                (error, result) => {
+                    if (error || !result) return reject(error);
+                    resolve(result.secure_url);
+                }
+            );
+            stream.end(file.buffer);
+        });
+        // Optionally: Save pdfUrl to seller profile in DB here
+        res.status(200).json({ message: 'Business document uploaded successfully', url: pdfUrl });
+    }   
+    catch(e){
+        console.log(e);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
