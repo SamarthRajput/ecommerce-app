@@ -17,61 +17,76 @@ export const upload = multer({ storage });
 export const signupSeller = async (req: Request, res: Response) => {
     try {
         // Validate request body with Zod
-        const validationResult = registerSellerSchema.safeParse(req.body)
-
-        if (!validationResult.success) {
-            res.status(400).json({
-                details: validationResult.error.issues.map(issue => ({
-                    field: issue.path.join('.'),
-                    message: issue.message
-                }))
-                ,
-                error: `Validation failed: ${validationResult.error.issues[0]?.message}`,
-                message: `${validationResult.error.issues[0]?.message}`
-            })
-            console.error('Validation error:', validationResult.error.issues[0]?.message)
-            return
+        const parsed = registerSellerSchema.safeParse(req.body);
+        if (!parsed.success) {
+            const errors = Object.fromEntries(
+                Object.entries(parsed.error.flatten().fieldErrors).map(([key, value]) => [key, value?.[0]])
+            );
+            return res.status(400).json({
+                message: 'Validation failed',
+                errors
+            });
         }
 
-        const { email, password, profile } = validationResult.data
-        console.log('Registering seller:', email, profile.businessName)
+        console.log('Received registration request:', parsed.data);
+        const data = parsed.data;
+        console.log('Registering seller:', data.email, data.businessName)
 
-        // Check if seller exists
-        console.log('Checking for existing seller with email:', email)
+        // Check if seller exists with same email and phone
         const existingSeller = await prisma.seller.findUnique({
-            where: { email }
+            where: {
+                email: data.email,
+                phone: data.phone,
+                countryCode: data.countryCode
+            }
         })
 
         if (existingSeller) {
-            console.log('Seller already exists:', email)
+            console.log('Seller already exists:', data.email)
             res.status(400).json({
-                message: 'Seller already exists',
+                message: 'Seller already exists with this email and phone',
                 error: 'Seller already exists'
             })
             return
         }
 
         // Hash password
-        const hashedPassword = await bcrypt.hash(password, 12)
+        const hashedPassword = await bcrypt.hash(data.password, 12)
 
         // Create seller
-        console.log('Creating new seller:', email)
+        console.log('Creating new seller:', data.email)
+        // Map businessType to enum value (uppercase and underscores)
+        const mapBusinessType = (type: string) => type.toUpperCase().replace(/ /g, "_");
+
         const seller = await prisma.seller.create({
             data: {
-                email,
+                email: data.email,
                 password: hashedPassword,
-                firstName: profile.firstName,
-                lastName: profile.lastName,
-                role: 'seller', // Default role
-                businessName: profile.businessName,
-                businessType: profile.businessType,
-                phone: profile.phone,
-                street: profile.address.street,
-                city: profile.address.city,
-                state: profile.address.state,
-                zipCode: profile.address.zipCode,
-                country: profile.address.country,
-                taxId: profile.taxId,
+                phone: data.phone,
+                countryCode: data.countryCode,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                businessName: data.businessName,
+                businessType: mapBusinessType(data.businessType) as any,
+                registrationNo: data.registrationNo,
+                taxId: data.taxId,
+                panOrTin: data.panOrTin,
+                country: data.country,
+                street: data.street,
+                city: data.city,
+                state: data.state,
+                zipCode: data.zipCode,
+                website: data.website,
+                linkedIn: data.linkedIn,
+                govIdUrl: data.govIdUrl || null,
+                gstCertUrl: data.gstCertUrl || null,
+                businessDocUrl: data.businessDocUrl || null,
+                otherDocsUrl: data.otherDocsUrl || null,
+                companyBio: data.companyBio || '',
+                industryTags: data.industryTags || [],
+                keyProducts: data.keyProducts || [],
+                yearsInBusiness: data.yearsInBusiness ? Number(data.yearsInBusiness) : 0,
+                agreedToTerms: data.agreedToTerms || false
             }
         })
 
@@ -109,7 +124,9 @@ export const signupSeller = async (req: Request, res: Response) => {
                         country: seller.country
                     },
                     taxId: seller.taxId
-                }
+                },
+                createdAt: seller.createdAt,
+                updatedAt: seller.updatedAt
             }
         })
     } catch (error) {
@@ -215,7 +232,24 @@ export const getSellerProfile = async (req: AuthenticatedRequest, res: Response)
                 lastName: true,
                 businessName: true,
                 businessType: true,
+                isEmailVerified: true,
+                isPhoneVerified: true,
+                isApproved: true,
+                approvalNote: true,
+                registrationNo: true,
+                panOrTin: true,
+                website: true,
+                linkedIn: true,
+                yearsInBusiness: true,
+                industryTags: true,
+                keyProducts: true,
+                companyBio: true,
+                govIdUrl: true,
+                gstCertUrl: true,
+                businessDocUrl: true,
+                otherDocsUrl: true,
                 phone: true,
+                countryCode: true,
                 street: true,
                 city: true,
                 state: true,
@@ -242,6 +276,24 @@ export const getSellerProfile = async (req: AuthenticatedRequest, res: Response)
                 businessName: seller.businessName,
                 businessType: seller.businessType,
                 phone: seller.phone,
+                countryCode: seller.countryCode,
+                isEmailVerified: seller.isEmailVerified,
+                isPhoneVerified: seller.isPhoneVerified,
+                isApproved: seller.isApproved,
+                approvalNote: seller.approvalNote,
+                registrationNo: seller.registrationNo,
+                taxId: seller.taxId,
+                panOrTin: seller.panOrTin,
+                website: seller.website,
+                linkedIn: seller.linkedIn,
+                yearsInBusiness: seller.yearsInBusiness,
+                industryTags: seller.industryTags,
+                keyProducts: seller.keyProducts,
+                companyBio: seller.companyBio,
+                govIdUrl: seller.govIdUrl,
+                gstCertUrl: seller.gstCertUrl,
+                businessDocUrl: seller.businessDocUrl,
+                otherDocsUrl: seller.otherDocsUrl,
                 address: {
                     street: seller.street,
                     city: seller.city,
@@ -249,7 +301,6 @@ export const getSellerProfile = async (req: AuthenticatedRequest, res: Response)
                     zipCode: seller.zipCode,
                     country: seller.country
                 },
-                taxId: seller.taxId,
                 createdAt: seller.createdAt,
                 updatedAt: seller.updatedAt
             }
@@ -270,20 +321,18 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
         }
 
         // Validate request body with Zod
-        const validationResult = updateProfileSchema.safeParse(req.body);
+        const parsed = registerSellerSchema.safeParse(req.body);
 
-        if (!validationResult.success) {
-            res.status(400).json({
-                error: 'Validation failed',
-                details: validationResult.error.issues.map(issue => ({
-                    field: issue.path.join('.'),
-                    message: issue.message
-                }))
+        // 2. If validation fails, return error
+        if (!parsed.success) {
+            return res.status(400).json({
+                message: 'Validation failed',
+                errors: parsed.error.flatten().fieldErrors,
             });
-            return;
         }
 
-        const { firstName, lastName, businessName, businessType, phone, address, taxId } = validationResult.data;
+        const data = parsed.data;
+        console.log('Updating seller:', data.email, data.businessName)
 
         // Check if seller exists
         const existingSeller = await prisma.seller.findUnique({
@@ -295,21 +344,25 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
             return;
         }
 
+        // Map businessType to enum value (uppercase and underscores)
+        const mapBusinessType = (type: string) => type.toUpperCase().replace(/ /g, "_");
+
         // Update seller profile
         const updatedSeller = await prisma.seller.update({
             where: { id: sellerId },
             data: {
-                firstName,
-                lastName,
-                businessName,
-                businessType,
-                phone,
-                street: address.street,
-                city: address.city,
-                state: address.state,
-                zipCode: address.zipCode,
-                country: address.country,
-                taxId
+                email: data.email,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                businessName: data.businessName,
+                businessType: mapBusinessType(data.businessType) as any,
+                phone: data.phone,
+                street: data.street,
+                city: data.city,
+                state: data.state,
+                zipCode: data.zipCode,
+                country: data.country,
+                taxId: data.taxId
             },
             select: {
                 id: true,
