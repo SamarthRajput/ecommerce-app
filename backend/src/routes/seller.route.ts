@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { AuthenticatedRequest, requireSeller } from "../middlewares/authSeller";
-import { createListing, editListing, getDashboardStats, getSellerListings, getSellerProfile, getSellerRFQRequests, signinSeller, signupSeller, toggleListingStatus, updateSellerProfile, upload } from "../controllers/sellerController";
+import { createListing, editListing, getDashboardStats, getSellerListings, getSellerProfile, getSellerRFQRequests, signinSeller, signupSeller, toggleListingStatus, updateSellerProfile, upload, uploadDocuments } from "../controllers/sellerController";
 
 export const sellerRouter = Router();
 
@@ -74,3 +74,7 @@ sellerRouter.get("/dashboard-stats", requireSeller, async (req: AuthenticatedReq
 sellerRouter.get("/rfq-requests", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
     await getSellerRFQRequests(req, res);
 });
+
+sellerRouter.post("/upload-documents", requireSeller, upload.array('files', 1), async (req: AuthenticatedRequest, res: Response) => {
+    await uploadDocuments(req, res);
+})

@@ -1,4 +1,3 @@
-// components/BarChart.tsx
 'use client';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -9,6 +8,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  ChartOptions,
 } from 'chart.js';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
@@ -18,9 +18,16 @@ interface BarChartProps {
   labels: string[];
   data: number[];
   backgroundColor?: string[];
+  options?: Partial<ChartOptions<'bar'>>;
 }
 
-export default function BarChart({ title, labels, data, backgroundColor }: BarChartProps) {
+export default function BarChart({
+  title,
+  labels,
+  data,
+  backgroundColor,
+  options = {},
+}: BarChartProps) {
   const chartData = {
     labels,
     datasets: [
@@ -32,7 +39,7 @@ export default function BarChart({ title, labels, data, backgroundColor }: BarCh
     ],
   };
 
-  const options = {
+  const mergedOptions: ChartOptions<'bar'> = {
     responsive: true,
     plugins: {
       legend: { display: false },
@@ -41,7 +48,25 @@ export default function BarChart({ title, labels, data, backgroundColor }: BarCh
         text: title,
         font: { size: 16 },
       },
+      ...options.plugins,
+    },
+    scales: {
+      y: {
+        type: 'linear',
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1,
+          precision: 0,
+          ...(options?.scales?.y as any)?.ticks,
+        },
+        ...(options?.scales?.y as any),
+      },
+      x: {
+        type: 'category',
+        ...options?.scales?.x as any,
+      },
     },
   };
-  return <Bar data={chartData} options={options} />;
+
+  return <Bar data={chartData} options={mergedOptions} />;
 }
