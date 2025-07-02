@@ -35,7 +35,7 @@ const FormField = React.memo(({
 
 FormField.displayName = 'FormField';
 
-export function ListingForm({ token }: { token: string }) {
+export function ListingForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadedImages, setUploadedImages] = useState<File[]>([]);
     const router = useRouter();
@@ -99,9 +99,6 @@ export function ListingForm({ token }: { token: string }) {
 
             const response = await fetch(API_URL, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
                 credentials: 'include',
                 body: formData,
             });
@@ -116,7 +113,7 @@ export function ListingForm({ token }: { token: string }) {
         } finally {
             setIsSubmitting(false);
         }
-    }, [router, token, uploadedImages]);
+    }, [router, uploadedImages]);
 
     const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

@@ -50,6 +50,18 @@ enum ChatRoomStatus {
   ARCHIVED
 }
 
+enum BusinessType {
+  INDIVIDUAL
+  PROPRIETORSHIP
+  PARTNERSHIP
+  LLP
+  PRIVATE_LIMITED
+  PUBLIC_LIMITED
+  NGO
+  GOVERNMENT_ENTITY
+  OTHER
+}
+
 //
 // ========================
 // ===== MODELS ===========
@@ -76,28 +88,55 @@ model Buyer {
 }
 
 model Seller {
-  id           String     @id @default(cuid())
-  email        String     @unique
-  password     String
-  firstName    String
-  lastName     String
-  role         String
-  businessName String
-  businessType String
-  phone        String
-  street       String
-  city         String
-  state        String
-  zipCode      String
-  country      String
-  taxId        String
+  id              String       @id @default(cuid())
+  email           String       @unique
+  password        String
+  firstName       String
+  lastName        String
+  phone           String       @unique
+  countryCode     String
 
-  product      Product[]
-  chatRooms    ChatRoom[]
-  trades       Trade[]    @relation("SellerTrades")
+  role            String       @default("seller")
+  isEmailVerified Boolean      @default(false)
+  isPhoneVerified Boolean      @default(false) // for OTP logic
+  isApproved      Boolean      @default(false)
+  approvalNote    String?
 
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  businessName    String
+  businessType    BusinessType
+  registrationNo  String?      // Company Registration Number
+  taxId           String?      // GSTIN, PAN, VAT, etc.
+  panOrTin        String?      // Optional PAN/TIN
+  website         String?
+  linkedIn        String?
+
+  yearsInBusiness Int?         // Dropdown: e.g., 1–3 = 3
+  industryTags    String[]     // e.g., ["Agriculture", "IT"]
+  keyProducts     String[]     // e.g., ["Solar Panels", "Crude Oil"]
+
+  companyBio      String?      // Description of business
+
+  // Address
+  street          String
+  city            String
+  state           String
+  zipCode         String
+  country         String
+
+  // Compliance document uploads (stored as URL strings)
+  govIdUrl        String?      // Aadhaar, Passport, etc.
+  gstCertUrl      String?      // GST Certificate
+  businessDocUrl  String?      // Company registration
+  otherDocsUrl    String?      // Any other license or proof
+
+  agreedToTerms   Boolean      @default(false)
+
+  product         Product[]
+  chatRooms       ChatRoom[]
+  trades          Trade[]      @relation("SellerTrades")
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 }
 
 model Product {

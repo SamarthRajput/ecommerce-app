@@ -9,7 +9,7 @@ import { Shield, Package, MessageSquare, TrendingUp, Users, Star, ArrowRight, Ch
 
 const HomePage = () => {
   const router = useRouter();
-  const { authenticated, role, user, isSeller, loading, isBuyer } = useAuth();
+  const { authenticated, role, user, isSeller, authLoading, isBuyer } = useAuth();
 
   const handleBuyerAction = () => {
     if (authenticated && isBuyer) {
@@ -122,7 +122,7 @@ const HomePage = () => {
   };
 
   const heroContent = getHeroContent();
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="text-center min-h-screen flex flex-col items-center justify-center space-y-6">
         {/* Animated Logo */}

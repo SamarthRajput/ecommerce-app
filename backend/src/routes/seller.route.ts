@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { AuthenticatedRequest, requireSeller } from "../middlewares/authSeller";
-import { createListing, editListing, getDashboardStats, getSellerListings, getSellerProfile, getSellerRFQRequests, signinSeller, signupSeller, toggleListingStatus, updateSellerProfile, upload, uploadDocuments } from "../controllers/sellerController";
+import { createListing, editListing, getDashboardStats, getSellerListings, getSellerProfile, getSellerPublicProfile, getSellerRFQRequests, signinSeller, signupSeller, toggleListingStatus, updateSellerProfile, upload, uploadDocuments } from "../controllers/sellerController";
 
 export const sellerRouter = Router();
 
@@ -27,7 +27,7 @@ sellerRouter.post("/logout", requireSeller, (req: AuthenticatedRequest, res: Res
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        path: "/" // Ensure the path matches where the cookie was set
+        path: "/"
     });
     res.status(200).json({ message: "Logged out successfully" });
 });
@@ -75,6 +75,12 @@ sellerRouter.get("/rfq-requests", requireSeller, async (req: AuthenticatedReques
     await getSellerRFQRequests(req, res);
 });
 
-sellerRouter.post("/upload-documents", requireSeller, upload.array('files', 1), async (req: AuthenticatedRequest, res: Response) => {
+// Upload documents for seller
+sellerRouter.post("/upload-documents", upload.single('file'), async (req: AuthenticatedRequest, res: Response) => {
     await uploadDocuments(req, res);
 })
+
+// get Seller public profile
+sellerRouter.get("/public-profile/:sellerId", async (req: Request, res: Response) => {
+    await getSellerPublicProfile(req, res);
+});

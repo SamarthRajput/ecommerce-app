@@ -7,7 +7,6 @@ import { AuthenticatedRequest, requireSeller } from "../middlewares/authSeller";
 import { listingFormSchema, loginSellerSchema, registerSellerSchema, updateProfileSchema } from "../lib/zod/SellerZod";
 import { JWT_SECRET } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
-import validator from "validator";
 import cloudinary from '../config/cloudinary';
 import multer from 'multer';
 const storage = multer.memoryStorage();
@@ -17,61 +16,77 @@ export const upload = multer({ storage });
 export const signupSeller = async (req: Request, res: Response) => {
     try {
         // Validate request body with Zod
-        const validationResult = registerSellerSchema.safeParse(req.body)
-
-        if (!validationResult.success) {
-            res.status(400).json({
-                details: validationResult.error.issues.map(issue => ({
-                    field: issue.path.join('.'),
-                    message: issue.message
-                }))
-                ,
-                error: `Validation failed: ${validationResult.error.issues[0]?.message}`,
-                message: `${validationResult.error.issues[0]?.message}`
-            })
-            console.error('Validation error:', validationResult.error.issues[0]?.message)
-            return
+        const parsed = registerSellerSchema.safeParse(req.body);
+        if (!parsed.success) {
+            const errors = Object.fromEntries(
+                Object.entries(parsed.error.flatten().fieldErrors).map(([key, value]) => [key, value?.[0]])
+            );
+            return res.status(400).json({
+                message: 'Validation failed, Kindly check all the field for any error.',
+                errors
+            });
         }
 
-        const { email, password, profile } = validationResult.data
-        console.log('Registering seller:', email, profile.businessName)
+        console.log('Received registration request:', parsed.data);
+        const data = parsed.data;
+        console.log('Registering seller:', data.email, data.businessName)
 
-        // Check if seller exists
-        console.log('Checking for existing seller with email:', email)
-        const existingSeller = await prisma.seller.findUnique({
-            where: { email }
-        })
+        // Check if seller exists with same email and phone
+        const existingSeller = await prisma.seller.findFirst({
+            where: {
+                OR: [
+                    { email: data.email },
+                    { phone: data.phone }
+                ]
+            }
+        });
 
         if (existingSeller) {
-            console.log('Seller already exists:', email)
+            console.log('Seller already exists:', data.email)
             res.status(400).json({
-                message: 'Seller already exists',
+                message: 'Seller already exists with this email and phone',
                 error: 'Seller already exists'
             })
             return
         }
 
         // Hash password
-        const hashedPassword = await bcrypt.hash(password, 12)
+        const hashedPassword = await bcrypt.hash(data.password, 12)
 
         // Create seller
-        console.log('Creating new seller:', email)
+        console.log('Creating new seller:', data.email)
+        // Map businessType to enum value (uppercase and underscores)
+        const mapBusinessType = (type: string) => type.toUpperCase().replace(/ /g, "_");
+
         const seller = await prisma.seller.create({
             data: {
-                email,
+                email: data.email,
                 password: hashedPassword,
-                firstName: profile.firstName,
-                lastName: profile.lastName,
-                role: 'seller', // Default role
-                businessName: profile.businessName,
-                businessType: profile.businessType,
-                phone: profile.phone,
-                street: profile.address.street,
-                city: profile.address.city,
-                state: profile.address.state,
-                zipCode: profile.address.zipCode,
-                country: profile.address.country,
-                taxId: profile.taxId,
+                phone: data.phone,
+                countryCode: data.countryCode,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                businessName: data.businessName,
+                businessType: mapBusinessType(data.businessType) as any,
+                registrationNo: data.registrationNo,
+                taxId: data.taxId,
+                panOrTin: data.panOrTin,
+                country: data.country,
+                street: data.street,
+                city: data.city,
+                state: data.state,
+                zipCode: data.zipCode,
+                website: data.website,
+                linkedIn: data.linkedIn,
+                govIdUrl: data.govIdUrl || null,
+                gstCertUrl: data.gstCertUrl || null,
+                businessDocUrl: data.businessDocUrl || null,
+                otherDocsUrl: data.otherDocsUrl || null,
+                companyBio: data.companyBio || '',
+                industryTags: data.industryTags || [],
+                keyProducts: data.keyProducts || [],
+                yearsInBusiness: data.yearsInBusiness ? Number(data.yearsInBusiness) : 0,
+                agreedToTerms: data.agreedToTerms || false
             }
         })
 
@@ -109,7 +124,9 @@ export const signupSeller = async (req: Request, res: Response) => {
                         country: seller.country
                     },
                     taxId: seller.taxId
-                }
+                },
+                createdAt: seller.createdAt,
+                updatedAt: seller.updatedAt
             }
         })
     } catch (error) {
@@ -201,65 +218,6 @@ export const signinSeller = async (req: Request, res: Response) => {
     }
 }
 
-// Get seller profile
-export const getSellerProfile = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        const sellerId = req.seller?.sellerId;
-
-        const seller = await prisma.seller.findUnique({
-            where: { id: sellerId },
-            select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                businessName: true,
-                businessType: true,
-                phone: true,
-                street: true,
-                city: true,
-                state: true,
-                zipCode: true,
-                country: true,
-                taxId: true,
-                createdAt: true,
-                updatedAt: true
-            }
-        });
-
-        if (!seller) {
-            res.status(404).json({ error: 'Seller not found' });
-            return;
-        }
-
-        res.json({
-            message: 'Profile retrieved successfully',
-            seller: {
-                id: seller.id,
-                email: seller.email,
-                firstName: seller.firstName,
-                lastName: seller.lastName,
-                businessName: seller.businessName,
-                businessType: seller.businessType,
-                phone: seller.phone,
-                address: {
-                    street: seller.street,
-                    city: seller.city,
-                    state: seller.state,
-                    zipCode: seller.zipCode,
-                    country: seller.country
-                },
-                taxId: seller.taxId,
-                createdAt: seller.createdAt,
-                updatedAt: seller.updatedAt
-            }
-        });
-    } catch (error) {
-        console.error('Get profile error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-}
-
 // Update seller profile
 export const updateSellerProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -270,20 +228,18 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
         }
 
         // Validate request body with Zod
-        const validationResult = updateProfileSchema.safeParse(req.body);
+        const parsed = registerSellerSchema.safeParse(req.body);
 
-        if (!validationResult.success) {
-            res.status(400).json({
-                error: 'Validation failed',
-                details: validationResult.error.issues.map(issue => ({
-                    field: issue.path.join('.'),
-                    message: issue.message
-                }))
+        // 2. If validation fails, return error
+        if (!parsed.success) {
+            return res.status(400).json({
+                message: 'Validation failed',
+                errors: parsed.error.flatten().fieldErrors,
             });
-            return;
         }
 
-        const { firstName, lastName, businessName, businessType, phone, address, taxId } = validationResult.data;
+        const data = parsed.data;
+        console.log('Updating seller:', data.email, data.businessName)
 
         // Check if seller exists
         const existingSeller = await prisma.seller.findUnique({
@@ -295,21 +251,25 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
             return;
         }
 
+        // Map businessType to enum value (uppercase and underscores)
+        const mapBusinessType = (type: string) => type.toUpperCase().replace(/ /g, "_");
+
         // Update seller profile
         const updatedSeller = await prisma.seller.update({
             where: { id: sellerId },
             data: {
-                firstName,
-                lastName,
-                businessName,
-                businessType,
-                phone,
-                street: address.street,
-                city: address.city,
-                state: address.state,
-                zipCode: address.zipCode,
-                country: address.country,
-                taxId
+                email: data.email,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                businessName: data.businessName,
+                businessType: mapBusinessType(data.businessType) as any,
+                phone: data.phone,
+                street: data.street,
+                city: data.city,
+                state: data.state,
+                zipCode: data.zipCode,
+                country: data.country,
+                taxId: data.taxId
             },
             select: {
                 id: true,
@@ -521,13 +481,11 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
 export const editListing = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const sellerId = req.seller?.sellerId;
-        if (!sellerId || validator.isUUID(sellerId)) {
+        if (!sellerId) {
             return res.status(401).json({ error: 'Unauthorized Access' });
         }
 
         const listingId = req.params.listingId;
-        // console.log(`Request.params:`, req.params);
-        // console.log(`Request.body:`, req.body);
         if (!listingId) {
             return res.status(400).json({ error: 'Listing ID is required' });
         }
@@ -616,7 +574,7 @@ export const editListing = async (req: AuthenticatedRequest, res: Response) => {
 export const toggleListingStatus = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const sellerId = req.seller?.sellerId;
-        if (!sellerId || validator.isUUID(sellerId)) {
+        if (!sellerId) {
             return res.status(401).json({ error: 'Unauthorized Access' });
         }
 
@@ -774,26 +732,29 @@ export const getSellerRFQRequests = async (req: AuthenticatedRequest, res: Respo
 // This endpoint allows sellers to upload business documents like GST registration, business license, etc.
 export const uploadDocuments = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const sellerId = req.seller?.sellerId;
-        if (!sellerId) {
-            res.status(401).json({ error: 'Unauthorized' });
-            return;
-        }
-        const files = req.files as Express.Multer.File[];
-        if (!files || files.length === 0) {
+        console.log('Uploading business documents:', req.files);
+        const file = req.file;
+        if (!file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
-        const file = files[0];
-        if (file.mimetype !== 'application/pdf') {
-            return res.status(400).json({ error: 'Only PDF files are allowed' });
+
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (!allowedTypes.includes(file.mimetype)) {
+            return res.status(400).json({ error: 'Only PDF, JPG, and PNG files are allowed' });
         }
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            return res.status(400).json({ error: 'File size exceeds 5MB limit' });
+        }
+
+        const resourceType = file.mimetype === 'application/pdf' ? 'raw' : 'image';
+
         // Upload PDF to Cloudinary
-        const pdfUrl = await new Promise<string>((resolve, reject) => {
+        const uploadedUrl = await new Promise<string>((resolve, reject) => {
             const stream = cloudinary.uploader.upload_stream(
-                { 
-                    resource_type: 'raw', 
-                    folder: 'business_documents', 
-                    public_id: `business_doc_${sellerId}_${Date.now()}` 
+                {
+                    resource_type: resourceType,
+                    folder: 'business_documents',
+                    public_id: `doc_${Date.now()}`
                 },
                 (error, result) => {
                     if (error || !result) return reject(error);
@@ -802,11 +763,181 @@ export const uploadDocuments = async (req: AuthenticatedRequest, res: Response) 
             );
             stream.end(file.buffer);
         });
-        // Optionally: Save pdfUrl to seller profile in DB here
-        res.status(200).json({ message: 'Business document uploaded successfully', url: pdfUrl });
-    }   
-    catch(e){
+        console.log('Document uploaded successfully:', uploadedUrl);
+        res.status(200).json({ message: 'Business document uploaded successfully', url: uploadedUrl });
+    }
+    catch (e) {
         console.log(e);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+// get Seller public profile
+export const getSellerPublicProfile = async (req: Request, res: Response) => {
+    try {
+        const { sellerId } = req.params;
+        // require sellerId to be a valid UUID
+        if (!sellerId) {
+            console.log(`The Seller Id is Invalid`);
+            return res.status(400).json({ error: 'Invalid seller ID' });
+        }
+        console.log("The Seller Id is Valid");
+
+        const seller = await prisma.seller.findUnique({
+            where: { id: sellerId }
+        });
+
+        if (!seller) {
+            return res.status(404).json({ error: 'Seller not found' });
+        }
+
+        // Get only APPROVED products for this seller
+        const approvedProducts = await prisma.product.findMany({
+            where: {
+                sellerId: sellerId,
+                status: "APPROVED"
+            },
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                price: true,
+                currency: true,
+                quantity: true,
+                minimumOrderQuantity: true,
+                listingType: true,
+                condition: true,
+                validityPeriod: true,
+                expiryDate: true,
+                deliveryTimeInDays: true,
+                logisticsSupport: true,
+                industry: true,
+                category: true,
+                productCode: true,
+                model: true,
+                specifications: true,
+                countryOfSource: true,
+                hsnCode: true,
+                certifications: true,
+                warrantyPeriod: true,
+                licenses: true,
+                brochureUrl: true,
+                videoUrl: true,
+                images: true,
+                tags: true
+            }
+        });
+
+        // Remove sensitive fields from the response
+        const { password, ...publicProfile } = seller as any;
+
+        res.status(200).json({
+            message: 'Seller public profile retrieved successfully',
+            seller: {
+                ...publicProfile,
+                products: approvedProducts
+            }
+        });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+// Get seller profile
+export const getSellerProfile = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const sellerId = req.seller?.sellerId;
+
+        if (!sellerId) {
+            res.status(400).json({ error: 'Invalid seller ID' });
+            return;
+        }
+        const seller = await prisma.seller.findUnique({
+            where: { id: sellerId },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                businessName: true,
+                businessType: true,
+                isEmailVerified: true,
+                isPhoneVerified: true,
+                isApproved: true,
+                approvalNote: true,
+                registrationNo: true,
+                panOrTin: true,
+                website: true,
+                linkedIn: true,
+                yearsInBusiness: true,
+                industryTags: true,
+                keyProducts: true,
+                companyBio: true,
+                govIdUrl: true,
+                gstCertUrl: true,
+                businessDocUrl: true,
+                otherDocsUrl: true,
+                phone: true,
+                countryCode: true,
+                street: true,
+                city: true,
+                state: true,
+                zipCode: true,
+                country: true,
+                taxId: true,
+                createdAt: true,
+                updatedAt: true
+            }
+        });
+        // get Seller Product
+        if (!seller) {
+            res.status(404).json({ error: 'Seller not found' });
+            return;
+        }
+
+        res.json({
+            message: 'Profile retrieved successfully',
+            seller: {
+                id: seller.id,
+                email: seller.email,
+                firstName: seller.firstName,
+                lastName: seller.lastName,
+                businessName: seller.businessName,
+                businessType: seller.businessType,
+                phone: seller.phone,
+                countryCode: seller.countryCode,
+                isEmailVerified: seller.isEmailVerified,
+                isPhoneVerified: seller.isPhoneVerified,
+                isApproved: seller.isApproved,
+                approvalNote: seller.approvalNote,
+                registrationNo: seller.registrationNo,
+                taxId: seller.taxId,
+                panOrTin: seller.panOrTin,
+                website: seller.website,
+                linkedIn: seller.linkedIn,
+                yearsInBusiness: seller.yearsInBusiness,
+                industryTags: seller.industryTags,
+                keyProducts: seller.keyProducts,
+                companyBio: seller.companyBio,
+                govIdUrl: seller.govIdUrl,
+                gstCertUrl: seller.gstCertUrl,
+                businessDocUrl: seller.businessDocUrl,
+                otherDocsUrl: seller.otherDocsUrl,
+                address: {
+                    street: seller.street,
+                    city: seller.city,
+                    state: seller.state,
+                    zipCode: seller.zipCode,
+                    country: seller.country
+                },
+                createdAt: seller.createdAt,
+                updatedAt: seller.updatedAt
+            }
+        });
+    } catch (error) {
+        console.error('Get profile error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 }
