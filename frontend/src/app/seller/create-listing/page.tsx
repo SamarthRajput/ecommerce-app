@@ -19,23 +19,8 @@ import { ListingForm } from '@/src/components/forms/ListingForm';
 
 export default function EnhancedCreateListingPage() {
     const [token, setToken] = useState<string | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(false);
     const [userProfile, setUserProfile] = useState<any>(null);
-
-    useEffect(() => {
-        setLoading(true);
-        const storedToken = localStorage.getItem('sellerToken');
-        if (storedToken) {
-            setToken(storedToken);
-            // You can also fetch user profile here if needed
-            // fetchUserProfile(storedToken);
-        }
-        setLoading(false);
-    }, []);
-
-    const handleRetry = () => {
-        window.location.reload();
-    };
 
     if (loading) {
         return (
@@ -53,64 +38,6 @@ export default function EnhancedCreateListingPage() {
                                 <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
                                 <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-
-    if (!token) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-orange-50 to-gray-50 flex items-center justify-center p-4">
-                <Card className="w-full max-w-2xl shadow-lg">
-                    <CardHeader className="text-center pb-4">
-                        <div className="flex justify-center mb-4">
-                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                                <AlertTriangle className="w-8 h-8 text-red-600" />
-                            </div>
-                        </div>
-                        <CardTitle className="text-2xl text-gray-900">Authentication Required</CardTitle>
-                        <p className="text-gray-600 mt-2">You need to be logged in as a seller to create listings on TradeConnect</p>
-                    </CardHeader>
-
-                    <CardContent className="p-6 pt-0">
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                            <h3 className="font-semibold text-blue-900 mb-2">Why do I need to login?</h3>
-                            <ul className="text-sm text-blue-800 space-y-1">
-                                <li>• Verify your business credentials</li>
-                                <li>• Ensure listing quality and authenticity</li>
-                                <li>• Enable secure buyer-seller communication</li>
-                                <li>• Access your seller dashboard and analytics</li>
-                            </ul>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                            <Button
-                                className="bg-orange-600 hover:bg-orange-700 flex items-center gap-2"
-                                onClick={() => window.location.href = '/seller/signin'}
-                            >
-                                <Users className="w-4 h-4" />
-                                Login as Seller
-                            </Button>
-                            <Button
-                                variant="outline"
-                                onClick={() => window.location.href = '/seller/signup'}
-                                className="border-orange-200 text-orange-700 hover:bg-orange-50"
-                            >
-                                Create Seller Account
-                            </Button>
-                        </div>
-
-                        <div className="text-center mt-6">
-                            <Button
-                                variant="ghost"
-                                onClick={() => window.location.href = '/'}
-                                className="text-gray-600 hover:text-gray-800"
-                            >
-                                <Home className="w-4 h-4 mr-2" />
-                                Back to Homepage
-                            </Button>
                         </div>
                     </CardContent>
                 </Card>
@@ -186,7 +113,7 @@ export default function EnhancedCreateListingPage() {
                 </div>
 
                 {/* Main Form */}
-                <ListingForm token={token} />
+                <ListingForm />
 
                 {/* Support Section */}
                 <Card className="border border-gray-200 mt-8">

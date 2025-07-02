@@ -21,7 +21,7 @@ interface AuthState {
     authenticated: boolean;
     role: Role;
     user: UserType | null;
-    loading: boolean;
+    authLoading: boolean;
     refetch: () => void;
     isAdmin: boolean;
     isSeller: boolean;
@@ -33,7 +33,7 @@ const AuthContext = createContext<AuthState>({
     authenticated: false,
     role: null,
     user: null,
-    loading: true,
+    authLoading: true,
     refetch: () => { },
     isAdmin: false,
     isSeller: false,
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         authenticated: false,
         role: null,
         user: null,
-        loading: true,
+        authLoading: true,
     });
 
     const fetchAuth = async () => {
@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 authenticated: true,
                 role: data.role,
                 user: data.user,
-                loading: false,
+                authLoading: false,
             });
         } catch (err) {
             console.error('Auth fetch failed:', err);
@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 authenticated: false,
                 role: null,
                 user: null,
-                loading: false,
+                authLoading: false,
             });
         }
     };
@@ -118,7 +118,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 authenticated: false,
                 role: null,
                 user: null,
-                loading: false,
+                authLoading: false,
             });
         }
     };

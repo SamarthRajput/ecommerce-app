@@ -1,570 +1,272 @@
-// components/SellerRegistration.tsx
-'use client';
+"use client";
+import React, { useState } from 'react';
+import { Check } from 'lucide-react';
+import Section1 from './Section1';
+import Section2 from './Section2';
+import Section3 from './Section3';
+import Section4 from './Section4';
+import Section5 from './Section5';
+import useSignup from '@/src/hooks/useSellerSignup';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { z } from 'zod';
+// Business type options
+const businessTypeOptions = [
+    { value: 'individual', label: 'Individual' },
+    { value: 'proprietorship', label: 'Proprietorship' },
+    { value: 'partnership', label: 'Partnership' },
+    { value: 'llp', label: 'Limited Liability Partnership (LLP)' },
+    { value: 'private_limited', label: 'Private Limited Company' },
+    { value: 'public_limited', label: 'Public Limited Company' },
+    { value: 'ngo', label: 'NGO/Non-Profit' },
+    { value: 'government_entity', label: 'Government Entity' },
+    { value: 'other', label: 'Other' }
+];
 
-const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
-const API_BASE_URL = `${API_BACKEND_URL}/seller`;
+const industryOptions = [
+    'Agriculture', 'Manufacturing', 'Technology', 'Healthcare', 'Education',
+    'Financial Services', 'Real Estate', 'Retail', 'Transportation', 'Energy',
+    'Construction', 'Food & Beverage', 'Textiles', 'Chemicals', 'Automotive'
+];
 
-// Zod validation schema
-const sellerRegistrationSchema = z.object({
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(1, 'Password must be at least 1 characters'), // will be 8 in production
-    confirmPassword: z.string(),
-    firstName: z.string().min(1, 'First name is required').max(50, 'First name too long'),
-    lastName: z.string().min(1, 'Last name is required').max(50, 'Last name too long'),
-    businessName: z.string().min(1, 'Business name is required').max(100, 'Business name too long'),
-    businessType: z.enum(['individual', 'company', 'partnership', 'llc'], {
-        errorMap: () => ({ message: 'Please select a business type' })
-    }),
-    phone: z.string().regex(/^\+?[\d\s\-\(\)]{10,}$/, 'Invalid phone number'),
-    street: z.string().min(1, 'Street address is required').max(200, 'Address too long'),
-    city: z.string().min(1, 'City is required').max(50, 'City name too long'),
-    state: z.string().min(1, 'State is required').max(50, 'State name too long'),
-    zipCode: z.string().min(1, 'Zip code is required').max(20, 'Zip code too long'),
-    country: z.string().min(1, 'Country is required').max(50, 'Country name too long'),
-    taxId: z.string().min(1, 'Tax ID is required').max(50, 'Tax ID too long')
-}).refine(data => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"]
-});
+const yearsInBusinessOptions = [
+    { value: 1, label: 'Less than 1 year' },
+    { value: 2, label: '1-3 years' },
+    { value: 3, label: '3-5 years' },
+    { value: 4, label: '5-10 years' },
+    { value: 5, label: '10+ years' }
+];
 
-type RegistrationData = z.infer<typeof sellerRegistrationSchema>;
+const SellerRegistrationForm = () => {
+    const {
+        formData,
+        errors,
+        loading,
+        handleInputChange,
+        handleFileUpload,
+        currentSection,
+        showPassword,
+        setShowPassword,
+        showConfirmPassword,
+        setShowConfirmPassword,
+        nextSection,
+        prevSection,
+        handleSubmit
+    } = useSignup();
 
-interface VerifyResponse {
-    message: string;
-    seller: {
-        id: string;
-        email: string;
-    };
-}
+    const sectionTitles = [
+        { title: 'Account Setup', subtitle: 'Create your seller account' },
+        { title: 'Business Details', subtitle: 'Tell us about your business' },
+        { title: 'Documentation', subtitle: 'Upload required documents' },
+        { title: 'Profile Setup', subtitle: 'Complete your seller profile' },
+        { title: 'Review & Submit', subtitle: 'Review and finalize registration' }
+    ];
 
-const SellerRegistration = () => {
-    const [formData, setFormData] = useState<RegistrationData>({
-        email: '',
-        password: '',
-        confirmPassword: '',
-        firstName: '',
-        lastName: '',
-        businessName: '',
-        businessType: 'individual',
-        phone: '',
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        country: '',
-        taxId: ''
-    });
-
-    const [errors, setErrors] = useState<Record<string, string>>({});
-    const [loading, setLoading] = useState(false);
-    const [verifying, setVerifying] = useState(true);
-    const router = useRouter();
-
-    // Check if user is already logged in
-    useEffect(() => {
-        const verifyToken = async () => {
-            try {
-                const token = localStorage.getItem('sellerToken');
-
-                if (!token) {
-                    setVerifying(false);
-                    return;
-                }
-
-                const response = await fetch(`${API_BASE_URL}/verify`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                if (response.ok) {
-                    const data: VerifyResponse = await response.json();
-                    console.log('Already logged in, redirecting to dashboard');
-
-                    // If token is valid, redirect to dashboard
-                    router.push('/seller/dashboard');
-                    return;
-                } else {
-                    // Token is invalid, remove it
-                    localStorage.removeItem('sellerToken');
-                    localStorage.removeItem('sellerId');
-                }
-            } catch (error) {
-                console.error('Token verification failed:', error);
-                // Remove invalid token
-                localStorage.removeItem('sellerToken');
-                localStorage.removeItem('sellerId');
-            } finally {
-                setVerifying(false);
-            }
-        };
-
-        verifyToken();
-    }, [router]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-
-        // Clear error for this field when user starts typing
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: '' }));
-        }
-    };
-
-    const validateForm = (): boolean => {
-        try {
-            sellerRegistrationSchema.parse(formData);
-            setErrors({});
-            return true;
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                const fieldErrors: Record<string, string> = {};
-                error.errors.forEach(err => {
-                    if (err.path[0]) {
-                        fieldErrors[err.path[0] as string] = err.message;
-                    }
-                });
-                setErrors(fieldErrors);
-            }
-            return false;
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!validateForm()) return;
-
-        setLoading(true);
-        setErrors({});
-
-        try {
-            const payload = {
-                email: formData.email,
-                password: formData.password,
-                profile: {
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    businessName: formData.businessName,
-                    businessType: formData.businessType,
-                    phone: formData.phone,
-                    address: {
-                        street: formData.street,
-                        city: formData.city,
-                        state: formData.state,
-                        zipCode: formData.zipCode,
-                        country: formData.country
-                    },
-                    taxId: formData.taxId
-                }
-            };
-
-            const response = await fetch(`${API_BASE_URL}/signup`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Registration failed');
-            }
-
-            // Store the token and redirect
-            localStorage.setItem('sellerToken', data.token);
-            localStorage.setItem('sellerId', data.seller._id);
-
-            // Redirect to dashboard
-            router.push('/seller/dashboard');
-
-        } catch (error) {
-            setErrors({
-                submit: error instanceof Error ? error.message : 'Registration failed. Please try again.'
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleBackToHome = () => {
-        router.push('/');
-    };
-
-    const handleSignIn = () => {
-        router.push('/seller/signin');
-    };
-
-    // Show loading spinner while verifying token
-    if (verifying) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Checking authentication...</p>
+    const renderProgressBar = () => (
+        <div className="mb-6 lg:mb-8">
+            <div className="flex items-center justify-between relative">
+                {/* Progress line */}
+                <div className="absolute top-4 left-4 right-4 h-0.5 bg-gray-200 -z-10">
+                    <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500 ease-in-out"
+                        style={{ width: `${((currentSection - 1) / 4) * 100}%` }}
+                    />
                 </div>
-            </div>
-        );
-    }
 
-    return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                    {/* Header */}
-                    <div className="bg-white px-6 py-8 border-b border-gray-200">
-                        <div className="text-center">
-                            <button
-                                onClick={handleBackToHome}
-                                className="text-2xl font-bold text-gray-900 hover:text-orange-600 transition-colors mb-4"
-                            >
-                                <span className="text-orange-600">Trade</span>Connect
-                            </button>
-                            <h2 className="text-3xl font-extrabold text-gray-900">
-                                Create Seller Account
-                            </h2>
-                            <p className="mt-2 text-sm text-gray-600">
-                                Join our marketplace and start selling today
-                            </p>
+                {[1, 2, 3, 4, 5].map((step) => (
+                    <div key={step} className="flex flex-col items-center relative">
+                        <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-sm lg:text-base font-semibold border-2 transition-all duration-300 ${step < currentSection
+                            ? 'bg-green-500 border-green-500 text-white shadow-lg'
+                            : step === currentSection
+                                ? 'bg-blue-500 border-blue-500 text-white shadow-lg ring-4 ring-blue-100'
+                                : 'bg-white border-gray-300 text-gray-400'
+                            }`}>
+                            {step < currentSection ? <Check size={16} className="lg:text-lg" /> : step}
+                        </div>
+
+                        {/* Step labels - hidden on small screens, shown on medium+ */}
+                        <div className="hidden md:block mt-3 text-center">
+                            <div className={`text-xs lg:text-sm font-medium ${step <= currentSection ? 'text-gray-800' : 'text-gray-400'
+                                }`}>
+                                {sectionTitles[step - 1].title}
+                            </div>
                         </div>
                     </div>
+                ))}
+            </div>
 
-                    {/* Form */}
-                    <div className="px-6 py-8">
-                        {errors.submit && (
-                            <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-                                <p className="text-red-600 text-sm">{errors.submit}</p>
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} className="space-y-8">
-                            {/* Account Information */}
-                            <div>
-                                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                                    <span className="bg-orange-100 text-orange-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">1</span>
-                                    Account Information
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Email Address *
-                                        </label>
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.email ? 'border-red-300' : 'border-gray-300'
-                                                }`}
-                                            placeholder="Enter your email"
-                                            required
-                                        />
-                                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Phone Number *
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            name="phone"
-                                            value={formData.phone}
-                                            onChange={handleChange}
-                                            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.phone ? 'border-red-300' : 'border-gray-300'
-                                                }`}
-                                            placeholder="Enter your phone number"
-                                            required
-                                        />
-                                        {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Password *
-                                        </label>
-                                        <input
-                                            type="password"
-                                            name="password"
-                                            value={formData.password}
-                                            onChange={handleChange}
-                                            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.password ? 'border-red-300' : 'border-gray-300'
-                                                }`}
-                                            placeholder="Create a password"
-                                            required
-                                        />
-                                        {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Confirm Password *
-                                        </label>
-                                        <input
-                                            type="password"
-                                            name="confirmPassword"
-                                            value={formData.confirmPassword}
-                                            onChange={handleChange}
-                                            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                                                }`}
-                                            placeholder="Confirm your password"
-                                            required
-                                        />
-                                        {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Personal Information */}
-                            <div className="border-t pt-8">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                                    <span className="bg-orange-100 text-orange-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">2</span>
-                                    Personal Information
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            First Name *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="firstName"
-                                            value={formData.firstName}
-                                            onChange={handleChange}
-                                            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.firstName ? 'border-red-300' : 'border-gray-300'
-                                                }`}
-                                            placeholder="Enter your first name"
-                                            required
-                                        />
-                                        {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Last Name *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="lastName"
-                                            value={formData.lastName}
-                                            onChange={handleChange}
-                                            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.lastName ? 'border-red-300' : 'border-gray-300'
-                                                }`}
-                                            placeholder="Enter your last name"
-                                            required
-                                        />
-                                        {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Business Information */}
-                            <div className="border-t pt-8">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                                    <span className="bg-orange-100 text-orange-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">3</span>
-                                    Business Information
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Business Name *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="businessName"
-                                            value={formData.businessName}
-                                            onChange={handleChange}
-                                            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.businessName ? 'border-red-300' : 'border-gray-300'
-                                                }`}
-                                            placeholder="Enter your business name"
-                                            required
-                                        />
-                                        {errors.businessName && <p className="text-red-500 text-xs mt-1">{errors.businessName}</p>}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Business Type *
-                                        </label>
-                                        <select
-                                            name="businessType"
-                                            value={formData.businessType}
-                                            onChange={handleChange}
-                                            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.businessType ? 'border-red-300' : 'border-gray-300'
-                                                }`}
-                                            required
-                                        >
-                                            <option value="individual">Individual</option>
-                                            <option value="company">Company</option>
-                                            <option value="partnership">Partnership</option>
-                                            <option value="llc">LLC</option>
-                                        </select>
-                                        {errors.businessType && <p className="text-red-500 text-xs mt-1">{errors.businessType}</p>}
-                                    </div>
-                                </div>
-
-                                <div className="mt-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Tax ID *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="taxId"
-                                        value={formData.taxId}
-                                        onChange={handleChange}
-                                        className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.taxId ? 'border-red-300' : 'border-gray-300'
-                                            }`}
-                                        placeholder="Enter your tax ID"
-                                        required
-                                    />
-                                    {errors.taxId && <p className="text-red-500 text-xs mt-1">{errors.taxId}</p>}
-                                </div>
-                            </div>
-
-                            {/* Address Information */}
-                            <div className="border-t pt-8">
-                                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                                    <span className="bg-orange-100 text-orange-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3">4</span>
-                                    Address Information
-                                </h3>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Street Address *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="street"
-                                            value={formData.street}
-                                            onChange={handleChange}
-                                            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.street ? 'border-red-300' : 'border-gray-300'
-                                                }`}
-                                            placeholder="Enter your street address"
-                                            required
-                                        />
-                                        {errors.street && <p className="text-red-500 text-xs mt-1">{errors.street}</p>}
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                City *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="city"
-                                                value={formData.city}
-                                                onChange={handleChange}
-                                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.city ? 'border-red-300' : 'border-gray-300'
-                                                    }`}
-                                                placeholder="Enter your city"
-                                                required
-                                            />
-                                            {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                State *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="state"
-                                                value={formData.state}
-                                                onChange={handleChange}
-                                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.state ? 'border-red-300' : 'border-gray-300'
-                                                    }`}
-                                                placeholder="Enter your state"
-                                                required
-                                            />
-                                            {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state}</p>}
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Zip Code *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="zipCode"
-                                                value={formData.zipCode}
-                                                onChange={handleChange}
-                                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.zipCode ? 'border-red-300' : 'border-gray-300'
-                                                    }`}
-                                                placeholder="Enter your zip code"
-                                                required
-                                            />
-                                            {errors.zipCode && <p className="text-red-500 text-xs mt-1">{errors.zipCode}</p>}
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Country *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="country"
-                                                value={formData.country}
-                                                onChange={handleChange}
-                                                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 ${errors.country ? 'border-red-300' : 'border-gray-300'
-                                                    }`}
-                                                placeholder="Enter your country"
-                                                required
-                                            />
-                                            {errors.country && <p className="text-red-500 text-xs mt-1">{errors.country}</p>}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Submit Button */}
-                            <div className="border-t pt-8">
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full bg-orange-600 text-white py-3 px-4 rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                                >
-                                    {loading ? (
-                                        <span className="flex items-center justify-center">
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                            Creating Account...
-                                        </span>
-                                    ) : (
-                                        'Create Account'
-                                    )}
-                                </button>
-                            </div>
-
-                            {/* Sign In Link */}
-                            <div className="text-center">
-                                <p className="text-sm text-gray-600">
-                                    Already have an account?{' '}
-                                    <button
-                                        type="button"
-                                        onClick={handleSignIn}
-                                        className="font-medium text-orange-600 hover:text-orange-500"
-                                    >
-                                        Sign in here
-                                    </button>
-                                </p>
-                            </div>
-                        </form>
-                    </div>
+            {/* Mobile step indicator */}
+            <div className="md:hidden mt-6 text-center">
+                <div className="text-sm font-medium text-gray-600">
+                    Step {currentSection} of 5
+                </div>
+                <div className="text-lg font-semibold text-gray-900 mt-1">
+                    {sectionTitles[currentSection - 1].title}
+                </div>
+                <div className="text-sm text-gray-500">
+                    {sectionTitles[currentSection - 1].subtitle}
                 </div>
             </div>
         </div>
     );
+
+    const renderCurrentSection = () => {
+        switch (currentSection) {
+            case 1: return <Section1 formData={formData} errors={errors} showPassword={showPassword} setShowPassword={setShowPassword} showConfirmPassword={showConfirmPassword} setShowConfirmPassword={setShowConfirmPassword} loading={loading} handleInputChange={handleInputChange} />;
+            case 2: return <Section2 formData={formData} errors={errors} handleInputChange={handleInputChange} businessTypeOptions={businessTypeOptions} industryOptions={industryOptions} yearsInBusinessOptions={yearsInBusinessOptions} />;
+            case 3: return <Section3 formData={formData} errors={errors} handleInputChange={handleInputChange} handleFileUpload={handleFileUpload} />;
+            case 4: return <Section4 formData={{ ...formData, yearsInBusiness: typeof formData.yearsInBusiness === 'string' ? Number(formData.yearsInBusiness) : formData.yearsInBusiness }} errors={errors} handleInputChange={handleInputChange} industryOptions={industryOptions} yearsInBusinessOptions={yearsInBusinessOptions} />;
+            case 5: return <Section5 formData={formData} errors={errors} handleInputChange={handleInputChange} businessTypeOptions={businessTypeOptions} />;
+            default: return <Section1 formData={formData} errors={errors} showPassword={showPassword} setShowPassword={setShowPassword} showConfirmPassword={showConfirmPassword} setShowConfirmPassword={setShowConfirmPassword} loading={loading} handleInputChange={handleInputChange} />;
+        }
+    };
+
+    return (
+        <>
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+                {/* Main content */}
+                <main className="py-6 lg:py-12 px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-4xl mx-auto">
+                        {/* Welcome section for desktop */}
+                        <div className="hidden md:block text-center mb-8 lg:mb-12">
+                            <h2 className="text-2xl lg:text-4xl font-bold text-gray-900 mb-4">
+                                Join TradeConnect as a Seller
+                            </h2>
+                            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                                Connect with thousands of buyers and grow your business with our trusted marketplace platform
+                            </p>
+                        </div>
+
+                        {/* Registration form card */}
+                        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                            {/* Card header - mobile friendly */}
+                            <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+                                <div className="text-center">
+                                    <div className="md:hidden mb-4">
+                                        <h1 className="text-2xl font-bold text-white mb-2">TradeConnect</h1>
+                                        <p className="text-blue-100 text-sm">Seller Registration</p>
+                                    </div>
+                                    <div className="hidden md:block">
+                                        <h3 className="text-xl lg:text-2xl font-bold text-white mb-2">
+                                            Seller Registration
+                                        </h3>
+                                        <p className="text-blue-100">
+                                            Complete the steps below to become a verified seller
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Progress section */}
+                            <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 bg-gray-50 border-b border-gray-100">
+                                {renderProgressBar()}
+                            </div>
+
+                            {/* Form content with better spacing */}
+                            <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+                                <div className="max-w-3xl mx-auto">
+                                    {renderCurrentSection()}
+                                </div>
+                            </div>
+
+                            {/* Navigation with improved mobile layout */}
+                            <div className="px-4 sm:px-6 lg:px-8 py-6 bg-gray-50 border-t border-gray-100">
+                                <div className="max-w-3xl mx-auto">
+                                    <div className="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
+                                        <button
+                                            onClick={prevSection}
+                                            disabled={currentSection === 1}
+                                            className="w-full sm:w-auto order-2 sm:order-1 px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all duration-200 focus:ring-2 focus:ring-gray-200"
+                                        >
+                                            Previous
+                                        </button>
+
+                                        {/* Progress text for mobile */}
+                                        <div className="sm:hidden order-1 text-center">
+                                            <span className="text-sm text-gray-500">
+                                                Step {currentSection} of 5
+                                            </span>
+                                        </div>
+
+                                        {currentSection === 5 ? (
+                                            <button
+                                                onClick={handleSubmit}
+                                                disabled={loading || !formData.agreedToTerms}
+                                                className="w-full sm:w-auto order-3 px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all duration-200 focus:ring-2 focus:ring-green-200 shadow-lg"
+                                            >
+                                                {loading ? (
+                                                    <>
+                                                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        Submitting...
+                                                    </>
+                                                ) : (
+                                                    'Submit Registration'
+                                                )}
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={nextSection}
+                                                className="w-full sm:w-auto order-3 px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 font-semibold transition-all duration-200 focus:ring-2 focus:ring-blue-200 shadow-lg"
+                                            >
+                                                Continue
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Sign in section with better styling */}
+                        <div className="text-center mt-8 lg:mt-12">
+                            <div className="bg-white rounded-xl border border-gray-200 px-6 py-4 inline-block shadow-sm">
+                                <p className="text-gray-600">
+                                    Already have an account?{' '}
+                                    <a
+                                        href="/seller/signin"
+                                        className="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200 hover:underline"
+                                    >
+                                        Sign in here
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Trust indicators */}
+                        <div className="mt-8 lg:mt-16">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Check className="w-6 h-6 text-green-600" />
+                                    </div>
+                                    <h4 className="text-lg font-semibold text-gray-900 mb-2">Verified Sellers</h4>
+                                    <p className="text-gray-600 text-sm">All sellers go through our verification process</p>
+                                </div>
+                                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                    </div>
+                                    <h4 className="text-lg font-semibold text-gray-900 mb-2">Fast Setup</h4>
+                                    <p className="text-gray-600 text-sm">Get your store up and running in minutes</p>
+                                </div>
+                                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                    </div>
+                                    <h4 className="text-lg font-semibold text-gray-900 mb-2">24/7 Support</h4>
+                                    <p className="text-gray-600 text-sm">Our team is here to help you succeed</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </>
+    );
 };
 
-export default SellerRegistration;
+export default SellerRegistrationForm;
