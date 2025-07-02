@@ -101,6 +101,7 @@ model Seller {
   isPhoneVerified Boolean      @default(false) // for OTP logic
   isApproved      Boolean      @default(false)
   approvalNote    String?
+  slug            String?
 
   businessName    String
   businessType    BusinessType

@@ -9,8 +9,10 @@ import { JWT_SECRET } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
 import cloudinary from '../config/cloudinary';
 import multer from 'multer';
+import { generateValidSlug } from "../utils/generateValidSlug";
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
+import validator from 'validator';
 
 // Sign up seller
 export const signupSeller = async (req: Request, res: Response) => {
@@ -67,6 +69,7 @@ export const signupSeller = async (req: Request, res: Response) => {
                 firstName: data.firstName,
                 lastName: data.lastName,
                 businessName: data.businessName,
+                slug: generateValidSlug(data.businessName),
                 businessType: mapBusinessType(data.businessType) as any,
                 registrationNo: data.registrationNo,
                 taxId: data.taxId,
@@ -781,10 +784,16 @@ export const getSellerPublicProfile = async (req: Request, res: Response) => {
             console.log(`The Seller Id is Invalid`);
             return res.status(400).json({ error: 'Invalid seller ID' });
         }
+        const isValidUUID = validator.isUUID(sellerId, 4);
         console.log("The Seller Id is Valid");
 
-        const seller = await prisma.seller.findUnique({
-            where: { id: sellerId }
+        const seller = await prisma.seller.findFirst({
+            where: {
+                OR: [
+                    { id: sellerId },
+                    { slug: sellerId }
+                ]
+            }
         });
 
         if (!seller) {
