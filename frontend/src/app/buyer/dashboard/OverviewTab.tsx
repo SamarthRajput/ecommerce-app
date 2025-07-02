@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Package, ShoppingCart, Star, History, Trash2, FileText } from "lucide-react";
+import { Package, ShoppingCart, History, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useEffect, useState } from "react";

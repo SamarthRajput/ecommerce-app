@@ -1,4 +1,4 @@
-import { Buyer } from "./buyer";
+import { Buyer } from "./buyer/buyer";
 import { Product } from "./dashboard";
 
 export interface RFQFormData {

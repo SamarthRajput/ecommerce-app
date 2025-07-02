@@ -9,7 +9,7 @@ import RFQComponent from '../app/seller/dashboard/RFQ';
 import SettingsDashboard from '../components/Seller/Dashboard/SettingsDashboard';
 import { useAuth } from '@/src/context/AuthContext';
 
-import { Seller, Listing, DashboardStats, RFQ } from '@/src/lib/types/sellerDashboard';
+import { Seller, Listing, DashboardStats, RFQ } from '@/src/lib/types/seller/sellerDashboard';
 import ListingDashboard from '../components/Seller/Dashboard/ManageListing';
 import ChatDashboard from '../components/Seller/Dashboard/ChatDashboard';
 

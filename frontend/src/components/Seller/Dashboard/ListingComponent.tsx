@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-import { Listing, ListingFilters, ListingStats, STATUS_CONFIG, SORT_OPTIONS } from '@/src/lib/types/sellerDashboardListing';
+import { Listing, ListingFilters, ListingStats, STATUS_CONFIG, SORT_OPTIONS } from '@/src/lib/types/seller/sellerDashboardListing';
 
 // Stats Cards Component
 export const ListingStatsCards: React.FC<{ stats: ListingStats }> = ({ stats }) => (
