@@ -12,7 +12,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const pathname = usePathname();
-  const { authenticated, role, user, isSeller, loading, isBuyer, logout, refetch } = useAuth();
+  const { authenticated, role, user, isSeller, authLoading, isBuyer, logout, refetch } = useAuth();
 
   const handleSignOut = () => {
     logout();

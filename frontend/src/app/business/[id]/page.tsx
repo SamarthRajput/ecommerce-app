@@ -287,7 +287,7 @@ const SellerPublicProfile: React.FC = () => {
                             <div className="flex items-center space-x-2">
                                 <Package className="w-5 h-5 text-blue-600" />
                                 <div>
-                                    <p className="text-2xl font-bold">{products.length}</p>
+                                    <p className="text-2xl font-bold">{products ? products.length : 0}</p>
                                     <p className="text-sm text-gray-600">Products</p>
                                 </div>
                             </div>
@@ -536,10 +536,12 @@ const SellerPublicProfile: React.FC = () => {
                                     <div className="text-center py-12">
                                         <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                            {products.length === 0 ? 'No products listed' : 'No products match your filters'}
+                                            {products && products.length === 0
+                                                ? 'No products listed'
+                                                : 'No products match your filters'}
                                         </h3>
                                         <p className="text-gray-600">
-                                            {products.length === 0
+                                            {products && products.length === 0
                                                 ? 'This seller has not listed any products yet.'
                                                 : 'Try adjusting your search criteria or filters.'
                                             }
