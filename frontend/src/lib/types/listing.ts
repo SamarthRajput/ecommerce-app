@@ -1,3 +1,4 @@
+import { Seller } from "./seller/seller";
 
 export type ListingType = 'SELL' | 'RENT';
 
@@ -31,24 +32,6 @@ export interface Stats {
   rejected: number;
   total: number;
 }
-export interface Seller {
-  firstName: string;
-  lastName: string;
-  businessName: string;
-  businessType: string;
-  phone: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-  };
-  taxId: string;
-  email: string;
-  createdAt?: string;
-  updatedAt?: string;
-};
 
 export interface Listing {
   id: string;

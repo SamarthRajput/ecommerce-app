@@ -7,13 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Eye, Check, X, User, Calendar, DollarSign, Package, MessageSquare, Search, RefreshCw, AlertCircle, CheckCircle, TrendingUp, Clock } from 'lucide-react';
-import { formatDate, formatPrice } from '@/src/lib/listing-formatter';
+import { formatPrice } from '@/src/lib/listing-formatter';
 import { RFQ } from '@/src/lib/types/rfq';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs } from '@radix-ui/react-tabs';
 import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import useRFQ from './useRFQ';
+import useRFQ from '../../../hooks/useRFQ';
 
 const RFQsManagement = () => {
   const {

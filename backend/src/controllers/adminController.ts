@@ -2,11 +2,8 @@ import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { JWT_SECRET, JWT_EXPIRES_IN } from "../config";
+import { JWT_SECRET } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
-import { requireAdmin } from "../middlewares/authAdmin";
-import { adminRouter } from "../routes/admin";
-import { Prisma } from "@prisma/client";
 
 interface SigninBody {
     email: string;

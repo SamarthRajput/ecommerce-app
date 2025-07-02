@@ -50,5 +50,4 @@ interface BuyerProfile {
         };
     };
 }
-
 export type { BuyerProfile };

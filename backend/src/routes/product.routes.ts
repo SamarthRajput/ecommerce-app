@@ -5,6 +5,8 @@ import { AuthenticatedRequest, requireBuyer } from "../middlewares/authBuyer";
 const productRouter = Router();
 const BASE_API_URL = "/api/v1/products";
 
+// Base url: http://localhost:3001/api/v1/products
+
 // Route to get all products with pagination
 productRouter.get("/", async (req: Request, res: Response, next: NextFunction) => {
     try {

@@ -1,26 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Eye, EyeOff, Shield, CheckCircle, Mail, Phone, AlertCircle, Clock, Lock } from 'lucide-react';
+import { Eye, EyeOff, Shield, CheckCircle, Mail, Phone, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
-type Section1Props = {
-    formData: {
-        email: string;
-        password: string;
-        confirmPassword: string;
-        phone: string;
-        countryCode: string;
-    };
-    errors: { [key: string]: string };
-    showPassword: boolean;
-    setShowPassword: (show: boolean) => void;
-    showConfirmPassword: boolean;
-    setShowConfirmPassword: (show: boolean) => void;
-    loading: boolean;
-    handleInputChange: (field: string, value: any) => void;
-};
+import { Section1Props } from '@/src/lib/types/seller/signup';
 
 // Email validation
 const validateEmail = (email: string): boolean => {

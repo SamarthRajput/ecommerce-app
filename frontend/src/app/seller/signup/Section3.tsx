@@ -1,18 +1,6 @@
 import React from 'react';
 import { FileText, Upload, CheckCircle, X } from 'lucide-react';
-
-type Section3Props = {
-    formData: {
-        govIdUrl: string | null;
-        gstCertUrl: string | null;
-        businessDocUrl: string | null;
-        businessType: string;
-        otherDocsUrl: string | null;
-    };
-    errors: { [key: string]: string };
-    handleInputChange: (field: string, value: any) => void;
-    handleFileUpload: (field: string, file: File | null) => void;
-};
+import { Section3Props } from '@/src/lib/types/seller/signup';
 
 const Section3 = ({ formData, errors, handleInputChange, handleFileUpload }: Section3Props) => {
 

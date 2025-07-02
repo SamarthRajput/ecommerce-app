@@ -10,7 +10,6 @@ import { Loader2, Eye, Check, X, Building, User, Calendar, DollarSign, Package, 
 import { formatDate, formatPrice } from '@/src/lib/listing-formatter';
 import { Listing } from '@/src/lib/types/listing';
 import useListing from './useListing';
-import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs } from '@radix-ui/react-tabs';
 import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

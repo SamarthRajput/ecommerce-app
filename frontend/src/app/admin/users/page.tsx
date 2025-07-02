@@ -1,40 +1,11 @@
 "use client";
+import { BuyerDetails } from '@/src/lib/types/buyer/buyer';
+import { SellerResponse } from '@/src/lib/types/seller/seller';
 import React, { useEffect } from 'react'
-
-interface SellerResponse {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-    businessName: string;
-    businessType: string;
-    phone: string;
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-    taxId: string;
-    createdAt: string;
-    updatedAt: string;
-}
-interface BuyerResponse {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    phoneNumber: string;
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-}
 
 const UserManagement = () => {
     const [sellers, setSellers] = React.useState<SellerResponse[]>([]);
-    const [buyers, setBuyers] = React.useState<BuyerResponse[]>([]);
+    const [buyers, setBuyers] = React.useState<BuyerDetails[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
     const BASE_URL = process.env.NEXT_PUBLIC_API_URL;

@@ -6,6 +6,9 @@ import { requireAuth } from '../middlewares/requireAuth';
 
 const rfqRouter = express.Router();
 
+// Base url: http://localhost:3001/api/v1/rfq
+
+
 // Post RFQ from logged in buyer
 rfqRouter.post('/create', requireAuth({ allowedRoles: ["buyer"] }), createRFQ);
 

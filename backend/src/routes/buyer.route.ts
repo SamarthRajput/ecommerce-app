@@ -4,6 +4,8 @@ import { getBuyerProfile, signinBuyer, signupBuyer, updateBuyerProfile, verifyBu
 
 export const buyerRouter = Router();
 
+// Base url: http://localhost:3001/api/v1/buyer
+
 // Signup Route
 buyerRouter.post("/signup", async (req: Request, res: Response) => {
     await signupBuyer(req, res);
