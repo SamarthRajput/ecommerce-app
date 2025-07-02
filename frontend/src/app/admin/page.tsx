@@ -38,7 +38,7 @@ const AdminDashboard = () => {
     const [success, setSuccess] = React.useState('');
     const [error, setError] = React.useState('');
     const [adminSummary, setAdminSummary] = React.useState<AdminSummary | null>(null);
-    const { authenticated, role, user: loggedInUser, isSeller, loading, isBuyer, logout } = useAuth();
+    const { authenticated, role, user: loggedInUser, isSeller, authLoading, isBuyer, logout } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
@@ -93,7 +93,7 @@ const AdminDashboard = () => {
         fetchAdminSummary();
     }, []);
 
-    if (loading) {
+    if (authLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <Loader2 className="w-8 h-8 animate-spin text-gray-600" />

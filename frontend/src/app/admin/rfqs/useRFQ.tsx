@@ -38,7 +38,7 @@ const useRFQ = () => {
     const [activeTab, setActiveTab] = useState('pending');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [stats, setStats] = useState<RFQStats>({ pending: 0, approved: 0, rejected: 0, total: 0 });
-    const { authenticated, role, user: loggedInUser, loading: authStatusLoading, logout } = useAuth();
+    const { authenticated, role, user: loggedInUser, authLoading: authStatusLoading, logout } = useAuth();
     const router = useRouter();
 
     useEffect(() => {

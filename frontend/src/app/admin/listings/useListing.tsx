@@ -38,7 +38,7 @@ const useListing = () => {
     const [activeTab, setActiveTab] = useState('pending');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [stats, setStats] = useState<Stats>({ pending: 0, active: 0, rejected: 0, total: 0 });
-    const { authenticated, role, user: loggedInUser, isSeller, loading: authStatusLoading, isBuyer, logout } = useAuth();
+    const { authenticated, role, user: loggedInUser, isSeller, authLoading: authStatusLoading, isBuyer, logout } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
