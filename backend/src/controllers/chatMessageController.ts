@@ -275,7 +275,8 @@ export const getRecentChats = async (req: AuthenticatedRequest, res: Response) =
             },
         });
 
-        const response = recentChatRooms.map((room) => ({
+        type RecentChatRoom = typeof recentChatRooms[number];
+        const response = recentChatRooms.map((room: RecentChatRoom) => ({
             chatRoomId: room.id,
             type: room.type,
             rfqId: room.rfqId,

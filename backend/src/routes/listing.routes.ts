@@ -1,5 +1,10 @@
 import { Request, Response, Router } from "express";
-import { ProductStatus } from "@prisma/client";
+// Define ProductStatus enum locally since it's not exported from @prisma/client
+enum ProductStatus {
+    PENDING = "PENDING",
+    ACTIVE = "ACTIVE",
+    REJECTED = "REJECTED"
+}
 import { requireAdmin } from "../middlewares/authAdmin";
 import { prisma } from "../lib/prisma";
 
