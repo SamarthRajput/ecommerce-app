@@ -1,11 +1,12 @@
 import { Request, Response, Router } from "express";
 import { prisma } from "../../lib/prisma";
+import { apiLimiter } from "../../utils/rateLimit";
 
 export const summaryRouter = Router();
 
 // GET /api/v1/analytics/summary endpoint to get the summary
 // Summary router which returns the summary of the active listing, pending rfqs, completed trade
-summaryRouter.get("/", async (req: Request, res: Response) => {
+summaryRouter.get("/", apiLimiter, async (req: Request, res: Response) => {
     try {
         const [pendingRFQsCount, completedRFQsCount, rejectedRFQsCount, completedTradesCount, inprogressTradesCount, activeListingCount,
             approvedListingCount, archivedListingCount, inactiveListingCount, pendingListingCount, rejectedListingCount

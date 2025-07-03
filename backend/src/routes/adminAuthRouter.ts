@@ -2,11 +2,12 @@ import { Request, Response, Router } from "express";
 import { prisma } from "../lib/prisma";
 import { adminSignin, meRoute } from "../controllers/adminController";
 import { requireAdmin } from "../middlewares/authAdmin";
+import { apiLimiter } from "../utils/rateLimit";
 
 export const authRouter = Router();
 
 // POST /api/v1/auth/admin/signin - Admin login
-authRouter.post('/admin/signin', async (req: Request, res: Response) => {
+authRouter.post('/admin/signin', apiLimiter, async (req: Request, res: Response) => {
     await adminSignin(req, res);
 });
 
