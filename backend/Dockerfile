@@ -3,18 +3,23 @@ FROM node:24-alpine3.21
 # Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Copy and install dependencies
 COPY package.json package-lock.json* ./
-RUN npm install
+RUN npm ci
 
-# Copy the rest of the backend source code
+# Copy Prisma files and generate client
+COPY prisma ./prisma
+RUN npx prisma generate
+
+# Copy the rest of the code
 COPY . .
 
 # Build TypeScript
-RUN npm run build || npx tsc -b
+RUN npm run build
 
-# Expose backend port
+# Set env and expose port
+ENV NODE_ENV=production
 EXPOSE 3001
 
-# Run migrations, generate Prisma client, seed DB, then start server
-CMD ["sh", "-c", "npx prisma migrate dev && npx prisma generate && npx prisma db seed && node dist/src/index.js"]
+# Use prisma migrate deploy (safe for production) + start app
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
