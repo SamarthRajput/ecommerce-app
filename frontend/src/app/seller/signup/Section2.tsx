@@ -1,28 +1,7 @@
 import React from 'react'
 import { Building, MapPin } from 'lucide-react';
+import { Section2Props } from '@/src/lib/types/seller/signup';
 
-type Section2Props = {
-    formData: {
-        firstName: string;
-        lastName: string;
-        businessName: string;
-        businessType: string;
-        taxId: string;
-        registrationNo: string;
-        street: string;
-        city: string;
-        zipCode: string;
-        state: string;
-        country: string;
-        website: string;
-        linkedIn: string;
-    };
-    errors: { [key: string]: string };
-    handleInputChange: (field: string, value: any) => void;
-    businessTypeOptions: { value: string; label: string }[];
-    industryOptions: string[];
-    yearsInBusinessOptions: { value: number; label: string }[];
-};
 const Section2 = ({ formData, errors, handleInputChange, businessTypeOptions, industryOptions, yearsInBusinessOptions }: Section2Props) => (
     <div className="space-y-6">
         <div className="flex items-center mb-6">

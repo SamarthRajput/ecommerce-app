@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
-import jwt from "jsonwebtoken";
-import { DEFAULT_ADMIN_ID, JWT_SECRET } from "../config";
 import bcrypt from "bcryptjs";
 
 interface BuyerTokenPayload {

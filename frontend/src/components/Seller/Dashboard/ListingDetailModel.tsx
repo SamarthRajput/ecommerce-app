@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Listing, STATUS_CONFIG } from '@/src/lib/types/sellerDashboardListing';
+import { Listing, STATUS_CONFIG } from '@/src/lib/types/seller/sellerDashboardListing';
 
 interface ListingDetailModalProps {
     listing: Listing;

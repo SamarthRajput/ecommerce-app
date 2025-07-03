@@ -1,6 +1,6 @@
 // hooks/useListing.ts
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Listing, ListingFilters, ListingStats, API_BASE_URL } from '@/src/lib/types/sellerDashboardListing';
+import { Listing, ListingFilters, ListingStats, API_BASE_URL } from '@/src/lib/types/seller/sellerDashboardListing';
 
 export const useListingData = () => {
     const [listings, setListings] = useState<Listing[]>([]);
@@ -14,7 +14,9 @@ export const useListingData = () => {
             setLoading(true);
             const response = await fetch(`${API_BASE_URL}/listings`, {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
                 credentials: 'include',
             });
 
@@ -36,7 +38,9 @@ export const useListingData = () => {
     const editListing = useCallback(async (listingId: string, updatedData: Partial<Listing>) => {
         const response = await fetch(`${API_BASE_URL}/edit-listing/${listingId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
             credentials: 'include',
             body: JSON.stringify(updatedData),
         });
@@ -65,7 +69,9 @@ export const useListingData = () => {
             setActionLoading(listingId);
             const response = await fetch(`${API_BASE_URL}/toggle-listing-status/${listingId}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
                 credentials: 'include',
                 body: JSON.stringify({ listingId, action }),
             });

@@ -15,7 +15,7 @@ import {
     ListingLoadingState,
     ListingErrorAlert
 } from './ListingComponent';
-import { Listing } from '@/src/lib/types/sellerDashboardListing';
+import { Listing } from '@/src/lib/types/seller/sellerDashboardListing';
 import { ListingDetailModal } from '@/src/components/Seller/Dashboard/ListingDetailModel';
 
 const ListingDashboard: React.FC = () => {

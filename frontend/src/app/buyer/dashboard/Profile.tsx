@@ -1,6 +1,6 @@
 import React  from 'react';
 import { Edit3, User, Phone, MapPin } from 'lucide-react';
-import {  BuyerDetails } from '@/src/lib/types/buyer';
+import {  BuyerDetails } from '@/src/lib/types/buyer/buyer';
 
 const renderProfile = ({ buyer, isEditing, setIsEditing, profileForm, setProfileForm, handleUpdateProfile, loading, error }: {
     buyer: BuyerDetails | null;

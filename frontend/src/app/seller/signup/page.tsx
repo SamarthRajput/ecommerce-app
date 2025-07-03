@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React from 'react';
 import { Check } from 'lucide-react';
 import Section1 from './Section1';
 import Section2 from './Section2';

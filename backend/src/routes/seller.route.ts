@@ -4,6 +4,8 @@ import { createListing, editListing, getDashboardStats, getSellerListings, getSe
 
 export const sellerRouter = Router();
 
+// Base url: http://localhost:3001/api/v1/seller
+
 sellerRouter.get("/", (req: Request, res: Response) => {
     res.send("Welcome to the Seller API");
 }
