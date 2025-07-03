@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 import { AuthenticatedRequest, requireSeller } from "../middlewares/authSeller";
 import { createListing, editListing, getDashboardStats, getSellerListings, getSellerProfile, getSellerPublicProfile, getSellerRFQRequests, signinSeller, signupSeller, toggleListingStatus, updateSellerProfile, upload, uploadDocuments } from "../controllers/sellerController";
+import { apiLimiter } from "../utils/rateLimit";
 
 export const sellerRouter = Router();
 
@@ -12,12 +13,12 @@ sellerRouter.get("/", (req: Request, res: Response) => {
 );
 // Seller Authentication Routes
 // SignUp route
-sellerRouter.post("/signup", async (req: Request, res: Response) => {
+sellerRouter.post("/signup",apiLimiter, async (req: Request, res: Response) => {
     await signupSeller(req, res);
 });
 
 // signin route
-sellerRouter.post("/signin", async (req: Request, res: Response) => {
+sellerRouter.post("/signin", apiLimiter, async (req: Request, res: Response) => {
     console.log('Received login request:', req.body)
     await signinSeller(req, res);
 });

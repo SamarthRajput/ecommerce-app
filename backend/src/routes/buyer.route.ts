@@ -1,18 +1,19 @@
 import { Request, Response, Router } from "express";
 import { AuthenticatedRequest, requireBuyer } from "../middlewares/authBuyer";
 import { getBuyerProfile, signinBuyer, signupBuyer, updateBuyerProfile, verifyBuyerProfile } from "../controllers/buyerController";
+import { apiLimiter } from "../utils/rateLimit";
 
 export const buyerRouter = Router();
 
 // Base url: http://localhost:3001/api/v1/buyer
 
 // Signup Route
-buyerRouter.post("/signup", async (req: Request, res: Response) => {
+buyerRouter.post("/signup", apiLimiter, async (req: Request, res: Response) => {
     await signupBuyer(req, res);
 });
 
 // Signin Route
-buyerRouter.post("/signin", async (req: Request, res: Response) => {
+buyerRouter.post("/signin", apiLimiter, async (req: Request, res: Response) => {
     await signinBuyer(req, res);
 });
 
