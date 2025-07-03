@@ -17,4 +17,4 @@ RUN npm run build || npx tsc -b
 EXPOSE 3001
 
 # Run migrations, generate Prisma client, seed DB, then start server
-CMD ["sh", "-c", "npx prisma migrate dev && npx prisma generate && npx prisma db seed && node dist/src/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma generate && npx prisma db seed && node dist/src/index.js"]
