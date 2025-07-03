@@ -21,7 +21,7 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://10.109.51.60:3000'],
+    origin: ['http://localhost:3000', 'http://10.109.51.60:3000','https://ecommerce-app-production-2f67.up.railway.app'],
     credentials: true,
 }));
 
