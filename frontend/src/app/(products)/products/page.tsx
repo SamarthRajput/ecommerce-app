@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -103,7 +103,7 @@ const EnhancedProductsPage = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [totalProducts, setTotalProducts] = useState(0);
+    // const [totalProducts, setTotalProducts] = useState(0);
     const [featuredCategories, setFeaturedCategories] = useState<Array<{ category: string, count: number, image?: string }>>([]);
     const [stats, setStats] = useState({
         totalProducts: 0,
@@ -243,7 +243,6 @@ const EnhancedProductsPage = () => {
 
                 const data: ProductsResponse = await response.json();
                 setProducts(data.products || []);
-                setTotalProducts(data.total || data.products?.length || 0);
 
                 // Set initial price range based on actual data
                 if (data.products && data.products.length > 0) {
@@ -595,6 +594,7 @@ const EnhancedProductsPage = () => {
                             <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
                         <SelectContent>
+                            <SelectItem value="">All Categories</SelectItem>
                             {uniqueCategories.map((category) => (
                                 <SelectItem key={category} value={category}>
                                     {formatCategoryName(category)}
@@ -1237,4 +1237,11 @@ const EnhancedProductsPage = () => {
     );
 };
 
-export default EnhancedProductsPage;
+
+const SuspenseWrapper = () => (
+    <Suspense fallback={<div>Loading...</div>}>
+        <EnhancedProductsPage />
+    </Suspense>
+);
+
+export default SuspenseWrapper;
