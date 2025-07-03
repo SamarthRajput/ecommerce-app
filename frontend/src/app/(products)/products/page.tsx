@@ -594,7 +594,7 @@ const EnhancedProductsPage = () => {
                             <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">All Categories</SelectItem>
+                            <SelectItem value="categories">All Categories</SelectItem>
                             {uniqueCategories.map((category) => (
                                 <SelectItem key={category} value={category}>
                                     {formatCategoryName(category)}
