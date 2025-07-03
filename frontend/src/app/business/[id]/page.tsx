@@ -1,5 +1,5 @@
 "use client";
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import {
     Building,
@@ -31,10 +31,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001/api/v1';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 const API_URL = `${BACKEND_URL}/seller`;
 
-interface SellerProfile {
+interface SellerProfileData {
     message: string;
     seller: {
         id: string;
@@ -64,40 +64,40 @@ interface SellerProfile {
         country: string;
         createdAt: Date;
         updatedAt: Date;
-    };
-    products: {
-        id: string;
-        name: string;
-        description: string;
-        price: number;
-        currency: string;
-        quantity: number;
-        minimumOrderQuantity: number;
-        listingType: string;
-        condition: string;
-        validityPeriod: number;
-        expiryDate: Date | null;
-        deliveryTimeInDays: number | null;
-        logisticsSupport: boolean;
-        industry: string;
-        category: string;
-        productCode: string;
-        model: string | null;
-        specifications: string | null;
-        countryOfSource: string | null;
-        hsnCode: string | null;
-        certifications: string[] | null;
-        warrantyPeriod: number | null;
-        licenses: string[] | null;
-        brochureUrl: string | null;
-        videoUrl: string | null;
-        images: string[];
-        tags: string[];
-    }[];
+        products: {
+            id: string;
+            name: string;
+            description: string;
+            price: number;
+            currency: string;
+            quantity: number;
+            minimumOrderQuantity: number;
+            listingType: string;
+            condition: string;
+            validityPeriod: number;
+            expiryDate: Date | null;
+            deliveryTimeInDays: number | null;
+            logisticsSupport: boolean;
+            industry: string;
+            category: string;
+            productCode: string;
+            model: string | null;
+            specifications: string | null;
+            countryOfSource: string | null;
+            hsnCode: string | null;
+            certifications: string[] | null;
+            warrantyPeriod: number | null;
+            licenses: string[] | null;
+            brochureUrl: string | null;
+            videoUrl: string | null;
+            images: string[];
+            tags: string[];
+        }[];
+    }
 }
 
-const SellerPublicProfile: React.FC = () => {
-    const [sellerProfile, setSellerProfile] = useState<SellerProfile | null>(null);
+const SellerPublicProfileComponent: React.FC = () => {
+    const [sellerProfile, setSellerProfile] = useState<SellerProfileData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -105,6 +105,7 @@ const SellerPublicProfile: React.FC = () => {
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [industryFilter, setIndustryFilter] = useState('all');
     const { id } = useParams<{ id: string }>();
+    const router = useRouter();
 
     React.useEffect(() => {
         const fetchSellerProfile = async () => {
@@ -132,11 +133,23 @@ const SellerPublicProfile: React.FC = () => {
         }
     }, [id]);
 
+    // Function to handle sharing the seller profile
+    const handleSellerShare = (sellerId: string) => {
+        const shareUrl = `${window.location.origin}/business/${sellerId}`;
+        const title = `Check out ${sellerProfile?.seller.businessName}'s profile on our platform!`;
+        const text = `Explore the products and services offered by ${sellerProfile?.seller.businessName}.`;
+        navigator.share({
+            title,
+            text,
+            url: shareUrl
+        });
+    };
+
     // Filter products based on search and filters
     const filteredProducts = React.useMemo(() => {
-        if (!sellerProfile?.products) return [];
+        if (!sellerProfile?.seller?.products) return [];
 
-        return sellerProfile.products.filter(product => {
+        return sellerProfile.seller.products.filter(product => {
             const matchesSearch = searchTerm === '' ||
                 product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 product.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -145,18 +158,18 @@ const SellerPublicProfile: React.FC = () => {
 
             return matchesSearch && matchesCategory && matchesIndustry;
         });
-    }, [sellerProfile?.products, searchTerm, categoryFilter, industryFilter]);
+    }, [sellerProfile?.seller?.products, searchTerm, categoryFilter, industryFilter]);
 
     // Get unique categories and industries
     const categories = React.useMemo(() => {
-        if (!sellerProfile?.products) return [];
-        return [...new Set(sellerProfile.products.map(p => p.category))].filter(Boolean);
-    }, [sellerProfile?.products]);
+        if (!sellerProfile?.seller?.products) return [];
+        return [...new Set(sellerProfile.seller.products.map(p => p.category))].filter(Boolean);
+    }, [sellerProfile?.seller?.products]);
 
     const industries = React.useMemo(() => {
-        if (!sellerProfile?.products) return [];
-        return [...new Set(sellerProfile.products.map(p => p.industry))].filter(Boolean);
-    }, [sellerProfile?.products]);
+        if (!sellerProfile?.seller?.products) return [];
+        return [...new Set(sellerProfile.seller.products.map(p => p.industry))].filter(Boolean);
+    }, [sellerProfile?.seller?.products]);
 
     if (loading) {
         return (
@@ -193,7 +206,8 @@ const SellerPublicProfile: React.FC = () => {
         );
     }
 
-    const { seller, products } = sellerProfile;
+    const { seller } = sellerProfile;
+    const products = seller.products;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -228,7 +242,11 @@ const SellerPublicProfile: React.FC = () => {
                                         <Heart className="w-4 h-4 mr-2" />
                                         Save
                                     </Button>
-                                    <Button variant="secondary" size="sm">
+                                    <Button variant="secondary" size="sm"
+                                        onClick={() => {
+                                            handleSellerShare(seller.id);
+                                        }}
+                                    >
                                         <Share2 className="w-4 h-4 mr-2" />
                                         Share
                                     </Button>
@@ -283,7 +301,7 @@ const SellerPublicProfile: React.FC = () => {
                             <div className="flex items-center space-x-2">
                                 <Package className="w-5 h-5 text-blue-600" />
                                 <div>
-                                    <p className="text-2xl font-bold">{products ? products.length : 0}</p>
+                                    <p className="text-2xl font-bold">{products.length}</p>
                                     <p className="text-sm text-gray-600">Products</p>
                                 </div>
                             </div>
@@ -532,12 +550,10 @@ const SellerPublicProfile: React.FC = () => {
                                     <div className="text-center py-12">
                                         <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                            {products && products.length === 0
-                                                ? 'No products listed'
-                                                : 'No products match your filters'}
+                                            {products.length === 0 ? 'No products listed' : 'No products match your filters'}
                                         </h3>
                                         <p className="text-gray-600">
-                                            {products && products.length === 0
+                                            {products.length === 0
                                                 ? 'This seller has not listed any products yet.'
                                                 : 'Try adjusting your search criteria or filters.'
                                             }
@@ -557,6 +573,7 @@ const SellerPublicProfile: React.FC = () => {
                                             >
                                                 <CardContent className={viewMode === 'grid' ? 'p-4' : 'p-0'}>
                                                     <div className={viewMode === 'list' ? 'flex items-center space-x-4' : ''}>
+
                                                         {/* Product Image Placeholder */}
                                                         <div className={`bg-gray-100 rounded-lg flex items-center justify-center ${viewMode === 'list' ? 'w-16 h-16' : 'w-full h-32 mb-4'
                                                             }`}>
@@ -564,7 +581,10 @@ const SellerPublicProfile: React.FC = () => {
                                                                 }`} />
                                                         </div>
 
-                                                        <div className="flex-1">
+                                                        <div className="flex-1"
+                                                            onClick={() => router.push(`/products/${product.category}/${product.id}`)}
+                                                            title='Click to view product details.'
+                                                        >
                                                             <div className="flex items-start justify-between mb-2">
                                                                 <div>
                                                                     <h3 className={`font-semibold text-gray-900 ${viewMode === 'list' ? 'text-base' : 'text-lg'
@@ -621,5 +641,4 @@ const SellerPublicProfile: React.FC = () => {
         </div>
     );
 };
-
-export default SellerPublicProfile;
+export default SellerPublicProfileComponent;

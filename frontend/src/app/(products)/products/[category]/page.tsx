@@ -1,9 +1,10 @@
 "use client";
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Search,
+    Filter,
     Grid3X3,
     List,
     Star,
@@ -11,7 +12,10 @@ import {
     Package,
     MapPin,
     Building,
+    ArrowLeft,
     Home,
+    ChevronDown,
+    ChevronUp,
     SlidersHorizontal,
     X,
     RefreshCw,
@@ -19,14 +23,10 @@ import {
     Eye,
     TrendingUp,
     Award,
+    Clock,
+    Zap,
     ShoppingCart,
-    MessageSquare,
-    ArrowRight,
-    Globe,
-    CheckCircle,
-    Truck,
-    Shield,
-    ThumbsUp
+    MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,7 +37,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { useAuth } from '@/src/context/AuthContext';
 
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001/api/v1';
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface Product {
     id: string;
@@ -69,31 +69,23 @@ interface Seller {
     country: string;
     state: string;
     city: string;
-    slug?: string;
-}
-
-interface ProductsResponse {
-    products: Product[];
-    page: number;
-    limit: number;
-    total: number;
-    message: string;
+    slug: string;
 }
 
 interface FilterState {
     searchQuery: string;
-    category: string;
     priceRange: [number, number];
     condition: string[];
     industry: string[];
-    country: string[];
     sortBy: string;
     viewMode: 'grid' | 'list';
 }
 
-const EnhancedProductsPage = () => {
+const CategoryWiseProducts = () => {
+    const params = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { category } = params as { category: string };
     const { isBuyer, authenticated } = useAuth();
 
     // State management
@@ -104,33 +96,19 @@ const EnhancedProductsPage = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalProducts, setTotalProducts] = useState(0);
-    const [featuredCategories, setFeaturedCategories] = useState<Array<{ category: string, count: number, image?: string }>>([]);
-    const [stats, setStats] = useState({
-        totalProducts: 0,
-        totalSellers: 0,
-        totalCategories: 0,
-        averageRating: 0
-    });
     const itemsPerPage = 24;
 
     // Filter state
     const [filters, setFilters] = useState<FilterState>({
         searchQuery: searchParams.get('search') || '',
-        category: searchParams.get('category') || '',
         priceRange: [0, 1000000],
         condition: [],
         industry: [],
-        country: [],
         sortBy: 'newest',
         viewMode: 'grid'
     });
 
     // Derived data for filters
-    const uniqueCategories = useMemo(() => {
-        const categories = products.map(p => p.category).filter(Boolean);
-        return [...new Set(categories)];
-    }, [products]);
-
     const uniqueConditions = useMemo(() => {
         const conditions = products.map(p => p.condition).filter(Boolean);
         return [...new Set(conditions)];
@@ -139,11 +117,6 @@ const EnhancedProductsPage = () => {
     const uniqueIndustries = useMemo(() => {
         const industries = products.map(p => p.industry).filter(Boolean);
         return [...new Set(industries)];
-    }, [products]);
-
-    const uniqueCountries = useMemo(() => {
-        const countries = products.map(p => p.seller?.country).filter(Boolean);
-        return [...new Set(countries)];
     }, [products]);
 
     const maxPrice = useMemo(() => {
@@ -158,14 +131,8 @@ const EnhancedProductsPage = () => {
                 const query = filters.searchQuery.toLowerCase();
                 const matchesName = product.name.toLowerCase().includes(query);
                 const matchesDescription = product.description.toLowerCase().includes(query);
-                const matchesSeller = product.seller?.businessName?.toLowerCase().includes(query);
-                const matchesCategory = product.category.toLowerCase().includes(query);
-                if (!matchesName && !matchesDescription && !matchesSeller && !matchesCategory) return false;
-            }
-
-            // Category
-            if (filters.category && product.category !== filters.category) {
-                return false;
+                const matchesSeller = product.seller.businessName.toLowerCase().includes(query);
+                if (!matchesName && !matchesDescription && !matchesSeller) return false;
             }
 
             // Price range
@@ -180,11 +147,6 @@ const EnhancedProductsPage = () => {
 
             // Industry
             if (filters.industry.length > 0 && !filters.industry.includes(product.industry)) {
-                return false;
-            }
-
-            // Country
-            if (filters.country.length > 0 && !filters.country.includes(product.seller?.country || '')) {
                 return false;
             }
 
@@ -204,9 +166,6 @@ const EnhancedProductsPage = () => {
                 break;
             case 'rating':
                 filtered.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
-                break;
-            case 'popular':
-                filtered.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
                 break;
             case 'newest':
             default:
@@ -233,15 +192,19 @@ const EnhancedProductsPage = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await fetch(`${backendUrl}/products/all?page=1&limit=1000`, {
+                const response = await fetch(`${backendUrl}/products/${category}?page=1&limit=1000`, {
+                    method: 'GET',
                     credentials: 'include'
                 });
 
                 if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('Category not found');
+                    }
                     throw new Error('Failed to fetch products');
                 }
 
-                const data: ProductsResponse = await response.json();
+                const data = await response.json();
                 setProducts(data.products || []);
                 setTotalProducts(data.total || data.products?.length || 0);
 
@@ -254,41 +217,18 @@ const EnhancedProductsPage = () => {
                         ...prev,
                         priceRange: [minPrice, maxPrice]
                     }));
-
-                    // Calculate featured categories
-                    const categoryCount = data.products.reduce((acc: Record<string, number>, product: Product) => {
-                        acc[product.category] = (acc[product.category] || 0) + 1;
-                        return acc;
-                    }, {});
-
-                    const featured = Object.entries(categoryCount)
-                        .sort(([, a], [, b]) => b - a)
-                        .slice(0, 8)
-                        .map(([category, count]) => ({ category, count }));
-
-                    setFeaturedCategories(featured);
-
-                    // Calculate stats
-                    const uniqueSellers = new Set(data.products.map((p: Product) => p.seller?.id)).size;
-                    const uniqueCategories = new Set(data.products.map((p: Product) => p.category)).size;
-                    const avgRating = data.products.reduce((sum: number, p: Product) => sum + (p.averageRating || 0), 0) / data.products.length;
-
-                    setStats({
-                        totalProducts: data.products.length,
-                        totalSellers: uniqueSellers,
-                        totalCategories: uniqueCategories,
-                        averageRating: avgRating
-                    });
                 }
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+            } catch (error) {
+                setError(error instanceof Error ? error.message : 'An error occurred');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchProducts();
-    }, []);
+        if (category) {
+            fetchProducts();
+        }
+    }, [category]);
 
     const handleFilterChange = (key: keyof FilterState, value: any) => {
         setFilters(prev => ({ ...prev, [key]: value }));
@@ -297,11 +237,9 @@ const EnhancedProductsPage = () => {
     const clearFilters = () => {
         setFilters({
             searchQuery: '',
-            category: '',
             priceRange: [0, maxPrice],
             condition: [],
             industry: [],
-            country: [],
             sortBy: 'newest',
             viewMode: filters.viewMode
         });
@@ -384,8 +322,8 @@ const EnhancedProductsPage = () => {
                                         <Star
                                             key={star}
                                             className={`w-3 h-3 ${star <= (product.averageRating || 0)
-                                                ? 'text-yellow-400 fill-current'
-                                                : 'text-gray-300'
+                                                    ? 'text-yellow-400 fill-current'
+                                                    : 'text-gray-300'
                                                 }`}
                                         />
                                     ))}
@@ -395,13 +333,6 @@ const EnhancedProductsPage = () => {
                                 </span>
                             </div>
                         )}
-
-                        {/* Category */}
-                        <div className="mb-2">
-                            <Badge variant="outline" className="text-xs">
-                                {formatCategoryName(product.category)}
-                            </Badge>
-                        </div>
 
                         {/* Seller Info */}
                         <div className="mt-auto">
@@ -414,7 +345,7 @@ const EnhancedProductsPage = () => {
                             <div className="flex items-center space-x-1">
                                 <MapPin className="w-3 h-3 text-gray-400" />
                                 <span className="text-xs text-gray-600 truncate">
-                                    {product.seller?.city}, {product.seller?.country}
+                                    {product.seller?.city}, {product.seller?.state}
                                 </span>
                             </div>
                         </div>
@@ -438,12 +369,7 @@ const EnhancedProductsPage = () => {
                                 className="h-8 px-2"
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    // Open chat with seller
-                                    if (!authenticated || !isBuyer) {
-                                        router.push('/buyer/signin');
-                                        return;
-                                    }
-                                    router.push(`/buyer/chat/${product.seller?.id}`);
+                                    // Contact seller logic
                                 }}
                             >
                                 <MessageSquare className="w-3 h-3" />
@@ -503,9 +429,6 @@ const EnhancedProductsPage = () => {
                                     {product.condition}
                                 </Badge>
                                 <Badge variant="secondary" className="text-xs">
-                                    {formatCategoryName(product.category)}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs">
                                     <Eye className="w-3 h-3 mr-1" />
                                     {product.quantity} available
                                 </Badge>
@@ -519,8 +442,6 @@ const EnhancedProductsPage = () => {
                                     <div className="flex items-center space-x-1 text-sm text-gray-600">
                                         <Building className="w-3 h-3" />
                                         <span>{product.seller?.businessName}</span>
-                                        <span>•</span>
-                                        <span>{product.seller?.city}, {product.seller?.country}</span>
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
@@ -539,23 +460,6 @@ const EnhancedProductsPage = () => {
                             </div>
                         </div>
                     </div>
-                </CardContent>
-            </Card>
-        </Link>
-    );
-
-    // Category Card Component
-    const CategoryCard = ({ category, count }: { category: string, count: number }) => (
-        <Link href={`/products/${category}`} className="block">
-            <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-200 group h-full">
-                <CardContent className="p-4 text-center">
-                    <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center group-hover:from-orange-200 group-hover:to-orange-300 transition-colors">
-                        <Package className="w-8 h-8 text-orange-600" />
-                    </div>
-                    <h3 className="font-semibold text-sm md:text-base mb-1 group-hover:text-orange-600 transition-colors">
-                        {formatCategoryName(category)}
-                    </h3>
-                    <p className="text-xs text-gray-600">{count} products</p>
                 </CardContent>
             </Card>
         </Link>
@@ -584,26 +488,6 @@ const EnhancedProductsPage = () => {
                     />
                 </div>
 
-                {/* Category */}
-                <div>
-                    <label className="text-sm font-medium mb-2 block">Category</label>
-                    <Select
-                        value={filters.category}
-                        onValueChange={(value) => handleFilterChange('category', value)}
-                    >
-                        <SelectTrigger className="h-9">
-                            <SelectValue placeholder="All Categories" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {uniqueCategories.map((category) => (
-                                <SelectItem key={category} value={category}>
-                                    {formatCategoryName(category)}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
                 {/* Price Range */}
                 <div>
                     <label className="text-sm font-medium mb-3 block">
@@ -611,7 +495,7 @@ const EnhancedProductsPage = () => {
                     </label>
                     <Slider
                         value={filters.priceRange}
-                        onValueChange={(value) => handleFilterChange('priceRange', value)}
+                        onValueChange={(value: [number, number]) => handleFilterChange('priceRange', value)}
                         max={maxPrice}
                         min={0}
                         step={1000}
@@ -672,33 +556,6 @@ const EnhancedProductsPage = () => {
                         </div>
                     </div>
                 )}
-
-                {/* Country */}
-                {uniqueCountries.length > 0 && (
-                    <div>
-                        <label className="text-sm font-medium mb-3 block">Country</label>
-                        <div className="space-y-2 max-h-32 overflow-y-auto">
-                            {uniqueCountries.map((country) => (
-                                <div key={country} className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id={country}
-                                        checked={filters.country.includes(country)}
-                                        onCheckedChange={(checked) => {
-                                            if (checked) {
-                                                handleFilterChange('country', [...filters.country, country]);
-                                            } else {
-                                                handleFilterChange('country', filters.country.filter(c => c !== country));
-                                            }
-                                        }}
-                                    />
-                                    <label htmlFor={country} className="text-sm">
-                                        {country}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
             </CardContent>
         </Card>
     );
@@ -713,6 +570,7 @@ const EnhancedProductsPage = () => {
                         <div className="animate-pulse flex space-x-2">
                             <div className="h-4 bg-gray-200 rounded w-20"></div>
                             <div className="h-4 bg-gray-200 rounded w-20"></div>
+                            <div className="h-4 bg-gray-200 rounded w-32"></div>
                         </div>
                     </div>
                 </div>
@@ -721,7 +579,7 @@ const EnhancedProductsPage = () => {
                     <div className="flex items-center justify-center min-h-[50vh]">
                         <div className="text-center">
                             <RefreshCw className="w-8 h-8 animate-spin text-orange-600 mx-auto mb-4" />
-                            <p className="text-gray-600">Loading marketplace...</p>
+                            <p className="text-gray-600">Loading products...</p>
                         </div>
                     </div>
                 </div>
@@ -738,18 +596,31 @@ const EnhancedProductsPage = () => {
                         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <AlertTriangle className="w-8 h-8 text-red-600" />
                         </div>
-                        <h2 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h2>
+                        <h2 className="text-xl font-bold text-gray-900 mb-2">
+                            {error === 'Category not found' ? 'Category Not Found' : 'Something went wrong'}
+                        </h2>
                         <p className="text-gray-600 mb-6">
-                            {error || 'An unexpected error occurred while loading products.'}
+                            {error === 'Category not found'
+                                ? "The category you're looking for doesn't exist."
+                                : error || 'An unexpected error occurred while loading products.'
+                            }
                         </p>
                         <div className="space-y-3">
                             <Button
-                                onClick={() => window.location.reload()}
+                                onClick={() => router.back()}
                                 className="w-full"
                                 variant="default"
                             >
-                                <RefreshCw className="w-4 h-4 mr-2" />
-                                Try Again
+                                <ArrowLeft className="w-4 h-4 mr-2" />
+                                Go Back
+                            </Button>
+                            <Button
+                                onClick={() => router.push('/products')}
+                                className="w-full"
+                                variant="outline"
+                            >
+                                <Search className="w-4 h-4 mr-2" />
+                                Browse All Products
                             </Button>
                             <Button
                                 onClick={() => router.push('/')}
@@ -771,258 +642,132 @@ const EnhancedProductsPage = () => {
             {/* Enhanced Breadcrumb */}
             <div className="bg-white border-b sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4">
-                    <nav className="text-xs md:text-sm text-gray-600 flex items-center">
-                        <Link href="/" className="hover:text-orange-600">Home</Link>
-                        <span className="mx-1 md:mx-2">/</span>
-                        <span className="text-gray-900 font-medium">Products</span>
-                    </nav>
+                    <div className="flex items-center justify-between">
+                        <nav className="text-xs md:text-sm text-gray-600 flex items-center overflow-x-auto">
+                            <Link href="/" className="hover:text-orange-600 whitespace-nowrap">Home</Link>
+                            <span className="mx-1 md:mx-2">/</span>
+                            <Link href="/products" className="hover:text-orange-600 whitespace-nowrap">Products</Link>
+                            <span className="mx-1 md:mx-2">/</span>
+                            <span className="text-gray-900 font-medium whitespace-nowrap">
+                                {formatCategoryName(category)}
+                            </span>
+                        </nav>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => router.back()}
+                            className="ml-2 flex-shrink-0"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                        </Button>
+                    </div>
                 </div>
             </div>
 
             <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
-                {/* Hero Section */}
-                <div className="mb-8 md:mb-12">
-                    <div className="text-center mb-8">
-                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-                            Discover Quality Products
-                        </h1>
-                        <p className="text-gray-600 text-lg md:text-xl max-w-2xl mx-auto mb-6">
-                            Browse thousands of products from verified sellers worldwide. Find exactly what you need for your business.
-                        </p>
-
-                        {/* Main Search Bar */}
-                        <div className="max-w-2xl mx-auto mb-6">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                <Input
-                                    placeholder="Search products, categories, or sellers..."
-                                    value={filters.searchQuery}
-                                    onChange={(e) => handleFilterChange('searchQuery', e.target.value)}
-                                    className="pl-10 h-12 text-base"
-                                />
-                                {filters.searchQuery && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                                        onClick={() => handleFilterChange('searchQuery', '')}
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Quick Stats */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                            <div className="text-center">
-                                <div className="text-2xl md:text-3xl font-bold text-orange-600">{stats.totalProducts.toLocaleString()}</div>
-                                <div className="text-sm text-gray-600">Products</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl md:text-3xl font-bold text-blue-600">{stats.totalSellers.toLocaleString()}</div>
-                                <div className="text-sm text-gray-600">Sellers</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl md:text-3xl font-bold text-green-600">{stats.totalCategories}</div>
-                                <div className="text-sm text-gray-600">Categories</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl md:text-3xl font-bold text-purple-600">{stats.averageRating.toFixed(1)}</div>
-                                <div className="text-sm text-gray-600">Avg Rating</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Trust Indicators */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white rounded-lg p-4 md:p-6 shadow-sm border">
-                        <div className="flex items-center space-x-2">
-                            <CheckCircle className="w-5 h-5 text-green-500" />
-                            <span className="text-sm font-medium">Quality Assured</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Shield className="w-5 h-5 text-blue-500" />
-                            <span className="text-sm font-medium">Secure Transactions</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Truck className="w-5 h-5 text-orange-500" />
-                            <span className="text-sm font-medium">Fast Delivery</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <ThumbsUp className="w-5 h-5 text-purple-500" />
-                            <span className="text-sm font-medium">Verified Sellers</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Featured Categories */}
-                {featuredCategories.length > 0 && (
-                    <div className="mb-8 md:mb-12">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Popular Categories</h2>
-                            <Button variant="outline" size="sm" className="text-orange-600 border-orange-600 hover:bg-orange-50">
-                                View All Categories
-                                <ArrowRight className="w-4 h-4 ml-1" />
-                            </Button>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 md:gap-4">
-                            {featuredCategories.map((cat) => (
-                                <CategoryCard key={cat.category} category={cat.category} count={cat.count} />
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Products Section */}
+                {/* Header Section */}
                 <div className="mb-6 md:mb-8">
-                    <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between mb-6">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                         <div>
-                            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
-                                All Products
-                            </h2>
+                            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+                                {formatCategoryName(category)}
+                            </h1>
                             <p className="text-gray-600 text-sm md:text-base">
                                 {filteredProducts.length} of {products.length} products
-                                {filters.searchQuery && (
-                                    <span className="ml-2">
-                                        for "<span className="font-medium">{filters.searchQuery}</span>"
-                                    </span>
-                                )}
                             </p>
                         </div>
 
-                        {/* Controls */}
-                        <div className="flex flex-col lg:flex-row gap-4 lg:items-center">
-                            {/* Mobile Filter Toggle */}
-                            <div className="flex items-center gap-2 lg:hidden">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    className="flex-1"
-                                >
-                                    <SlidersHorizontal className="w-4 h-4 mr-2" />
-                                    Filters
-                                    {showFilters && <X className="w-4 h-4 ml-2" />}
-                                </Button>
-                                <div className="flex gap-1">
-                                    <Button
-                                        variant={filters.viewMode === 'grid' ? 'default' : 'outline'}
-                                        size="sm"
-                                        onClick={() => handleFilterChange('viewMode', 'grid')}
-                                        className="p-2"
-                                    >
-                                        <Grid3X3 className="w-4 h-4" />
-                                    </Button>
-                                    <Button
-                                        variant={filters.viewMode === 'list' ? 'default' : 'outline'}
-                                        size="sm"
-                                        onClick={() => handleFilterChange('viewMode', 'list')}
-                                        className="p-2"
-                                    >
-                                        <List className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                            </div>
-
-                            {/* Desktop Controls */}
-                            <div className="hidden lg:flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm text-gray-600">View:</span>
-                                    <Button
-                                        variant={filters.viewMode === 'grid' ? 'default' : 'outline'}
-                                        size="sm"
-                                        onClick={() => handleFilterChange('viewMode', 'grid')}
-                                        className="p-2"
-                                    >
-                                        <Grid3X3 className="w-4 h-4" />
-                                    </Button>
-                                    <Button
-                                        variant={filters.viewMode === 'list' ? 'default' : 'outline'}
-                                        size="sm"
-                                        onClick={() => handleFilterChange('viewMode', 'list')}
-                                        className="p-2"
-                                    >
-                                        <List className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                                <Select
-                                    value={filters.sortBy}
-                                    onValueChange={(value) => handleFilterChange('sortBy', value)}
-                                >
-                                    <SelectTrigger className="w-48">
-                                        <SelectValue placeholder="Sort by" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="newest">Newest First</SelectItem>
-                                        <SelectItem value="popular">Most Popular</SelectItem>
-                                        <SelectItem value="price-low">Price: Low to High</SelectItem>
-                                        <SelectItem value="price-high">Price: High to Low</SelectItem>
-                                        <SelectItem value="name">Name: A to Z</SelectItem>
-                                        <SelectItem value="rating">Highest Rated</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                        {/* Category features */}
+                        <div className="flex flex-wrap gap-2">
+                            <Badge variant="outline" className="flex items-center gap-1">
+                                <TrendingUp className="w-3 h-3" />
+                                Popular
+                            </Badge>
+                            <Badge variant="outline" className="flex items-center gap-1">
+                                <Award className="w-3 h-3" />
+                                Quality Assured
+                            </Badge>
+                            <Badge variant="outline" className="flex items-center gap-1">
+                                <Zap className="w-3 h-3" />
+                                Fast Delivery
+                            </Badge>
                         </div>
                     </div>
 
-                    {/* Active Filters */}
-                    {(filters.searchQuery || filters.category || filters.condition.length > 0 || filters.industry.length > 0 || filters.country.length > 0) && (
-                        <div className="mb-6">
-                            <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-sm text-gray-600">Active filters:</span>
-                                {filters.searchQuery && (
-                                    <Badge variant="secondary" className="gap-1">
-                                        Search: {filters.searchQuery}
-                                        <X
-                                            className="w-3 h-3 cursor-pointer hover:text-red-500"
-                                            onClick={() => handleFilterChange('searchQuery', '')}
-                                        />
-                                    </Badge>
-                                )}
-                                {filters.category && (
-                                    <Badge variant="secondary" className="gap-1">
-                                        Category: {formatCategoryName(filters.category)}
-                                        <X
-                                            className="w-3 h-3 cursor-pointer hover:text-red-500"
-                                            onClick={() => handleFilterChange('category', '')}
-                                        />
-                                    </Badge>
-                                )}
-                                {filters.condition.map(condition => (
-                                    <Badge key={condition} variant="secondary" className="gap-1">
-                                        {condition}
-                                        <X
-                                            className="w-3 h-3 cursor-pointer hover:text-red-500"
-                                            onClick={() => handleFilterChange('condition', filters.condition.filter(c => c !== condition))}
-                                        />
-                                    </Badge>
-                                ))}
-                                {filters.industry.map(industry => (
-                                    <Badge key={industry} variant="secondary" className="gap-1">
-                                        {industry}
-                                        <X
-                                            className="w-3 h-3 cursor-pointer hover:text-red-500"
-                                            onClick={() => handleFilterChange('industry', filters.industry.filter(i => i !== industry))}
-                                        />
-                                    </Badge>
-                                ))}
-                                {filters.country.map(country => (
-                                    <Badge key={country} variant="secondary" className="gap-1">
-                                        {country}
-                                        <X
-                                            className="w-3 h-3 cursor-pointer hover:text-red-500"
-                                            onClick={() => handleFilterChange('country', filters.country.filter(c => c !== country))}
-                                        />
-                                    </Badge>
-                                ))}
-                                <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs">
-                                    Clear All
+                    {/* Controls */}
+                    <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+                        {/* Mobile Filter Toggle */}
+                        <div className="flex items-center gap-2 lg:hidden">
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowFilters(!showFilters)}
+                                className="flex-1"
+                            >
+                                <SlidersHorizontal className="w-4 h-4 mr-2" />
+                                Filters
+                                {showFilters && <X className="w-4 h-4 ml-2" />}
+                            </Button>
+                            <div className="flex gap-1">
+                                <Button
+                                    variant={filters.viewMode === 'grid' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => handleFilterChange('viewMode', 'grid')}
+                                    className="p-2"
+                                >
+                                    <Grid3X3 className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    variant={filters.viewMode === 'list' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => handleFilterChange('viewMode', 'list')}
+                                    className="p-2"
+                                >
+                                    <List className="w-4 h-4" />
                                 </Button>
                             </div>
                         </div>
-                    )}
+
+                        {/* Desktop Controls */}
+                        <div className="hidden lg:flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-600">View:</span>
+                                <Button
+                                    variant={filters.viewMode === 'grid' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => handleFilterChange('viewMode', 'grid')}
+                                    className="p-2"
+                                >
+                                    <Grid3X3 className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    variant={filters.viewMode === 'list' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => handleFilterChange('viewMode', 'list')}
+                                    className="p-2"
+                                >
+                                    <List className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <Select
+                                value={filters.sortBy}
+                                onValueChange={(value) => handleFilterChange('sortBy', value)}
+                            >
+                                <SelectTrigger className="w-48">
+                                    <SelectValue placeholder="Sort by" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="newest">Newest First</SelectItem>
+                                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                                    <SelectItem value="name">Name: A to Z</SelectItem>
+                                    <SelectItem value="rating">Highest Rated</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Main Content */}
@@ -1057,17 +802,14 @@ const EnhancedProductsPage = () => {
                                     </div>
                                     <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
                                     <p className="text-gray-600 mb-4">
-                                        {filters.searchQuery
-                                            ? `No results found for "${filters.searchQuery}". Try adjusting your search or filters.`
-                                            : 'Try adjusting your filters to find what you\'re looking for.'
-                                        }
+                                        Try adjusting your search criteria or filters to find what you're looking for.
                                     </p>
                                     <div className="flex flex-col sm:flex-row gap-2 justify-center">
                                         <Button onClick={clearFilters} variant="outline">
                                             Clear Filters
                                         </Button>
-                                        <Button onClick={() => handleFilterChange('searchQuery', '')}>
-                                            Clear Search
+                                        <Button onClick={() => router.push('/products')}>
+                                            Browse All Products
                                         </Button>
                                     </div>
                                 </div>
@@ -1155,53 +897,27 @@ const EnhancedProductsPage = () => {
                     </div>
                 </div>
 
-                {/* Why Choose Us Section */}
-                <div className="mt-12 md:mt-16">
-                    <Card className="bg-gradient-to-r from-orange-50 to-blue-50 border-0">
-                        <CardContent className="p-8 md:p-12">
-                            <div className="text-center mb-8">
-                                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                                    Why Choose Our Marketplace?
-                                </h2>
-                                <p className="text-gray-600 max-w-2xl mx-auto">
-                                    Join thousands of satisfied buyers and sellers who trust our platform for their business needs.
-                                </p>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Shield className="w-8 h-8 text-orange-600" />
-                                    </div>
-                                    <h3 className="font-semibold text-lg mb-2">Secure & Trusted</h3>
-                                    <p className="text-gray-600 text-sm">
-                                        All sellers are verified and transactions are protected with our secure payment system.
-                                    </p>
+                {/* Recently Viewed or Recommended Products */}
+                {filteredProducts.length > 0 && (
+                    <div className="mt-12">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-xl">You might also like</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
+                                    {products
+                                        .filter(p => !filteredProducts.includes(p))
+                                        .slice(0, 6)
+                                        .map((product) => (
+                                            <ProductCard key={product.id} product={product} />
+                                        ))
+                                    }
                                 </div>
-
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Globe className="w-8 h-8 text-blue-600" />
-                                    </div>
-                                    <h3 className="font-semibold text-lg mb-2">Global Reach</h3>
-                                    <p className="text-gray-600 text-sm">
-                                        Connect with suppliers and buyers from around the world to expand your business.
-                                    </p>
-                                </div>
-
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Award className="w-8 h-8 text-green-600" />
-                                    </div>
-                                    <h3 className="font-semibold text-lg mb-2">Quality Products</h3>
-                                    <p className="text-gray-600 text-sm">
-                                        Every product is quality-checked and backed by our satisfaction guarantee.
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
             </div>
 
             {/* Floating Action Button for Mobile */}
@@ -1214,7 +930,7 @@ const EnhancedProductsPage = () => {
                 </Button>
             </div>
 
-            {/* Quick Stats Bar for Mobile */}
+            {/* Quick Stats Bar */}
             {products.length > 0 && (
                 <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-3 lg:hidden z-10">
                     <div className="flex items-center justify-center gap-6 text-sm">
@@ -1226,7 +942,7 @@ const EnhancedProductsPage = () => {
                         <div className="flex items-center gap-1">
                             <TrendingUp className="w-4 h-4 text-green-600" />
                             <span className="font-medium">
-                                ₹{filteredProducts.length > 0 ? Math.min(...filteredProducts.map(p => p.price)).toLocaleString() : '0'}
+                                ₹{Math.min(...filteredProducts.map(p => p.price)).toLocaleString()}
                             </span>
                             <span className="text-gray-600">starting</span>
                         </div>
@@ -1237,4 +953,4 @@ const EnhancedProductsPage = () => {
     );
 };
 
-export default EnhancedProductsPage;
+export default CategoryWiseProducts;

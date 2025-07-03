@@ -1,60 +1,26 @@
-import express, { Request, Response, NextFunction, Router } from "express";
-import { getProductById, getProductReviews, getProducts, getProductsBySellerId, getSimilarProducts, postProductReviews } from "../controllers/product.controller";
-import { AuthenticatedRequest, requireBuyer } from "../middlewares/authBuyer";
+import { Router } from "express";
+import { getProductById, getProducts, getSimilarProducts, getProductsBySellerId, getProductReviews, postProductReviews } from "../controllers/product.controller";
+import { requireBuyer } from "../middlewares/authBuyer";
+import asyncHandler from "../utils/asyncHandler";
 
 const productRouter = Router();
-const BASE_API_URL = "/api/v1/products";
 
-// Base url: http://localhost:3001/api/v1/products
+// 1. Get more products from the same seller
+productRouter.get("/seller/:id", asyncHandler(getProductsBySellerId));
 
-// Route to get all products with pagination
-productRouter.get("/", async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        await getProducts(req, res);
-    } catch (error) {
-        next(error);
-    }
-});
+// 2. Get similar products
+productRouter.get("/:id/similar", asyncHandler(getSimilarProducts));
 
-// Route to get a product by ID
-productRouter.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        // console.log("Fetching product by ID:", req.params.id);
-        await getProductById(req, res);
-    } catch (error) {
-        next(error);
-    }
-});
+// 3. Get reviews of a product
+productRouter.get("/:category/:id/reviews", asyncHandler(getProductReviews));
 
-// Route to get products similar to a given product
-productRouter.get("/:id/similar", async (req: Request, res: Response, next: NextFunction) => {
+// 4. Post a review (only for buyers)
+productRouter.post("/:id/reviews", requireBuyer, asyncHandler(postProductReviews));
 
-    try {
-        await getSimilarProducts(req, res);
-    } catch (error) {
-        next(error);
-    }
-});
+// 5. Get a single product by ID and category
+productRouter.get("/:category/:id", asyncHandler(getProductById));
 
-// Route to get more products by same seller using product ID
-productRouter.get("/seller/:id", async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        await getProductsBySellerId(req, res);
-    } catch (error) {
-        next(error);
-    }
-});
-
-productRouter.get("/:id/reviews", async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        await getProductReviews(req, res);
-    } catch (error) {
-        next(error);
-    }
-});
-
-productRouter.post("/:id/reviews", requireBuyer, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    await postProductReviews(req, res);
-})
+// 6. Get all products in a category (paginated)
+productRouter.get("/:category", asyncHandler(getProducts));
 
 export default productRouter;

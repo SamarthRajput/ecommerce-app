@@ -14,3 +14,8 @@ export function generateValidSlug(text: string): string {
     }
     return generateSlug(text);
 }
+
+export function isValidSlug(slug: string): boolean {
+    const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/; // Matches lowercase alphanumeric characters and hyphens
+    return slugRegex.test(slug);
+}
