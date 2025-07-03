@@ -59,7 +59,25 @@ export const signupSeller = async (req: Request, res: Response) => {
         console.log('Creating new seller:', data.email)
         // Map businessType to enum value (uppercase and underscores)
         const mapBusinessType = (type: string) => type.toUpperCase().replace(/ /g, "_");
-
+        let slug;
+        slug = generateValidSlug(data.businessName);
+        if (!slug || !validator.isSlug(slug)) {
+            slug = generateValidSlug(`${data.firstName}-${data.lastName}-${Date.now()}`);
+        }
+        // if already exists, append a number
+        const existingSlug = await prisma.seller.findFirst({
+            where: { slug }
+        });
+        if (existingSlug) {
+            let counter = 1;
+            let newSlug = `${slug}-${counter}`;
+            while (await prisma.seller.findFirst({ where: { slug: newSlug } })) {
+                counter++;
+                newSlug = `${slug}-${counter}`;
+            }
+            slug = newSlug;
+        }
+        console.log('Final slug for seller:', slug);
         const seller = await prisma.seller.create({
             data: {
                 email: data.email,
@@ -69,7 +87,7 @@ export const signupSeller = async (req: Request, res: Response) => {
                 firstName: data.firstName,
                 lastName: data.lastName,
                 businessName: data.businessName,
-                slug: generateValidSlug(data.businessName),
+                slug: slug,
                 businessType: mapBusinessType(data.businessType) as any,
                 registrationNo: data.registrationNo,
                 taxId: data.taxId,
@@ -834,9 +852,13 @@ export const getSellerPublicProfile = async (req: Request, res: Response) => {
                 videoUrl: true,
                 images: true,
                 tags: true
-            }
+            },
+            orderBy: {
+                createdAt: 'desc' // Order by most recent first
+            },
+            take: 15 // Limit to 15 products
         });
-
+        
         // Remove sensitive fields from the response
         const { password, ...publicProfile } = seller as any;
 

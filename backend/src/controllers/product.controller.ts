@@ -1,24 +1,25 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { AuthenticatedRequest } from "../middlewares/authBuyer";
+import { parsePagination } from "../utils/parsePagination";
 
 export const getProducts = async (req: Request, res: Response) => {
-    const { page = 1, limit = 10 } = req.query; // Default to page 1 and limit 10 if not provided
-    const pageNumber = parseInt(page as string, 10); // Convert page to a number
-    if (isNaN(pageNumber) || pageNumber < 1) {
-        return res.status(400).json({ message: "Invalid page number" });
+    const { skip, take } = parsePagination(req.query);
+    const { category } = req.params;
+    console.log("Fetching products for category:", category);
+    const categoryStr = typeof category === "string" ? category : undefined;
+    if (!categoryStr) {
+        return res.status(400).json({ message: "Category is required" });
     }
-    const limitNumber = parseInt(limit as string, 10); // Convert limit to a number
-    if (isNaN(limitNumber) || limitNumber < 1) {
-        return res.status(400).json({ message: "Invalid limit number" });
-    }
-    const skip = (pageNumber - 1) * limitNumber;
-    const take = limitNumber;
 
     try {
         const products = await prisma.product.findMany({
             where: {
-                status: "ACTIVE",
+                status: "APPROVED",
+                category: categoryStr === "all" ? undefined : {
+                    equals: categoryStr,
+                    mode: "insensitive",
+                },
             },
             skip,
             take,
@@ -26,11 +27,15 @@ export const getProducts = async (req: Request, res: Response) => {
 
         res.status(200).json({
             products,
-            page: pageNumber,
-            limit: limitNumber,
+            page: typeof req.query.page === "string" ? parseInt(req.query.page) : 1,
+            limit: take,
             total: await prisma.product.count({
                 where: {
-                    status: "ACTIVE",
+                    status: "APPROVED",
+                    category: categoryStr === "all" ? undefined : {
+                        equals: categoryStr,
+                        mode: "insensitive",
+                    },
                 },
             }),
             message: products.length > 0 ? "Products fetched successfully" : "No products found",
@@ -42,13 +47,17 @@ export const getProducts = async (req: Request, res: Response) => {
 };
 
 export const getProductById = async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const { category, id } = req.params;
     // console.log("Fetching product with ID:", id);
     try {
         const product = await prisma.product.findFirst({
             where: {
                 id,
-                status: "ACTIVE",
+                status: "APPROVED",
+                category: category ? {
+                    equals: category,
+                    mode: "insensitive",
+                } : undefined,
             },
             select: {
                 id: true,
@@ -82,6 +91,7 @@ export const getProductById = async (req: Request, res: Response) => {
         });
 
         if (!product) {
+            console.log("Product not found with ID:", id);
             return res.status(404).json({ message: "Product not found or not ACTIVE" });
         }
 
@@ -97,12 +107,27 @@ export const getProductById = async (req: Request, res: Response) => {
 
 export const getProductsBySellerId = async (req: Request, res: Response) => {
     const { id } = req.params; // Product id, Get Seller id from product
+    const { skip, take } = parsePagination(req.query);
+
+    // Find Seller ID from Product ID
     try {
+        const product = await prisma.product.findUnique({
+            where: { id },
+            select: { sellerId: true },
+        });
+
+        if (!product) return res.status(404).json({ message: "Product not found" });
+        if (!product.sellerId) return res.status(404).json({ message: "Seller not found" });
+
+        const sellerId = product.sellerId;
+
         const products = await prisma.product.findMany({
             where: {
-                sellerId: id,
-                status: "ACTIVE",
+                sellerId,
+                status: "APPROVED",
             },
+            skip,
+            take,
         });
 
         res.status(200).json({ products });
@@ -114,6 +139,7 @@ export const getProductsBySellerId = async (req: Request, res: Response) => {
 
 export const getSimilarProducts = async (req: Request, res: Response) => {
     const { id } = req.params;
+    const { skip, take } = parsePagination(req.query);
 
     try {
         const product = await prisma.product.findUnique({
@@ -122,15 +148,18 @@ export const getSimilarProducts = async (req: Request, res: Response) => {
         });
 
         if (!product) {
+            console.log("Product not found with ID:", id);
             return res.status(404).json({ message: "Product not found" });
         }
 
         const similarProducts = await prisma.product.findMany({
             where: {
                 category: product.category,
-                status: "ACTIVE",
-                id: { not: id }, // Exclude the current product
+                status: "APPROVED",
+                id: { not: id },
             },
+            skip,
+            take,
         });
 
         res.status(200).json({ products: similarProducts });
@@ -141,12 +170,19 @@ export const getSimilarProducts = async (req: Request, res: Response) => {
 };
 
 export const getProductReviews = async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const { category, id } = req.params;
 
     try {
         const reviews = await prisma.review.findMany({
             where: {
                 productId: id,
+                product: {
+                    category: category ? {
+                        equals: category,
+                        mode: "insensitive",
+                    } : undefined,
+                    status: "APPROVED",
+                },
             },
             select: {
                 id: true,
@@ -182,53 +218,54 @@ export const getProductReviews = async (req: Request, res: Response) => {
 
 export const postProductReviews = async (req: AuthenticatedRequest, res: Response) => {
     try {
-    const { id: productId } = req.params;
-    const buyerId = req.buyer?.buyerId;
-    const { rating, comment } = req.body;
+        const { id: productId } = req.params;
+        const buyerId = req.buyer?.buyerId;
+        const { rating, comment } = req.body;
 
-    if(!rating || rating < 1 || rating > 5){
-        res.status(400).json({
-            message: "Invalid Inputs"
-        })
-        return;
-    }
+        if (!rating || rating < 1 || rating > 5) {
+            res.status(400).json({
+                message: "Invalid Inputs"
+            })
+            return;
+        }
 
-    const product = await prisma.product.findUnique({ where: { id: productId } });
-    if (!product) {
-      res.status(404).json({ message: 'Product not found' });
-      return;
-    }
+        const product = await prisma.product.findUnique({ where: { id: productId } });
+        if (!product) {
+            res.status(404).json({ message: 'Product not found' });
+            return;
+        }
 
-    // Check if buyer already reviewed this product or not 
-    const existingReview = await prisma.review.findFirst({
-      where: { productId, buyerId },
-    });
+        // Check if buyer already reviewed this product or not 
+        const existingReview = await prisma.review.findFirst({
+            where: { productId, buyerId, rating, comment },
+            select: { id: true }
+        });
 
-    if (existingReview) {
-      return res.status(400).json({ message: 'You have already reviewed this product' });
-    }
+        if (existingReview) {
+            return res.status(400).json({ message: 'You have already reviewed this product' });
+        }
 
-    const review = await prisma.review.create({
-      data: {
-        rating: Number(rating),
-        comment,
-        product: { connect: { id: productId } },
-        buyer: { connect: { id: buyerId } },
-      },
-      include: {
-        buyer: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            city: true,
-            country: true,
-          },
-        },
-      },
-    });
+        const review = await prisma.review.create({
+            data: {
+                rating: Number(rating),
+                comment,
+                product: { connect: { id: productId } },
+                buyer: { connect: { id: buyerId } },
+            },
+            include: {
+                buyer: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        city: true,
+                        country: true,
+                    },
+                },
+            },
+        });
 
-    res.status(201).json({ review, message: 'Review submitted successfully' });
+        res.status(201).json({ review, message: 'Review submitted successfully' });
     } catch (error) {
         console.error('Error creating review:', error);
         res.status(500).json({ message: 'Internal Server Error' });
