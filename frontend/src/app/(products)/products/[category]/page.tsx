@@ -14,8 +14,6 @@ import {
     Building,
     ArrowLeft,
     Home,
-    ChevronDown,
-    ChevronUp,
     SlidersHorizontal,
     X,
     RefreshCw,
@@ -23,7 +21,6 @@ import {
     Eye,
     TrendingUp,
     Award,
-    Clock,
     Zap,
     ShoppingCart,
     MessageSquare
