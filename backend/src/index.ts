@@ -20,28 +20,12 @@ dotenv.config();
 const app = express();
 
 // Middlewares
-// app.use(cors({
-//     origin: ['http://localhost:3000', 'http://10.109.51.60:3000','https://ecommerce-app-production-2f67.up.railway.app'],
-//     credentials: true,
-// }));
-
-// Middlewares
-const corsOptions = {
-  origin: 'https://ecommerce-app-rho-five.vercel.app',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
-
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.use(cors());
 
 app.use(cookieParser());
 app.use(express.json());
 
-// Routes
+// // Routes
 app.use("/api/v1/buyer", buyerRouter);
 app.use("/api/v1/seller", sellerRouter);
 app.use("/api/v1/analytics", analyticsRouter);
@@ -51,7 +35,7 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/chat", chatRouter);
-
+console.log("all router called");
 // Root route
 app.get("/", (req, res) => {
     res.send("Welcome to the API");
