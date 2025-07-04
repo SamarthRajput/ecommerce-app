@@ -48,7 +48,7 @@ export const getProducts = async (req: Request, res: Response) => {
 
 export const getProductById = async (req: Request, res: Response) => {
     const { category, id } = req.params;
-    // console.log("Fetching product with ID:", id);
+    console.log("Fetching product with ID:", id);
     try {
         const product = await prisma.product.findFirst({
             where: {
