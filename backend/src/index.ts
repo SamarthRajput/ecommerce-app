@@ -21,11 +21,8 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-    origin: [
-        "https://ecommerce-app-rho-five.vercel.app",
-        "http://localhost:3000"
-    ],
-    credentials: true
+  origin: true, 
+  credentials: true 
 }));
 
 app.use(cookieParser());
