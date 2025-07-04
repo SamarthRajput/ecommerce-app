@@ -24,6 +24,7 @@ interface User {
 
 interface LoginResponse {
     message: string;
+    error?: string;
     seller: User;
     token: string;
 }
@@ -31,7 +32,7 @@ interface LoginResponse {
 const SellerLogin = () => {
     const [formData, setFormData] = useState<LoginFormData>({
         email: 'rohitkuyada@gmail.com',
-        password: '123456'
+        password: '12345678'
     });
     const [error, setError] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
@@ -66,7 +67,7 @@ const SellerLogin = () => {
             const data: LoginResponse = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || 'Login failed');
+                throw new Error(data.error || 'Login failed');
             }
             refetch();
             // Redirect based on role
