@@ -35,7 +35,7 @@ adminRouter.get('/chats/recent', requireAdmin, async (req: Request, res: Respons
 });
 
 // Add this to check functionality of admin 
-adminRouter.get('/insert', async (req: Request, res: Response) => {
+adminRouter.post('/insert', async (req: Request, res: Response) => {
     try {
         // Example: Insert a test admin user
         const email = `1@1`;
