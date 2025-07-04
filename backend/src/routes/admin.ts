@@ -41,6 +41,19 @@ adminRouter.get('/insert', async (req: Request, res: Response) => {
         const email = `1@1`;
         const password = `1`;
         const hashedPassword = await bcrypt.hash(password, 10);
+        // Check if the admin user already exists
+        const existingAdmin = await prisma.user.findUnique({
+            where: {
+                email
+            }
+        });
+        if (existingAdmin) {
+            res.status(400).json({
+                success: false,
+                error: 'Admin user already exists'
+            });
+            return;
+        }
         const admin = await prisma.user.create({
             data: {
                 email,
@@ -54,11 +67,11 @@ adminRouter.get('/insert', async (req: Request, res: Response) => {
             success: true,
             data: admin
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error inserting admin user:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to insert admin user'
+            error: `Failed to insert admin user: ${error.message}`
         });
     }
 });
