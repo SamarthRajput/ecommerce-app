@@ -16,6 +16,9 @@ CREATE TYPE "Role" AS ENUM ('ADMIN', 'BUYER', 'SELLER');
 -- CreateEnum
 CREATE TYPE "ChatRoomStatus" AS ENUM ('ACTIVE', 'CLOSED', 'ARCHIVED');
 
+-- CreateEnum
+CREATE TYPE "BusinessType" AS ENUM ('INDIVIDUAL', 'PROPRIETORSHIP', 'PARTNERSHIP', 'LLP', 'PRIVATE_LIMITED', 'PUBLIC_LIMITED', 'NGO', 'GOVERNMENT_ENTITY', 'OTHER');
+
 -- CreateTable
 CREATE TABLE "Buyer" (
     "id" TEXT NOT NULL,
@@ -40,16 +43,35 @@ CREATE TABLE "Seller" (
     "password" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
-    "role" TEXT NOT NULL,
-    "businessName" TEXT NOT NULL,
-    "businessType" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
+    "countryCode" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'seller',
+    "isEmailVerified" BOOLEAN NOT NULL DEFAULT false,
+    "isPhoneVerified" BOOLEAN NOT NULL DEFAULT false,
+    "isApproved" BOOLEAN NOT NULL DEFAULT false,
+    "approvalNote" TEXT,
+    "slug" TEXT,
+    "businessName" TEXT NOT NULL,
+    "businessType" "BusinessType" NOT NULL,
+    "registrationNo" TEXT,
+    "taxId" TEXT,
+    "panOrTin" TEXT,
+    "website" TEXT,
+    "linkedIn" TEXT,
+    "yearsInBusiness" INTEGER,
+    "industryTags" TEXT[],
+    "keyProducts" TEXT[],
+    "companyBio" TEXT,
     "street" TEXT NOT NULL,
     "city" TEXT NOT NULL,
     "state" TEXT NOT NULL,
     "zipCode" TEXT NOT NULL,
     "country" TEXT NOT NULL,
-    "taxId" TEXT NOT NULL,
+    "govIdUrl" TEXT,
+    "gstCertUrl" TEXT,
+    "businessDocUrl" TEXT,
+    "otherDocsUrl" TEXT,
+    "agreedToTerms" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -62,10 +84,15 @@ CREATE TABLE "Product" (
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "price" DOUBLE PRECISION NOT NULL,
+    "currency" TEXT,
     "quantity" INTEGER NOT NULL,
+    "minimumOrderQuantity" INTEGER,
     "listingType" TEXT NOT NULL,
     "condition" TEXT NOT NULL,
     "validityPeriod" INTEGER NOT NULL,
+    "expiryDate" TIMESTAMP(3),
+    "deliveryTimeInDays" INTEGER,
+    "logisticsSupport" TEXT,
     "industry" TEXT NOT NULL,
     "category" TEXT NOT NULL,
     "productCode" TEXT NOT NULL,
@@ -73,7 +100,14 @@ CREATE TABLE "Product" (
     "specifications" TEXT NOT NULL,
     "countryOfSource" TEXT NOT NULL,
     "hsnCode" TEXT NOT NULL,
+    "certifications" TEXT[],
+    "warrantyPeriod" TEXT,
+    "licenses" TEXT[],
+    "brochureUrl" TEXT,
+    "videoUrl" TEXT,
     "images" TEXT[],
+    "tags" TEXT[],
+    "keywords" TEXT[],
     "status" "ProductStatus" NOT NULL DEFAULT 'ACTIVE',
     "sellerId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -94,7 +128,6 @@ CREATE TABLE "RFQ" (
     "reviewedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "tect" TEXT NOT NULL,
 
     CONSTRAINT "RFQ_pkey" PRIMARY KEY ("id")
 );
@@ -194,6 +227,9 @@ CREATE UNIQUE INDEX "Buyer_email_key" ON "Buyer"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Seller_email_key" ON "Seller"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Seller_phone_key" ON "Seller"("phone");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Trade_rfqId_key" ON "Trade"("rfqId");
