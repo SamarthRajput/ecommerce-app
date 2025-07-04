@@ -23,7 +23,6 @@ export const setAuthCookie = ({
         httpOnly: true,
         secure: process.env.NODE_ENV === "production", // true in production, false in development
         sameSite: process.env.NODE_ENV === "production" ? "none" as const : "strict" as const, // "none" only in production
-        path: "/"
     };
 
     // Clear all existing auth cookies
