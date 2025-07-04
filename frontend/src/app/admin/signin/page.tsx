@@ -4,6 +4,9 @@ import { Eye, EyeOff, Lock, Mail, AlertCircle, CheckCircle, Loader2, Shield, Arr
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/context/AuthContext';
 
+const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
+const API_BASE_URL = `${API_BACKEND_URL}/auth/admin`;
+
 const AdminLoginPage = () => {
     const [formData, setFormData] = useState({
         email: '',
@@ -89,7 +92,7 @@ const AdminLoginPage = () => {
         setSuccess('');
 
         try {
-            const response = await fetch('http://localhost:3001/api/v1/auth/admin/signin', {
+            const response = await fetch(`${API_BASE_URL}/signin`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
