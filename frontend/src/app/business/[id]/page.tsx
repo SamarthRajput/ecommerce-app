@@ -119,7 +119,6 @@ const SellerPublicProfileComponent: React.FC = () => {
                         `Failed to fetch seller profile: ${dataResponse.error || response.statusText}`
                     );
                 }
-
                 setSellerProfile(dataResponse);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred');

@@ -81,6 +81,10 @@ export const getProductById = async (req: Request, res: Response) => {
                 seller: {
                     select: {
                         id: true,
+                        firstName: true,
+                        lastName: true,
+                        slug: true,
+                        email: true,
                         businessName: true,
                         country: true,
                         state: true,
