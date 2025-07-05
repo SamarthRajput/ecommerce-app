@@ -199,6 +199,8 @@ export const getPendingRFQs = async (req: Request, res: Response) => {
     const count = await prisma.rFQ.count({
       where: { status: "PENDING" }
     });
+    console.log("Pending RFQs count:", count);
+    // console.log("Pending RFQs data:", pendingRFQs);
 
     res.status(200).json({
       success: true,
@@ -393,6 +395,42 @@ export const getRFQStats = async (req: Request, res: Response) => {
     res.status(500).json({ 
       success: false,
       error: "Internal Server Error" 
+    });
+  }
+};
+
+// GET /rfq/seller - Get all pending RFQs for a Seller
+export const getSellerPendingRFQs = async (req: Request, res: Response) => {
+  const sellerId = req.user?.userId;
+
+  if (!sellerId) {
+    res.status(401).json({ success: false, error: "User not authenticated" });
+    return;
+  }
+
+  try {
+    const rfqs = await prisma.rFQ.findMany({
+      where: {
+        status: "PENDING",
+        product: {
+          sellerId: sellerId
+        }
+      },
+      include: {
+        product: true,
+        buyer: true
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: rfqs
+    });
+  } catch (error) {
+    console.error("Error fetching seller RFQs:", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal Server Error"
     });
   }
 };

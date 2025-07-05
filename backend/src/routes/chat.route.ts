@@ -2,7 +2,7 @@ import { Request, Response, Router } from "express";
 import { requireAdmin } from "../middlewares/authAdmin";
 import { AuthenticatedRequest } from "../middlewares/authBuyer";
 import { requireAuth } from "../middlewares/requireAuth";
-import { createChatRoomBetweenAdminAndSeller, deleteChatMessage, editChatMessage, getAdminChatRooms, getChatMessages, markMessagesAsRead, pinChatMessage, sendChatMessage, unpinChatMessage } from "../controllers/chatMessageController";
+import { createChatRoomBetweenAdminAndSeller, deleteChatMessage, editChatMessage, getAdminChatRooms, getChatMessages, getSellerChatRooms, markMessagesAsRead, pinChatMessage, sendChatMessage, unpinChatMessage } from "../controllers/chatMessageController";
 
 const chatRouter = Router();
 // Base address: https://localhost:3001/api/v1/chat
@@ -25,6 +25,11 @@ chatRouter.get("/chatroom/:id/messages", requireAuth({ allowedRoles: ["admin", "
 // Get all chat rooms of admin
 chatRouter.get("/chatrooms/admin", requireAuth({ allowedRoles: ["admin"] }), async (req: Request, res: Response) => {
     await getAdminChatRooms(req as AuthenticatedRequest, res);
+});
+
+// Get all chat rooms of seller
+chatRouter.get("/chatrooms/seller", requireAuth({ allowedRoles: ["seller"] }), async (req: Request, res: Response) => {
+    await getSellerChatRooms(req as AuthenticatedRequest, res);
 });
 
 // Mark message as read

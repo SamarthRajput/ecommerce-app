@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Listing, STATUS_CONFIG } from '@/src/lib/types/seller/sellerDashboardListing';
+import { useRouter } from 'next/navigation';
 
 interface ListingDetailModalProps {
     listing: Listing;
@@ -23,6 +24,7 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
     const [form, setForm] = useState<Partial<Listing>>({ ...listing });
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const router = useRouter();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -155,10 +157,16 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
                                             ₹{listing.price.toLocaleString()}
                                         </p>
                                     </div>
-                                    <Button onClick={() => setIsEdit(true)}>
-                                        <Edit className="w-4 h-4 mr-2" />
-                                        Edit Listing
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" size="sm" onClick={() => router.push(`/products/${listing.category}/${listing.id}`)}>
+                                            <Package className="w-4 h-4 mr-2" />
+                                            View on Marketplace
+                                        </Button>
+                                        <Button onClick={() => setIsEdit(true)}>
+                                            <Edit className="w-4 h-4 mr-2" />
+                                            Edit Listing
+                                        </Button>
+                                    </div>
                                 </div>
                             )}
 

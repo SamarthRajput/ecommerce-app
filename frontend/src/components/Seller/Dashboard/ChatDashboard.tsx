@@ -81,7 +81,7 @@ const ChatDashboard: React.FC = () => {
     const [sending, setSending] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+    const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
     // Auto-scroll to bottom of messages
     const scrollToBottom = () => {
@@ -96,7 +96,7 @@ const ChatDashboard: React.FC = () => {
     const fetchChatRooms = async () => {
         setLoadingRooms(true);
         try {
-            const response = await fetch(`${BASE_URL}/chat/chatrooms/admin`, {
+            const response = await fetch(`${BASE_URL}/chat/chatrooms/seller`, {
                 method: "GET",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -123,7 +123,7 @@ const ChatDashboard: React.FC = () => {
     const fetchRFQs = async () => {
         setLoadingRfqs(true);
         try {
-            const response = await fetch(`${BASE_URL}/rfq/admin/pending`, {
+            const response = await fetch(`${BASE_URL}/rfq/seller/pending`, {
                 method: "GET",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -185,7 +185,7 @@ const ChatDashboard: React.FC = () => {
                 body: JSON.stringify({
                     chatRoomId: selectedRoom.id,
                     content: newMessage.trim(),
-                    senderRole: "ADMIN",
+                    senderRole: "SELLER",
                 }),
             });
 
@@ -216,7 +216,7 @@ const ChatDashboard: React.FC = () => {
 
             const data: ChatMessage[] = await response.json();
             const unreadMessageIds = data
-                .filter(msg => msg.senderRole !== "ADMIN" && !msg.read)
+                .filter(msg => msg.senderRole !== "SELLER" && !msg.read) // Only mark messages from other then seller as read
                 .map(msg => msg.id);
 
             if (unreadMessageIds.length === 0) return;
@@ -331,25 +331,26 @@ const ChatDashboard: React.FC = () => {
 
                             {/* Tab Navigation */}
                             <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-                                <button
-                                    onClick={() => setActiveTab("buyer")}
-                                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${activeTab === "buyer"
-                                            ? "bg-white text-gray-900 shadow-sm"
-                                            : "text-gray-600 hover:text-gray-900"
-                                        }`}
-                                >
-                                    <Users className="w-4 h-4 inline mr-1" />
-                                    Buyers
-                                </button>
+
                                 <button
                                     onClick={() => setActiveTab("seller")}
                                     className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${activeTab === "seller"
-                                            ? "bg-white text-gray-900 shadow-sm"
-                                            : "text-gray-600 hover:text-gray-900"
+                                        ? "bg-white text-gray-900 shadow-sm"
+                                        : "text-gray-600 hover:text-gray-900"
                                         }`}
                                 >
                                     <Package className="w-4 h-4 inline mr-1" />
                                     Sellers
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("buyer")}
+                                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${activeTab === "buyer"
+                                        ? "bg-white text-gray-900 shadow-sm"
+                                        : "text-gray-600 hover:text-gray-900"
+                                        }`}
+                                >
+                                    <Users className="w-4 h-4 inline mr-1" />
+                                    Buyers
                                 </button>
                             </div>
 
@@ -386,8 +387,8 @@ const ChatDashboard: React.FC = () => {
                                                 key={room.id}
                                                 onClick={() => handleRoomSelect(room)}
                                                 className={`w-full p-3 rounded-lg text-left transition-colors ${isSelected
-                                                        ? 'bg-blue-100 border border-blue-200'
-                                                        : 'hover:bg-gray-50 border border-transparent'
+                                                    ? 'bg-blue-100 border border-blue-200'
+                                                    : 'hover:bg-gray-50 border border-transparent'
                                                     }`}
                                             >
                                                 <div className="flex items-center justify-between mb-2">
@@ -485,8 +486,8 @@ const ChatDashboard: React.FC = () => {
                                                         <div className={`max-w-xs lg:max-w-md ${isAdmin ? 'order-2' : 'order-1'}`}>
                                                             <div
                                                                 className={`px-4 py-2 rounded-lg ${isAdmin
-                                                                        ? 'bg-blue-600 text-white'
-                                                                        : 'bg-gray-100 text-gray-900'
+                                                                    ? 'bg-blue-600 text-white'
+                                                                    : 'bg-gray-100 text-gray-900'
                                                                     }`}
                                                             >
                                                                 <p className="text-sm">{message.content}</p>

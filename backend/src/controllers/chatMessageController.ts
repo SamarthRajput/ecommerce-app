@@ -355,6 +355,43 @@ export const getAdminChatRooms = async (req: AuthenticatedRequest, res: Response
     }
 };
 
+// Get all chat rooms of seller
+export const getSellerChatRooms = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const sellerId = req.user?.userId;
+        if (!sellerId) {
+            res.status(400).json({ error: "Invalid Seller ID format" });
+            return;
+        }
+
+        const chatRooms = await prisma.chatRoom.findMany({
+            where: {
+                sellerId,
+            },
+            include: {
+                buyer: true,
+                seller: true,
+                messages: true,
+            },
+            orderBy: {
+                updatedAt: 'desc',
+            },
+        });
+
+        console.log(`Fetched ${chatRooms.length} chat rooms for seller ${sellerId}`);
+        res.status(200).json({
+            success: true,
+            chatRooms,
+        });
+    } catch (error) {
+        console.error('Error fetching seller chat rooms:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch seller chat rooms',
+        });
+    }
+};
+
 // Mark messages as read
 export const markMessagesAsRead = async (req: AuthenticatedRequest, res: Response) => {
     const chatRoomId = req.params.id;

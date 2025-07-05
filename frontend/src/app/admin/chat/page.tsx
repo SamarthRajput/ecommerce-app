@@ -45,7 +45,7 @@ interface RFQ {
 export default function AdminChat() {
   const [activeTab, setActiveTab] = useState<"buyer" | "seller">("buyer");
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
-  const [rfqs, setRfqs] = useState<RFQ[]>([]);
+  const [rfqs, setRfqs] = useState<RFQ[]>([]); // Always an array, safe for .length
   const [error, setError] = useState<string | null>(null);
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
@@ -53,9 +53,9 @@ export default function AdminChat() {
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [testResponse, setTestResponse] = useState<string | null>(null);
 
   const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
   useEffect(() => {
     const fetchChatRooms = async () => {
       setLoadingRooms(true);
@@ -94,7 +94,18 @@ export default function AdminChat() {
           throw new Error(errorData.error || "Failed to fetch RFQs");
         }
         const data = await response.json();
-        setRfqs(data);
+        setTestResponse(JSON.stringify(data, null, 2)); // For debugging
+
+        // Handle both array and object with .data
+        let rfqArr: any[] = [];
+        if (Array.isArray(data)) {
+          rfqArr = data;
+        } else if (Array.isArray(data.rfqs)) {
+          rfqArr = data.rfqs;
+        } else if (Array.isArray(data.data)) {
+          rfqArr = data.data;
+        }
+        setRfqs(rfqArr);
       } catch (err) {
         setError((err as Error).message);
       }
@@ -220,6 +231,13 @@ export default function AdminChat() {
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
+      {/* <section className="mb-6">
+        {testResponse && (
+          <pre className="bg-gray-100 p-4 rounded mb-4">
+            <code className="text-sm text-gray-700">{testResponse}</code>
+          </pre>
+        )}
+      </section> */}
       <h1 className="text-3xl font-bold mb-8 text-center">Admin Chat Management</h1>
       {error && (
         <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>
@@ -232,10 +250,9 @@ export default function AdminChat() {
           <div className="text-center py-4 text-blue-500">Loading RFQs...</div>
         ) : (
           <div>
-            {Array.isArray(rfqs) && rfqs.length === 0 ? (
+            {rfqs.length === 0 ? (
               <div className="text-gray-500 text-center py-4">No pending RFQs.</div>
             ) : (
-              Array.isArray(rfqs) &&
               rfqs.map((rfq) => {
                 const sellerChatExists = chatRooms.some(
                   (room) => room.rfqId === rfq.id && room.type === "SELLER"
@@ -261,7 +278,9 @@ export default function AdminChat() {
                     </div>
                     <div>
                       {sellerChatExists ? (
-                        <span className="text-green-600 font-semibold">Seller Chat Exists</span>
+                        <span className="text-green-600 font-semibold hover:underline cursor-pointer"
+                          onClick={() => handleViewMessages(chatRooms.find(room => room.rfqId === rfq.id && room.type === "SELLER")!)}
+                        >Open Seller Chat</span>
                       ) : (
                         <button
                           className="px-4 py-2 bg-blue-500 text-white rounded shadow hover:bg-blue-600 transition"
