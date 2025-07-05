@@ -112,8 +112,8 @@ export const sendChatMessage = async (req: AuthenticatedRequest, res: Response) 
         return;
     }
 
-    // Only valid roles are 'ADMIN', 'BUYER', or 'SELLER'
-    if (!['ADMIN', 'BUYER', 'SELLER'].includes(senderRole)) {
+    // Only valid roles are 'admin', 'buyer', or 'seller'
+    if (!['admin', 'buyer', 'seller'].includes(senderRole)) {
         res.status(400).json({ error: "Unauthorized request" });
         return;
     }
@@ -142,7 +142,7 @@ export const sendChatMessage = async (req: AuthenticatedRequest, res: Response) 
             data: {
                 chatRoomId: chatRoomId,
                 senderId: senderId,
-                senderRole: senderRole as any,
+                senderRole: senderRole.toUpperCase() as any,
                 content: sanitizedContent,
             }
         });
