@@ -91,12 +91,8 @@ const ProductPage = () => {
             setError(null);
             try {
                 const [response, reviewsResponse] = await Promise.all([
-                    fetch(`${backendUrl}/products/${category}/${id}`, {
-                        credentials: 'include'
-                    }),
-                    fetch(`${backendUrl}/products/${category}/${id}/reviews`, {
-                        credentials: 'include'
-                    })
+                    fetch(`${backendUrl}/products/${category}/${id}`),
+                    fetch(`${backendUrl}/products/${category}/${id}/reviews`)
                 ]);
 
                 if (!response.ok) {
