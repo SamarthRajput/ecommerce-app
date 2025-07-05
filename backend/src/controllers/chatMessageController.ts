@@ -96,8 +96,8 @@ export const sendChatMessage = async (req: AuthenticatedRequest, res: Response) 
         res.status(400).json({ error: "Message content cannot be empty" });
         return;
     }
-    if (validator.isLength(content, { max: 5000 })) {
-        res.status(400).json({ error: "Message content exceeds maximum length of 5000 characters" });
+    if (validator.isLength(content, { max: 5000, min: 1 })) {
+        res.status(400).json({ error: "Message content must be between 1 and 5000 characters" });
         return;
     }
     // sanitize content
