@@ -19,10 +19,13 @@ export const setAuthCookie = ({
     maxAge = 7 * 24 * 60 * 60 * 1000 // 7 days
 }: SetAuthCookieParams) => {
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     const commonCookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // true in production, false in development
-        sameSite: process.env.NODE_ENV === "production" ? "none" as const : "strict" as const, // "none" only in production
+        secure: isProduction, // true in production
+        sameSite: isProduction ? "none" as const : "strict" as const,  // none in production
+        path: "/", // Explicitly set path
     };
 
     // Clear all existing auth cookies
