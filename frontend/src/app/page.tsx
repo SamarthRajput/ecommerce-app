@@ -1,19 +1,38 @@
 "use client";
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '../../components/ui/button';
 import { Card, CardHeader, CardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { useAuth } from '../context/AuthContext';
-import { Shield, Package, MessageSquare, TrendingUp, Users, Star, ArrowRight, CheckCircle, BarChart3, Globe, Zap } from 'lucide-react';
+import { Shield, Package, MessageSquare, TrendingUp, Users, Star, ArrowRight, CheckCircle, BarChart3, Globe, Zap, ShoppingCart, Search } from 'lucide-react';
+
+/*
+routing structure:
+- Seller dashboard: "/seller/dashboard"
+- Buyer Dashboard: "/buyer/dashboard"  
+- Browse Products: "/products" (for buyers)
+- Seller Analytics: "/seller/analytics" (instead of dashboard?view=analytics)
+- Seller Products: "/seller/products" (seller's own products)
+- Buyer Browse: "/buyer/browse" (buyer product browsing)
+- Buyer Orders: "/buyer/orders" (buyer order history)
+- Seller Signin: "/seller/signin"
+- Buyer Signin: "/buyer/signin"
+- Profile Settings: "/profile" (role-agnostic)
+- Messages: "/messages" (role-specific routing inside)
+*/
 
 const HomePage = () => {
   const router = useRouter();
   const { authenticated, role, user, isSeller, authLoading, isBuyer } = useAuth();
 
+  // Enhanced routing functions with better role handling
   const handleBuyerAction = () => {
     if (authenticated && isBuyer) {
       router.push('/buyer/dashboard');
+    } else if (authenticated && !isBuyer) {
+      // If authenticated but not a buyer, show role conflict
+      router.push('/profile?message=role-mismatch');
     } else {
       router.push('/buyer/signin');
     }
@@ -22,10 +41,69 @@ const HomePage = () => {
   const handleSellerAction = () => {
     if (authenticated && isSeller) {
       router.push('/seller/dashboard');
+    } else if (authenticated && !isSeller) {
+      // If authenticated but not a seller, show role conflict
+      router.push('/profile?message=role-mismatch');
     } else {
       router.push('/seller/signin');
     }
   };
+  // Navigation functions for authenticated users
+  const navigateToProducts = () => {
+    if (isBuyer) {
+      router.push('/products');
+    } else if (isSeller) {
+      router.push('/seller/dashboard?view=products');
+    } else {
+      router.push('/products');
+    }
+  };
+
+  const navigateToAnalytics = () => {
+    if (isSeller) {
+      router.push('/seller/dashboard?view=analytics');
+    } else {
+      router.push('/buyer/dashboard?view=analytics');
+    }
+  };
+
+  const navigateToMessages = () => {
+    router.push('/messages');
+  };
+
+  const navigateToOrders = () => {
+    if (isBuyer) {
+      router.push('/buyer/dashboard?view=orders');
+    } else if (isSeller) {
+      router.push('/seller/dashboard?view=orders');
+    }
+  };
+
+  // Auto-redirect based on role and intended destination
+  useEffect(() => {
+    if (!authLoading && authenticated) {
+      // Check if user landed on homepage with specific intent
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirect = urlParams.get('redirect');
+
+      if (redirect) {
+        switch (redirect) {
+          case 'dashboard':
+            if (isBuyer) router.push('/buyer/dashboard');
+            else if (isSeller) router.push('/seller/dashboard');
+            break;
+          case 'products':
+            navigateToProducts();
+            break;
+          case 'analytics':
+            navigateToAnalytics();
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  }, [authLoading, authenticated, isBuyer, isSeller, router]);
 
   const features = [
     {
@@ -95,37 +173,70 @@ const HomePage = () => {
     { value: '50+', label: 'Countries', icon: Globe }
   ];
 
-  // Role-based hero content
+  // Function to get hero content based on authentication and role
   const getHeroContent = () => {
     if (authenticated && isBuyer) {
       return {
         title: `Welcome back, ${user?.name || 'Buyer'}!`,
         subtitle: 'Continue exploring products and managing your requests',
-        primaryAction: 'Go to Dashboard',
-        secondaryAction: 'Browse Products'
+        primaryAction: {
+          label: 'Go to Dashboard',
+          icon: BarChart3,
+          onClick: () => router.push('/buyer/dashboard')
+        },
+        secondaryAction: {
+          label: 'Browse Products',
+          icon: Search,
+          onClick: navigateToProducts
+        },
+        quickActions: [
+          { label: 'My Orders', icon: ShoppingCart, onClick: navigateToOrders },
+          { label: 'Messages', icon: MessageSquare, onClick: navigateToMessages }
+        ]
       };
     } else if (authenticated && isSeller) {
       return {
         title: `Welcome back, ${user?.name || 'Seller'}!`,
         subtitle: 'Manage your listings and respond to new RFQs',
-        primaryAction: 'Go to Dashboard',
-        secondaryAction: 'View Analytics'
+        primaryAction: {
+          label: 'Go to Dashboard',
+          icon: BarChart3,
+          onClick: () => router.push('/seller/dashboard')
+        },
+        secondaryAction: {
+          label: 'View Analytics',
+          icon: TrendingUp,
+          onClick: navigateToAnalytics
+        },
+        quickActions: [
+          { label: 'My Products', icon: Package, onClick: navigateToProducts },
+          { label: 'Messages', icon: MessageSquare, onClick: navigateToMessages }
+        ]
       };
     } else {
       return {
         title: 'Welcome to TradeConnect',
         subtitle: 'The premier B2B marketplace connecting verified buyers and sellers through intelligent RFQ management',
-        primaryAction: 'Start as Buyer',
-        secondaryAction: 'Start as Seller'
+        primaryAction: {
+          label: 'Start as Buyer',
+          icon: Users,
+          onClick: handleBuyerAction
+        },
+        secondaryAction: {
+          label: 'Start as Seller',
+          icon: Package,
+          onClick: handleSellerAction
+        }
       };
     }
   };
 
   const heroContent = getHeroContent();
+
   if (authLoading) {
     return (
       <div className="text-center min-h-screen flex flex-col items-center justify-center space-y-6">
-        {/* Animated Logo */}
+        {/* Loading Title */}
         <div className="mb-8">
           <div className="text-4xl font-bold text-gray-900 animate-pulse">
             <span className="text-orange-600">Trade</span>Connect
@@ -185,43 +296,43 @@ const HomePage = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button
-                onClick={handleBuyerAction}
+                onClick={heroContent.primaryAction.onClick}
                 size="lg"
                 className="px-8 py-4 text-lg bg-orange-600 hover:bg-orange-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
-                {authenticated && isBuyer ? (
-                  <>
-                    <BarChart3 className="w-5 h-5 mr-2" />
-                    {heroContent.primaryAction}
-                  </>
-                ) : (
-                  <>
-                    <Users className="w-5 h-5 mr-2" />
-                    {heroContent.primaryAction}
-                  </>
-                )}
+                <heroContent.primaryAction.icon className="w-5 h-5 mr-2" />
+                {heroContent.primaryAction.label}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
 
               <Button
-                onClick={handleSellerAction}
+                onClick={heroContent.secondaryAction.onClick}
                 variant="outline"
                 size="lg"
                 className="px-8 py-4 text-lg border-2 hover:bg-gray-50 transition-all duration-300 transform hover:scale-105"
               >
-                {authenticated && isSeller ? (
-                  <>
-                    <TrendingUp className="w-5 h-5 mr-2" />
-                    {heroContent.secondaryAction}
-                  </>
-                ) : (
-                  <>
-                    <Package className="w-5 h-5 mr-2" />
-                    {heroContent.secondaryAction}
-                  </>
-                )}
+                <heroContent.secondaryAction.icon className="w-5 h-5 mr-2" />
+                {heroContent.secondaryAction.label}
               </Button>
             </div>
+
+            {/* Quick Action Buttons for Authenticated Users */}  
+            {authenticated && heroContent.quickActions && (
+              <div className="flex flex-wrap gap-3 justify-center mt-6">
+                {heroContent.quickActions.map((action, index) => (
+                  <Button
+                    key={index}
+                    onClick={action.onClick}
+                    variant="ghost"
+                    size="sm"
+                    className="px-4 py-2 text-sm hover:bg-gray-100 transition-all duration-200"
+                  >
+                    <action.icon className="w-4 h-4 mr-2" />
+                    {action.label}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -354,7 +465,7 @@ const HomePage = () => {
                   </p>
                   <div className="flex flex-col sm:flex-row justify-center gap-4">
                     <Button
-                      onClick={isBuyer ? handleBuyerAction : handleSellerAction}
+                      onClick={heroContent.primaryAction.onClick}
                       size="lg"
                       className="px-8 py-4 text-lg bg-orange-600 hover:bg-orange-700 transition-all duration-300 transform hover:scale-105"
                     >
@@ -363,7 +474,7 @@ const HomePage = () => {
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                     <Button
-                      onClick={() => router.push(isBuyer ? '/buyer/browse' : '/seller/analytics')}
+                      onClick={heroContent.secondaryAction.onClick}
                       variant="outline"
                       size="lg"
                       className="px-8 py-4 text-lg bg-white/10 border-white/20 text-white hover:bg-white/20 transition-all duration-300"
