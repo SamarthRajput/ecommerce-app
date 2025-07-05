@@ -42,6 +42,10 @@ const AdminDashboard = () => {
     const router = useRouter();
 
     useEffect(() => {
+        if (!authLoading && !authenticated) router.push('/admin/signin');
+    }, [authLoading, authenticated, router]);
+
+    useEffect(() => {
         if (isSeller || isBuyer) {
             setError('You do not have access to the admin dashboard. Please log in as an admin.');
             logout();
