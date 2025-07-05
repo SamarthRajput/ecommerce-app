@@ -54,7 +54,7 @@ export default function AdminChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [showModal, setShowModal] = useState(false);
 
-  const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+  const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   useEffect(() => {
     const fetchChatRooms = async () => {
@@ -84,7 +84,7 @@ export default function AdminChat() {
     const fetchRFQs = async () => {
       setLoadingRfqs(true);
       try {
-        const response = await fetch(`${BASE_URL}/rfq/admin/pending`, {
+        const response = await fetch(`${BASE_URL}/rfq/pending`, {
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
