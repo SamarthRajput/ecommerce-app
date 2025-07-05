@@ -21,8 +21,8 @@ export const setAuthCookie = ({
 
     const commonCookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict" as const
+        secure: process.env.NODE_ENV === "production", // true in production, false in development
+        sameSite: process.env.NODE_ENV === "production" ? "none" as const : "strict" as const, // "none" only in production
     };
 
     // Clear all existing auth cookies
