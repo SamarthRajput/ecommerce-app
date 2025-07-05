@@ -67,7 +67,7 @@ interface RFQ {
 
 const ChatDashboard: React.FC = () => {
     // State management
-    const [activeTab, setActiveTab] = useState<"buyer" | "seller">("buyer");
+    const [activeTab, setActiveTab] = useState<"buyer" | "seller">("seller");
     const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
     const [rfqs, setRfqs] = useState<RFQ[]>([]);
     const [error, setError] = useState<string | null>(null);
