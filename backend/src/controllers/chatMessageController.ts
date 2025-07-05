@@ -4,6 +4,7 @@ import { prisma } from "../lib/prisma";
 import { DEFAULT_ADMIN_ID } from "../config";
 import validator from 'validator';
 import sanitizeHtml from 'sanitize-html';
+import { parsePagination } from "../utils/parsePagination";
 
 // Create a new chat room between admin and seller
 export const createChatRoomBetweenAdminAndSeller = async (req: AuthenticatedRequest, res: Response) => {
@@ -88,18 +89,16 @@ export const sendChatMessage = async (req: AuthenticatedRequest, res: Response) 
         res.status(400).json({ error: "Chat Room ID and message content are required" });
         return;
     }
-    if (!validator.isUUID(chatRoomId)) {
-        res.status(400).json({ error: "Invalid Chat Room ID format" });
-        return;
-    }
+
     if (typeof content !== 'string' || content.trim().length === 0) {
         res.status(400).json({ error: "Message content cannot be empty" });
         return;
     }
-    // if (validator.isLength(content, { max: 5000, min: 1 })) {
-    //     res.status(400).json({ error: "Message content must be between 1 and 5000 characters" });
-    //     return;
-    // }
+    if (!validator.isLength(content, { min: 1, max: 5000 })) {
+        res.status(400).json({ error: "Message content must be between 1 and 5000 characters" });
+        return;
+    }
+
     // sanitize content
     const sanitizedContent = sanitizeHtml(content);
     if (sanitizedContent !== content) {
@@ -156,11 +155,10 @@ export const sendChatMessage = async (req: AuthenticatedRequest, res: Response) 
 // Get all message of a chat room
 export const getChatMessages = async (req: AuthenticatedRequest, res: Response) => {
     const chatRoomId = req.params.id;
-    const limit = parseInt(req.query.limit as string) || 20; // Default limit to 20
-    const page = parseInt(req.query.page as string) || 1;
+    const { take, skip } = parsePagination(req.query);
     const userId = req.user?.userId;
 
-    if (!chatRoomId || !validator.isUUID(chatRoomId)) {
+    if (!chatRoomId) {
         res.status(400).json({ error: "Invalid Chat Room ID format" });
         return;
     }
@@ -194,8 +192,8 @@ export const getChatMessages = async (req: AuthenticatedRequest, res: Response) 
         const messages = await prisma.chatMessage.findMany({
             where: { chatRoomId: chatRoomId },
             orderBy: { sentAt: 'asc' },
-            skip: (page - 1) * limit,
-            take: limit,
+            take: take,
+            skip: skip,
             select: {
                 id: true,
                 content: true,
@@ -303,33 +301,40 @@ export const getRecentChats = async (req: AuthenticatedRequest, res: Response) =
 };
 
 // Get all chat rooms of admin
-export const getAdminChatRooms = async (req: AuthenticatedRequest, res: Response) => {
+export const getUserChatRooms = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const adminId = req.user?.userId;
-        if (!adminId || !validator.isUUID(adminId)) {
-            res.status(400).json({ error: "Invalid Admin ID format" });
+        const userId = req.user?.userId;
+        const userRole = req.user?.role;
+        const { take, skip } = parsePagination(req.query);
+
+        if (!userId) {
+            res.status(400).json({ error: "Invalid User ID format" });
             return;
         }
 
-        // fetch admin and verify if the user is admin
-        const admin = await prisma.user.findUnique({
-            where: { id: adminId },
-            select: {
-                role: true,
-            }
-        });
-        if (!admin || admin.role !== 'admin') {
-            res.status(403).json({ error: "User not authorized to access admin chat rooms" });
+        if (!userRole) {
+            res.status(400).json({ error: "User role is required" });
             return;
         }
 
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 20; // Default limit
+        let whereClause: any = {};
+        switch (userRole) {
+            case 'admin':
+                whereClause = { adminId: userId };
+                break;
+            case 'seller':
+                whereClause = { sellerId: userId };
+                break;
+            case 'buyer':
+                whereClause = { buyerId: userId };
+                break;
+            default:
+                res.status(403).json({ error: "Unauthorized role" });
+                return;
+        }
 
         const chatRooms = await prisma.chatRoom.findMany({
-            where: {
-                adminId,
-            },
+            where: whereClause,
             include: {
                 buyer: true,
                 seller: true,
@@ -338,56 +343,21 @@ export const getAdminChatRooms = async (req: AuthenticatedRequest, res: Response
             orderBy: {
                 updatedAt: 'desc',
             },
-            skip: (page - 1) * limit,
-            take: limit,
+            skip,
+            take,
         });
 
         res.status(200).json({
             success: true,
+            role: userRole,
             chatRooms,
         });
+
     } catch (error) {
-        console.error('Error fetching admin chat rooms:', error);
+        console.error('Error fetching chat rooms:', error);
         res.status(500).json({
             success: false,
-            error: 'Failed to fetch admin chat rooms',
-        });
-    }
-};
-
-// Get all chat rooms of seller
-export const getSellerChatRooms = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        const sellerId = req.user?.userId;
-        if (!sellerId) {
-            res.status(400).json({ error: "Invalid Seller ID format" });
-            return;
-        }
-
-        const chatRooms = await prisma.chatRoom.findMany({
-            where: {
-                sellerId,
-            },
-            include: {
-                buyer: true,
-                seller: true,
-                messages: true,
-            },
-            orderBy: {
-                updatedAt: 'desc',
-            },
-        });
-
-        console.log(`Fetched ${chatRooms.length} chat rooms for seller ${sellerId}`);
-        res.status(200).json({
-            success: true,
-            chatRooms,
-        });
-    } catch (error) {
-        console.error('Error fetching seller chat rooms:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to fetch seller chat rooms',
+            error: 'Failed to fetch chat rooms',
         });
     }
 };
@@ -483,7 +453,7 @@ export const editChatMessage = async (req: AuthenticatedRequest, res: Response) 
         return res.status(400).json({ error: "Invalid Message ID format" });
     }
 
-    if (!userId || !userRole || !['ADMIN', 'BUYER', 'SELLER'].includes(userRole)) {
+    if (!userId || !userRole || !['admin', 'buyer', 'seller'].includes(userRole)) {
         return res.status(401).json({ error: "Unauthorized access" });
     }
 

@@ -96,7 +96,7 @@ const ChatDashboard: React.FC = () => {
     const fetchChatRooms = async () => {
         setLoadingRooms(true);
         try {
-            const response = await fetch(`${BASE_URL}/chat/chatrooms/seller`, {
+            const response = await fetch(`${BASE_URL}/chat/chatrooms`, {
                 method: "GET",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -269,6 +269,74 @@ const ChatDashboard: React.FC = () => {
     const getUnreadCount = (roomId: string) => {
         // This would need to be implemented based on your API
         return 0;
+    };
+    const pinMessage = async (messageId: string) => {
+        try {
+            const response = await fetch(`${BASE_URL}/chat/message/${messageId}/pin`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to pin message");
+            }
+
+        } catch (err) {
+            console.error("Error pinning message:", err);
+        }
+    };
+    const unpinMessage = async (messageId: string) => {
+        try {
+            const response = await fetch(`${BASE_URL}/chat/message/${messageId}/unpin`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to unpin message");
+            }
+
+        } catch (err) {
+            console.error("Error unpinning message:", err);
+        }
+    };
+    const editMessage = async (messageId: string, newContent: string) => {
+        if (!newContent.trim()) return;
+        // only 15 minutes after the message is sent can be edited
+        const message = messages.find(msg => msg.id === messageId);
+        if (!message) return;
+
+        const now = new Date();
+        const messageTime = new Date(message.sentAt);
+        const timeDiff = now.getTime() - messageTime.getTime();
+
+        if (timeDiff > 15 * 60 * 1000) {
+            console.warn("Message editing is allowed only within 15 minutes");
+            return;
+        }
+
+        try {
+            const response = await fetch(`${BASE_URL}/chat/message/${messageId}/edit`, {
+                method: "PUT",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ content: newContent }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to edit message");
+            }
+
+            // update the local state to reflect the edited message along with the representation that it has been edited
+            setMessages(prevMessages => prevMessages.map(msg => msg.id === messageId ? { ...msg, content: newContent, edited: true } : msg));
+        } catch (err) {
+            console.error("Error editing message:", err);
+        }
     };
 
     // Format message time

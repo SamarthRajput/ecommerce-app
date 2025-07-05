@@ -60,7 +60,7 @@ export default function AdminChat() {
     const fetchChatRooms = async () => {
       setLoadingRooms(true);
       try {
-        const response = await fetch(`${BASE_URL}/chat/chatrooms/admin`, {
+        const response = await fetch(`${BASE_URL}/chat/chatrooms`, {
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
