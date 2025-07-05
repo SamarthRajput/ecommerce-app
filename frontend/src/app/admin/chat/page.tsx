@@ -232,9 +232,10 @@ export default function AdminChat() {
           <div className="text-center py-4 text-blue-500">Loading RFQs...</div>
         ) : (
           <div>
-            {rfqs.length === 0 ? (
+            {Array.isArray(rfqs) && rfqs.length === 0 ? (
               <div className="text-gray-500 text-center py-4">No pending RFQs.</div>
             ) : (
+              Array.isArray(rfqs) &&
               rfqs.map((rfq) => {
                 const sellerChatExists = chatRooms.some(
                   (room) => room.rfqId === rfq.id && room.type === "SELLER"
