@@ -92,5 +92,6 @@ async function isValidToken(token: string, expectedIdKey: string): Promise<boole
 export const config = {
     matcher: [
         // '/((?!_next|favicon.ico|sw\\.js).*)'
+        '/((?!api|_next/static|_next/image|favicon.ico|sw.js).*)'
     ]
 };
