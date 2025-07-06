@@ -34,10 +34,10 @@ export function Header() {
     if (isSeller) {
       return [
         { href: "/seller/dashboard", label: "Dashboard", icon: BarChart3 },
-        { href: "/seller/listings", label: "My Listings", icon: Package },
+        { href: "/seller/dashboard?tab=listings", label: "My Listings", icon: Package },
         { href: "/seller/create-listing", label: "Create Listing", icon: Plus },
-        { href: "/seller/orders", label: "Orders", icon: FileText },
-        { href: "/seller/chat", label: "Messages", icon: MessageSquare },
+        { href: "/seller/dashboard?tab=orders", label: "Orders", icon: FileText },
+        { href: "/seller/dashboard?tab=chat", label: "Messages", icon: MessageSquare },
       ];
     }
 

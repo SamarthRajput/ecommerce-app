@@ -14,12 +14,31 @@ datasource db {
 //
 
 enum ProductStatus {
-  ACTIVE
   INACTIVE
   ARCHIVED
   APPROVED
   PENDING
   REJECTED
+  EXPIRED
+}
+
+enum ListingType {
+  SELL
+  LEASE
+  RENT
+}
+
+enum ProductCondition {
+  NEW
+  USED
+  REFURBISHED
+  CUSTOM
+}
+
+enum LogisticsType {
+  SELF
+  INTERLINK
+  BOTH
 }
 
 enum RFQStatus {
@@ -141,49 +160,54 @@ model Seller {
 }
 
 model Product {
-  id                 String        @id @default(uuid())
-  name               String
-  description        String
-  price              Float
-  currency           String?       // e.g., "USD", "INR"
-  quantity           Int
+  id                   String         @id @default(uuid())
+  slug                 String         @unique
+
+  name                 String
+  description          String
+  price                Float
+  currency             String?        // e.g., "USD", "INR"
+  quantity             Int
   minimumOrderQuantity Int?
-  listingType        String        // e.g., 'SELL', 'LEASE'
-  condition          String        // e.g., 'NEW', 'USED'
-  validityPeriod     Int           // days until expiration
-  expiryDate         DateTime?
-  deliveryTimeInDays Int?
-  logisticsSupport   String?       // e.g., 'SELF', 'INTERLINK', 'BOTH'
 
-  industry           String
-  category           String
-  productCode        String
-  model              String
-  specifications     String
-  countryOfSource    String
-  hsnCode            String
-  certifications     String[]
-  warrantyPeriod     String?
-  licenses           String[]
+  listingType          ListingType    // enum: SELL / LEASE
+  condition            ProductCondition
+  validityPeriod       Int            // in days
+  expiryDate           DateTime?
+  deliveryTimeInDays   Int?
 
-  brochureUrl        String?
-  videoUrl           String?
-  images             String[]
+  logisticsSupport     LogisticsType? // enum: SELF / INTERLINK / BOTH
 
-  tags               String[]
-  keywords           String[]
+  industry             String
+  category             String
+  productCode          String
+  model                String
+  specifications       String
+  countryOfSource      String
+  hsnCode              String
 
-  status             ProductStatus @default(ACTIVE)
+  certifications       String[]
+  licenses             String[]
+  warrantyPeriod       String?
 
-  sellerId           String
-  seller             Seller        @relation(fields: [sellerId], references: [id])
+  brochureUrl          String?
+  videoUrl             String?
+  images               String[]
 
-  rfqs               RFQ[]
-  trades             Trade[]
-  reviews            Review[]
+  tags                 String[]
+  keywords             String[]
 
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  status               ProductStatus  @default(PENDING)
+
+  sellerId             String
+  seller               Seller         @relation(fields: [sellerId], references: [id])
+
+  rfqs                 RFQ[]
+  trades               Trade[]
+  reviews              Review[]
+
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
 }
 
 model RFQ {

@@ -13,6 +13,8 @@ import { generateValidSlug } from "../utils/generateValidSlug";
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 import validator from 'validator';
+import { uploadImageToCloudinary } from "../utils/uploadImageToCloudinary";
+import slugify from "slugify";
 
 // Sign up seller
 export const signupSeller = async (req: Request, res: Response) => {
@@ -380,124 +382,6 @@ export const getSellerListings = async (req: AuthenticatedRequest, res: Response
     }
 }
 
-
-// Create a new listing by Seller
-export const createListing = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        const sellerId = req.seller?.sellerId;
-        if (!sellerId) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
-        // Handle images
-        let imageUrls: string[] = [];
-        const files = req.files as Express.Multer.File[];
-        if (files && files.length > 0) {
-            for (const file of files) {
-                const uploadResult = await new Promise<string>((resolve, reject) => {
-                    const stream = cloudinary.uploader.upload_stream({ resource_type: 'image' }, (error, result) => {
-                        if (error || !result) return reject(error);
-                        resolve(result.secure_url);
-                    });
-                    stream.end(file.buffer);
-                });
-                imageUrls.push(uploadResult);
-            }
-        }
-
-        req.body.quantity = parseInt(req.body.quantity || '0');
-        req.body.validityPeriod = parseInt(req.body.validityPeriod || '0');
-        req.body.images = imageUrls;
-
-        // Validate request body with Zod
-        const validationResult = listingFormSchema.safeParse(req.body);
-        if (!validationResult.success) {
-            res.status(400).json({
-                error: 'Validation failed',
-                details: validationResult.error.issues.map(issue => ({
-                    field: issue.path.join('.'),
-                    message: issue.message
-                }))
-            });
-            return;
-        }
-        const {
-            listingType,
-            industry,
-            category,
-            condition,
-            productCode,
-            productName,
-            description,
-            model,
-            specifications,
-            hsnCode,
-            quantity,
-            countryOfSource,
-            validityPeriod,
-            notes,
-        } = validationResult.data;
-
-        // Check if seller exists
-        const existingSeller = await prisma.seller.findUnique({
-            where: { id: sellerId }
-        });
-        if (!existingSeller) {
-            res.status(404).json({ error: 'Seller not found' });
-            return;
-        }
-
-        const existingListing = await prisma.product.findFirst({
-            where: {
-                sellerId,
-                productCode
-            }
-        });
-        if (existingListing) {
-            return res.status(400).json({ error: "Listing already exists with this product code" });
-        }
-
-        // Create listing
-        const listing = await prisma.product.create({
-            data: {
-                sellerId,
-                listingType,
-                industry,
-                category,
-                condition,
-                productCode,
-                name: productName,
-                description,
-                model,
-                specifications,
-                hsnCode,
-                quantity,
-                price: 0,
-                validityPeriod: Number(validityPeriod),
-                countryOfSource,
-                images: imageUrls,
-                status: 'PENDING' // Default status
-            }
-        });
-
-        res.status(201).json({
-            message: 'Listing created successfully',
-            listing: {
-                id: listing.id,
-                name: listing.name,
-                description: listing.description,
-                price: listing.price,
-                category: listing.category,
-                status: listing.status,
-                images: listing.images,
-            }
-        });
-    } catch (error) {
-        console.error('Create listing error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-}
-
 // Edit a listing by Seller
 export const editListing = async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -858,7 +742,7 @@ export const getSellerPublicProfile = async (req: Request, res: Response) => {
             },
             take: 15 // Limit to 15 products
         });
-        
+
         // Remove sensitive fields from the response
         const { password, ...publicProfile } = seller as any;
 
@@ -972,3 +856,131 @@ export const getSellerProfile = async (req: AuthenticatedRequest, res: Response)
         res.status(500).json({ error: 'Server error' });
     }
 }
+
+
+
+// Create a new listing by Seller
+
+export const createListing = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const sellerId = req.seller?.sellerId;
+        if (!sellerId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        // Parse numeric fields early to assist Zod schema
+        req.body.quantity = Number(req.body.quantity || 0);
+        req.body.validityPeriod = Number(req.body.validityPeriod || 0);
+
+        // Upload and validate images
+        let imageUrls: string[] = [];
+        const files = req.files as Express.Multer.File[] || [];
+
+        if (files.length > 0) {
+            try {
+                imageUrls = await Promise.all(files.map(file => uploadImageToCloudinary(file)));
+            } catch (uploadError) {
+                return res.status(400).json({ error: (uploadError as Error).message });
+            }
+        }
+
+        req.body.images = imageUrls;
+
+        // Validate form data with Zod
+        const validationResult = listingFormSchema.safeParse(req.body);
+        if (!validationResult.success) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                details: validationResult.error.issues.map(issue => ({
+                    field: issue.path.join('.'),
+                    message: issue.message
+                }))
+            });
+        }
+
+        const {
+            listingType,
+            industry,
+            category,
+            condition,
+            productCode,
+            productName,
+            description,
+            model,
+            specifications,
+            hsnCode,
+            quantity,
+            countryOfSource,
+            validityPeriod,
+            notes,
+        } = validationResult.data;
+
+        // Generate slug from product name
+        let slug = slugify(productName, { lower: true, strict: true });
+
+
+        // Ensure slug is unique
+        let uniqueSlug = slug;
+        let counter = 1;
+        while (await prisma.product.findFirst({ where: { slug: uniqueSlug } })) {
+            uniqueSlug = `${slug}-${counter++}`;
+        }
+        slug = uniqueSlug;
+        console.log('Generated unique slug:', slug);
+        // Check if seller exists
+        const existingSeller = await prisma.seller.findUnique({ where: { id: sellerId } });
+        if (!existingSeller) {
+            return res.status(404).json({ error: 'Seller not found' });
+        }
+
+        // Check if listing already exists by productCode
+        const existingListing = await prisma.product.findFirst({
+            where: { sellerId, productCode }
+        });
+        if (existingListing) {
+            return res.status(400).json({ error: 'Listing already exists with this product code' });
+        }
+
+        // Create new product listing
+        const listing = await prisma.product.create({
+            data: {
+                sellerId,
+                slug,
+                listingType,
+                industry,
+                category,
+                condition,
+                productCode,
+                name: productName,
+                description,
+                model,
+                specifications,
+                hsnCode,
+                quantity,
+                price: 0,
+                validityPeriod,
+                countryOfSource,
+                images: imageUrls,
+                status: 'PENDING'
+            }
+        });
+
+        res.status(201).json({
+            message: 'Listing created successfully',
+            listing: {
+                id: listing.id,
+                name: listing.name,
+                description: listing.description,
+                price: listing.price,
+                category: listing.category,
+                status: listing.status,
+                images: listing.images,
+            }
+        });
+
+    } catch (error) {
+        console.error('Create listing error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+

@@ -17,8 +17,44 @@ import {
 } from 'lucide-react';
 import { ListingForm } from '@/src/components/forms/ListingForm';
 
+interface ProductFormData {
+    name: string;
+    description: string;
+    specifications?: string;
+
+    category: string;
+    industry: string;
+    tags: string[];
+    keywords: string[];
+
+    price: number;
+    currency: string;
+    quantity: number;
+    minimumOrderQuantity?: number;
+
+    listingType: 'SELL' | 'LEASE' | 'RENT';
+    condition: 'NEW' | 'USED' | 'REFURBISHED' | 'CUSTOM';
+
+    validityPeriod: number;
+    deliveryTimeInDays?: number;
+    logisticsSupport?: 'SELF' | 'INTERLINK' | 'BOTH';
+
+    countryOfSource: string;
+    hsnCode: string;
+    productCode: string;
+    model: string;
+
+    certifications: string[];
+    licenses: string[];
+
+    brochureUrl?: string;
+    videoUrl?: string;
+    images: File[];
+
+    agreedToTerms: boolean;
+}
+  
 export default function EnhancedCreateListingPage() {
-    const [token, setToken] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [userProfile, setUserProfile] = useState<any>(null);
 
