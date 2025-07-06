@@ -3,8 +3,8 @@ import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { AuthenticatedRequest, requireSeller } from "../middlewares/authSeller";
-import { listingFormSchema, loginSellerSchema, registerSellerSchema, updateProfileSchema } from "../lib/zod/SellerZod";
+import { AuthenticatedRequest } from "../middlewares/authSeller";
+import { loginSellerSchema, productSchema, registerSellerSchema } from "../lib/zod/SellerZod";
 import { JWT_SECRET } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
 import cloudinary from '../config/cloudinary';
@@ -378,99 +378,6 @@ export const getSellerListings = async (req: AuthenticatedRequest, res: Response
         });
     } catch (error) {
         console.error('Get listings error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-}
-
-// Edit a listing by Seller
-export const editListing = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        const sellerId = req.seller?.sellerId;
-        if (!sellerId) {
-            return res.status(401).json({ error: 'Unauthorized Access' });
-        }
-
-        const listingId = req.params.listingId;
-        if (!listingId) {
-            return res.status(400).json({ error: 'Listing ID is required' });
-        }
-
-        // Validate request body with Zod
-        const validationResult = listingFormSchema.safeParse(req.body);
-        if (!validationResult.success) {
-            console.error('Validation error:', validationResult.error.issues);
-            res.status(400).json({
-                error: `Validation failed: ${validationResult.error.issues[0]?.message} ${validationResult.error.issues[0]?.path.join('.')}`,
-                details: validationResult.error.issues.map(issue => ({
-                    field: issue.path.join('.'),
-                    message: issue.message
-                }))
-            });
-            return;
-        }
-        const {
-            listingType,
-            industry,
-            category,
-            condition,
-            productCode,
-            productName,
-            description,
-            model,
-            specifications,
-            hsnCode,
-            quantity,
-            countryOfSource,
-            validityPeriod,
-            notes,
-        } = validationResult.data;
-
-        // Check if listing exists
-        const existingListing = await prisma.product.findUnique({
-            where: { id: listingId, sellerId }
-        });
-        if (!existingListing) {
-            res.status(404).json({ error: 'Listing not found' });
-            return;
-        }
-
-        // if (existingListing.stat)
-        // Update listing
-        const updatedListing = await prisma.product.update({
-            where: { id: listingId },
-            data: {
-                listingType: "SELL", // Assuming listingType is always 'SELL' for now
-                industry,
-                category,
-                condition: "USED", // Assuming condition is always 'USED' for now
-                productCode,
-                name: productName,
-                description,
-                model,
-                specifications,
-                hsnCode,
-                quantity,
-                price: 100,
-                validityPeriod: Number(validityPeriod),
-                countryOfSource,
-                status: "PENDING"
-            }
-        });
-
-        res.json({
-            message: 'Listing updated successfully',
-            listing: {
-                id: updatedListing.id,
-                name: updatedListing.name,
-                description: updatedListing.description,
-                price: updatedListing.price,
-                category: updatedListing.category,
-                status: updatedListing.status
-            }
-        });
-    }
-    catch (error) {
-        console.error('Edit listing error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 }
@@ -855,23 +762,35 @@ export const getSellerProfile = async (req: AuthenticatedRequest, res: Response)
 }
 
 
-
 // Create a new listing by Seller
-
 export const createListing = async (req: AuthenticatedRequest, res: Response) => {
     try {
+        console.log("Api hit for seller creating list");
         const sellerId = req.seller?.sellerId;
         if (!sellerId) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        // Parse numeric fields early to assist Zod schema
-        req.body.quantity = Number(req.body.quantity || 0);
-        req.body.validityPeriod = Number(req.body.validityPeriod || 0);
+        // Parse numeric fields that may come as strings from forms
+        const numericFields = [
+            'price',
+            'quantity',
+            'minimumOrderQuantity',
+            'deliveryTimeInDays',
+            'validityPeriod',
+        ];
+
+        numericFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                req.body[field] = Number(req.body[field]);
+            }
+        });
+        console.log('Parsed numeric fields:', req.body);
 
         // Upload and validate images
+        console.log('Files received for upload:', req.files);
+        const files = (req.files as Express.Multer.File[]) || [];
         let imageUrls: string[] = [];
-        const files = req.files as Express.Multer.File[] || [];
 
         if (files.length > 0) {
             try {
@@ -883,8 +802,144 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
 
         req.body.images = imageUrls;
 
-        // Validate form data with Zod
-        const validationResult = listingFormSchema.safeParse(req.body);
+        // Validate with Zod schema
+        const validationResult = productSchema.safeParse(req.body);
+
+        console.log('Validation failed:', validationResult.success, validationResult.error?.issues);
+        if (!validationResult.success) {
+            return res.status(400).json({
+                error: `validation failed: ${validationResult.error.issues[0]?.message}`,
+                details: validationResult.error.issues.map(issue => ({
+                    field: issue.path.join('.'),
+                    message: issue.message
+                }))
+            });
+        }
+
+        const data = validationResult.data;
+
+        // Generate and ensure unique slug
+        let slug = slugify(data.name, { lower: true, strict: true });
+        let uniqueSlug = slug;
+        let counter = 1;
+
+        while (await prisma.product.findFirst({ where: { slug: uniqueSlug } })) {
+            uniqueSlug = `${slug}-${counter++}`;
+        }
+
+        // Check seller
+        const existingSeller = await prisma.seller.findUnique({ where: { id: sellerId } });
+        if (!existingSeller) {
+            return res.status(404).json({ error: 'Seller not found' });
+        }
+
+        // Check existing listing by productCode
+        const existingListing = await prisma.product.findFirst({
+            where: { sellerId, productCode: data.productCode }
+        });
+
+        if (existingListing) {
+            return res.status(400).json({ error: 'Listing already exists with this product code' });
+        }
+
+        // Create the product listing
+        const listing = await prisma.product.create({
+            data: {
+                sellerId,
+                slug: uniqueSlug,
+                listingType: data.listingType,
+                industry: data.industry,
+                category: data.category,
+                condition: data.condition,
+                productCode: data.productCode,
+                name: data.name,
+                description: data.description,
+                model: data.model,
+                specifications: data.specifications,
+                hsnCode: data.hsnCode,
+                quantity: data.quantity,
+                minimumOrderQuantity: data.minimumOrderQuantity,
+                price: data.price,
+                currency: data.currency,
+                deliveryTimeInDays: data.deliveryTimeInDays,
+                logisticsSupport: data.logisticsSupport,
+                countryOfSource: data.countryOfSource,
+                validityPeriod: data.validityPeriod,
+                warrantyPeriod: data.warrantyPeriod,
+                certifications: data.certifications,
+                licenses: data.licenses,
+                images: data.images,
+                brochureUrl: data.brochureUrl,
+                videoUrl: data.videoUrl || null,
+                tags: data.tags,
+                keywords: data.keywords,
+                status: 'PENDING'
+            }
+        });
+
+        return res.status(201).json({
+            message: 'Listing created successfully',
+            listing: {
+                id: listing.id,
+                name: listing.name,
+                description: listing.description,
+                price: listing.price,
+                status: listing.status,
+                images: listing.images
+            }
+        });
+
+    } catch (error) {
+        console.error('Create listing error:', error);
+        return res.status(500).json({ error: 'Server error' });
+    }
+};
+
+// Edit a listing by Seller
+export const editListing = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const sellerId = req.seller?.sellerId;
+        if (!sellerId) {
+            return res.status(401).json({ error: 'Unauthorized access' });
+        }
+
+        const listingId = req.params.listingId;
+        if (!listingId) {
+            return res.status(400).json({ error: 'Listing ID is required' });
+        }
+
+        // Parse numeric fields
+        const numericFields = [
+            'price',
+            'quantity',
+            'minimumOrderQuantity',
+            'deliveryTimeInDays',
+            'validityPeriod'
+        ];
+
+        numericFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                req.body[field] = Number(req.body[field]);
+            }
+        });
+
+        // If images are being uploaded again
+        const files = (req.files as Express.Multer.File[]) || [];
+        let imageUrls: string[] = req.body.images || [];
+
+        if (files.length > 0) {
+            try {
+                const uploaded = await Promise.all(files.map(file => uploadImageToCloudinary(file)));
+                imageUrls = uploaded;
+            } catch (uploadError) {
+                return res.status(400).json({ error: (uploadError as Error).message });
+            }
+        }
+
+        req.body.images = imageUrls;
+
+        // Validate request data
+        const validationResult = productSchema.safeParse(req.body);
         if (!validationResult.success) {
             return res.status(400).json({
                 error: 'Validation failed',
@@ -895,89 +950,85 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
             });
         }
 
-        const {
-            listingType,
-            industry,
-            category,
-            condition,
-            productCode,
-            productName,
-            description,
-            model,
-            specifications,
-            hsnCode,
-            quantity,
-            countryOfSource,
-            validityPeriod,
-            notes,
-        } = validationResult.data;
+        const data = validationResult.data;
 
-        // Generate slug from product name
-        let slug = slugify(productName, { lower: true, strict: true });
-
-
-        // Ensure slug is unique
-        let uniqueSlug = slug;
-        let counter = 1;
-        while (await prisma.product.findFirst({ where: { slug: uniqueSlug } })) {
-            uniqueSlug = `${slug}-${counter++}`;
-        }
-        slug = uniqueSlug;
-        console.log('Generated unique slug:', slug);
-        // Check if seller exists
-        const existingSeller = await prisma.seller.findUnique({ where: { id: sellerId } });
-        if (!existingSeller) {
-            return res.status(404).json({ error: 'Seller not found' });
-        }
-
-        // Check if listing already exists by productCode
+        // Check if listing exists and belongs to seller
         const existingListing = await prisma.product.findFirst({
-            where: { sellerId, productCode }
+            where: { id: listingId, sellerId }
         });
-        if (existingListing) {
-            return res.status(400).json({ error: 'Listing already exists with this product code' });
+
+        if (!existingListing) {
+            return res.status(404).json({ error: 'Listing not found' });
         }
 
-        // Create new product listing
-        const listing = await prisma.product.create({
+        // Update the product
+        const updatedListing = await prisma.product.update({
+            where: { id: listingId },
             data: {
-                sellerId,
-                slug,
-                listingType: "SELL",
-                industry,
-                category,
-                condition: "USED",
-                productCode,
-                name: productName,
-                description,
-                model,
-                specifications,
-                hsnCode,
-                quantity,
-                price: 0,
-                validityPeriod,
-                countryOfSource,
-                images: imageUrls,
+                listingType: data.listingType,
+                industry: data.industry,
+                category: data.category,
+                condition: data.condition,
+                productCode: data.productCode,
+                name: data.name,
+                description: data.description,
+                model: data.model,
+                specifications: data.specifications,
+                hsnCode: data.hsnCode,
+                quantity: data.quantity,
+                minimumOrderQuantity: data.minimumOrderQuantity,
+                price: data.price,
+                currency: data.currency,
+                deliveryTimeInDays: data.deliveryTimeInDays,
+                logisticsSupport: data.logisticsSupport,
+                countryOfSource: data.countryOfSource,
+                validityPeriod: data.validityPeriod,
+                warrantyPeriod: data.warrantyPeriod,
+                certifications: data.certifications,
+                licenses: data.licenses,
+                brochureUrl: data.brochureUrl,
+                videoUrl: data.videoUrl,
+                tags: data.tags,
+                keywords: data.keywords,
+                images: data.images,
                 status: 'PENDING'
             }
         });
 
-        res.status(201).json({
-            message: 'Listing created successfully',
+        res.json({
+            message: 'Listing updated successfully',
             listing: {
-                id: listing.id,
-                name: listing.name,
-                description: listing.description,
-                price: listing.price,
-                category: listing.category,
-                status: listing.status,
-                images: listing.images,
+                id: updatedListing.id,
+                name: updatedListing.name,
+                description: updatedListing.description,
+                price: updatedListing.price,
+                category: updatedListing.category,
+                status: updatedListing.status
             }
         });
 
     } catch (error) {
-        console.error('Create listing error:', error);
+        console.error('Edit listing error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 };
 
+// Get a single listing by Seller for editing
+export const getSingleListingForEdit = async (req: AuthenticatedRequest, res: Response) => {
+    const { listingId } = req.params;
+
+    try {
+        const listing = await prisma.product.findFirst({
+            where: { id: listingId, sellerId: req.user?.userId }
+        });
+
+        if (!listing) {
+            return res.status(404).json({ error: 'Listing not found' });
+        }
+
+        res.json(listing);
+    } catch (error) {
+        console.error('Error fetching listing for edit:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};

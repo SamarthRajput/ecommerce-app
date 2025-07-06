@@ -88,23 +88,64 @@ export const updateProfileSchema = z.object({
     phone: z.string().min(10, 'Valid phone number is required'),
     address: addressSchema
 });
+// Utility function to parse JSON arrays from strings or objects
+// This is used to handle fields like certifications, licenses, tags, etc.
 
-export const listingFormSchema = z.object({
-    listingType: z.string().min(1, 'Listing type is required'),
-    industry: z.string().min(1, 'Industry is required'),
-    category: z.string().min(1, 'Category is required'),
-    condition: z.string().min(1, 'Condition is required'),
-    productCode: z.string().min(1, 'Product code is required'),
-    productName: z.string().min(1, 'Product name is required'),
-    description: z.string().min(1, 'Description is required'),
-    model: z.string().min(1, 'Model is required'),
-    specifications: z.string().min(1, 'Specifications are required'),
-    hsnCode: z.string().min(1, 'HSN code is required'),
-    quantity: z.number().int().nonnegative('Quantity must be a non-negative integer'),
-    countryOfSource: z.string().min(1, 'Country of source is required'),
-    validityPeriod: z.number().min(1, 'Validity period is required'),
-    notes: z.string().optional(),
-    images: z.array(z.string().url('Image URL must be valid'))
-        .min(1, 'At least one image is required')
-        .max(5, 'Maximum 5 images allowed'),
+const parseJsonArray = (val: unknown) => {
+    try {
+        const parsed = typeof val === 'string' ? JSON.parse(val) : val;
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+};
+
+export const productSchema = z.object({
+    // Product Basics
+    name: z.string().min(3, "Product name must be at least 3 characters"),
+    slug: z.string().optional(),
+    productCode: z.string().min(1, "Product code is required"),
+    model: z.string().min(1, "Model is required"),
+    category: z.string().min(1, "Category is required"),
+    industry: z.string().min(1, "Industry is required"),
+    condition: z.enum(['NEW', 'USED', 'REFURBISHED', 'CUSTOM']),
+    listingType: z.enum(['SELL', 'LEASE', 'RENT']),
+    description: z.string().min(10, "Description must be at least 10 characters"),
+
+    // Pricing & Quantity
+    price: z.preprocess(val => Number(val), z.number().min(0.01, "Price must be greater than 0")),
+    currency: z.string().min(1, "Currency is required"),
+    quantity: z.preprocess(val => Number(val), z.number().min(1, "Quantity must be at least 1")),
+    minimumOrderQuantity: z.preprocess(val => Number(val), z.number().min(1, "Minimum order quantity must be at least 1")),
+
+    // Logistics & Validity
+    deliveryTimeInDays: z.preprocess(val => Number(val), z.number().min(1, "Delivery time must be at least 1 day")),
+    logisticsSupport: z.enum(['SELF', 'INTERLINK', 'BOTH']),
+    countryOfSource: z.string().min(1, "Country of source is required"),
+    validityPeriod: z.preprocess(val => Number(val), z.number().min(1, "Validity period must be at least 1 day")),
+
+    // Product Details
+    specifications: z.string(),
+    hsnCode: z.string().min(1, "HSN code is required"),
+    warrantyPeriod: z.string().optional(),
+
+    certifications: z.preprocess(parseJsonArray, z.array(z.string()).optional()),
+    licenses: z.preprocess(parseJsonArray, z.array(z.string()).optional()),
+
+    // Media & Attachments
+    images: z.any().refine(val => Array.isArray(val) && val.length >= 1, {
+        message: "At least one image is required",
+    }).refine(val => val.length <= 5, {
+        message: "Maximum 5 images allowed",
+    }),
+
+    brochureUrl: z.string().optional(),
+    videoUrl: z.string().url().optional().or(z.literal("")),
+
+    // SEO & Tagging
+    tags: z.preprocess(parseJsonArray, z.array(z.string()).optional()),
+    keywords: z.preprocess(parseJsonArray, z.array(z.string()).optional()),
+
+    // Terms
+    agreedToTerms: z.preprocess(val => val === 'true' || val === true, z.boolean().optional())
 });

@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { AuthenticatedRequest, requireSeller } from "../middlewares/authSeller";
-import { createListing, editListing, getDashboardStats, getSellerListings, getSellerProfile, getSellerPublicProfile, getSellerRFQRequests, signinSeller, signupSeller, toggleListingStatus, updateSellerProfile, upload, uploadDocuments } from "../controllers/sellerController";
+import { createListing, editListing, getDashboardStats, getSellerListings, getSellerProfile, getSellerPublicProfile, getSellerRFQRequests, getSingleListingForEdit, signinSeller, signupSeller, toggleListingStatus, updateSellerProfile, upload, uploadDocuments } from "../controllers/sellerController";
 import { apiLimiter } from "../utils/rateLimit";
 
 export const sellerRouter = Router();
@@ -50,6 +50,11 @@ sellerRouter.put("/details", requireSeller, async (req: AuthenticatedRequest, re
 // Get seller listings
 sellerRouter.get("/listings", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
     await getSellerListings(req, res);
+});
+
+// Get Single Seller Listing for edit
+sellerRouter.get("/product/:listingId", requireSeller, async (req: AuthenticatedRequest, res: Response) => {
+    await getSingleListingForEdit(req, res);
 });
 
 // Seller list post

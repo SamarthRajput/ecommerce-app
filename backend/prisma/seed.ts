@@ -1,10 +1,71 @@
 // File: backend/prisma/seed.ts
 // To run this file, use the command: npx ts-node prisma/seed.ts
 
+import { z } from 'zod';
 import { prisma } from '../src/lib/prisma';
 import bcrypt from 'bcryptjs';
 
 async function main() {
+
+    const parseJsonArray = (val: unknown) => {
+        try {
+            const parsed = typeof val === 'string' ? JSON.parse(val) : val;
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    };
+
+    const productSchema = z.object({
+        // Product Basics
+        name: z.string().min(3, "Product name must be at least 3 characters"),
+        slug: z.string().optional(),
+        productCode: z.string().min(1, "Product code is required"),
+        model: z.string().min(1, "Model is required"),
+        category: z.string().min(1, "Category is required"),
+        industry: z.string().min(1, "Industry is required"),
+        condition: z.enum(['NEW', 'USED', 'REFURBISHED', 'CUSTOM']),
+        listingType: z.enum(['SELL', 'LEASE', 'RENT']),
+        description: z.string().min(10, "Description must be at least 10 characters"),
+
+        // Pricing & Quantity
+        price: z.preprocess(val => Number(val), z.number().min(0.01, "Price must be greater than 0")),
+        currency: z.string().min(1, "Currency is required"),
+        quantity: z.preprocess(val => Number(val), z.number().min(1, "Quantity must be at least 1")),
+        minimumOrderQuantity: z.preprocess(val => Number(val), z.number().min(1, "Minimum order quantity must be at least 1")),
+
+        // Logistics & Validity
+        deliveryTimeInDays: z.preprocess(val => Number(val), z.number().min(1, "Delivery time must be at least 1 day")),
+        logisticsSupport: z.enum(['SELF', 'INTERLINK', 'BOTH']),
+        countryOfSource: z.string().min(1, "Country of source is required"),
+        validityPeriod: z.preprocess(val => Number(val), z.number().min(1, "Validity period must be at least 1 day")),
+
+        // Product Details
+        specifications: z.string(),
+        hsnCode: z.string().min(1, "HSN code is required"),
+        warrantyPeriod: z.string().optional(),
+
+        certifications: z.preprocess(parseJsonArray, z.array(z.string()).optional()),
+        licenses: z.preprocess(parseJsonArray, z.array(z.string()).optional()),
+
+        // Media & Attachments
+        images: z.any().refine(val => Array.isArray(val) && val.length >= 1, {
+            message: "At least one image is required",
+        }).refine(val => val.length <= 5, {
+            message: "Maximum 5 images allowed",
+        }),
+
+        brochureUrl: z.string().optional(),
+        videoUrl: z.string().url().optional().or(z.literal("")),
+
+        // SEO & Tagging
+        tags: z.preprocess(parseJsonArray, z.array(z.string()).optional()),
+        keywords: z.preprocess(parseJsonArray, z.array(z.string()).optional()),
+
+        // Terms
+        agreedToTerms: z.preprocess(val => val === 'true' || val === true, z.boolean().optional())
+    });
+
     console.log('Insert admin');
 
     const email = '1@1';
@@ -23,136 +84,157 @@ async function main() {
     });
 
     console.log(`Admin user ensured`);
+
     const sellerEmail = 'rohitkuyada@gmail.com';
     const sellerPassword = '123456789';
     const sellerHashedPassword = await bcrypt.hash(sellerPassword, 10);
 
     // Ensure seller exists
-    const seller = await prisma.seller.findUnique({
+    let seller = await prisma.seller.findUnique({
         where: { email: sellerEmail },
     });
-    if (!seller) {
-        console.log('Creating seller with ID:', seller);
-        return;
-        // await prisma.seller.create({
-        //     data: {
-        //         id: SELLERID,
-        //         firstName: 'Rohit',
-        //         lastName: 'Kumar Yadav',
-        //         email: sellerEmail,
-        //         password: sellerHashedPassword,
-        //         role: 'seller',
-        //         country: 'India',
-        //         state: 'Uttar Pradesh',
-        //         city: 'Lucknow',
-        //         street: '123 Main St',
-        //         zipCode: '123456',
-        //         phone: '1234567890',
-        //         countryCode: '+91',
-        //         isEmailVerified: true,
-        //         isPhoneVerified: true,
-        //         isApproved: true,
-        //         approvalNote: 'Seller account approved',
-        //         businessName: 'Rohit Enterprises',
-        //         businessType: 'GOVERNMENT_ENTITY',
-        //         registrationNo: 'REG123456',
-        //         taxId: 'TAX123456',
-        //         panOrTin: 'PAN123456',
-        //     },
-        // });
-    }
 
-    // Insert 10 Products from this selller, All the description of the product will look original with detailed information, Just like original Products on Flipkart, Amazon, etc. have
+    if (!seller) {
+        console.log('Creating seller...');
+        seller = await prisma.seller.create({
+            data: {
+                firstName: 'Rohit',
+                lastName: 'Kumar Yadav',
+                email: sellerEmail,
+                password: sellerHashedPassword,
+                role: 'seller',
+                country: 'India',
+                state: 'Uttar Pradesh',
+                city: 'Lucknow',
+                street: '123 Main St',
+                zipCode: '123456',
+                phone: '1234567890',
+                countryCode: '+91',
+                isEmailVerified: true,
+                isPhoneVerified: true,
+                isApproved: true,
+                approvalNote: 'Seller account approved',
+                businessName: 'Rohit Enterprises',
+                businessType: 'GOVERNMENT_ENTITY',
+                registrationNo: 'REG123456',
+                taxId: 'TAX123456',
+                panOrTin: 'PAN123456',
+            },
+        });
+    }
 
     console.log('Inserting products for seller with ID:', seller.id);
 
     const products = [
-        // 5 smartphones
+        // 5 smartphones - All fields according to schema
         {
             name: 'Apple iPhone 14 Pro Max (Deep Purple, 128 GB)',
-            description: 'The Apple iPhone 14 Pro Max is a premium smartphone featuring a 6.7-inch Super Retina XDR display, A16 Bionic chip, and advanced camera system with ProRAW and ProRes video capabilities.',
+            description: 'The Apple iPhone 14 Pro Max is a premium smartphone featuring a 6.7-inch Super Retina XDR display with Always-On technology, A16 Bionic chip with 6-core CPU, and an advanced Pro camera system with 48MP main camera that captures stunning photos and videos. Features Dynamic Island, Action mode for smooth videos, and all-day battery life. Includes ProRAW and ProRes video capabilities for professional content creation.',
             price: 1099.99,
             currency: 'USD',
             quantity: 50,
             minimumOrderQuantity: 1,
+            deliveryTimeInDays: 3,
+            logisticsSupport: 'BOTH',
             listingType: 'SELL',
             condition: 'NEW',
             validityPeriod: 365,
             industry: 'Electronics',
             category: 'Smartphones',
-            productCode: 'IP14PM-256GB-SILVER',
+            productCode: 'IP14PM-128GB-PURPLE',
             model: 'iPhone 14 Pro Max',
-            specifications: '6.7-inch display, A16 Bionic chip, Triple-camera system, Face ID, iOS 16',
+            specifications: '6.7-inch Super Retina XDR display, A16 Bionic chip, 48MP Pro camera system, Face ID, iOS 16, 5G capable, Lightning connector, Water resistant IP68',
             countryOfSource: 'USA',
             hsnCode: '85171200',
-            certifications: ['CE', 'FCC'],
+            certifications: ['CE', 'FCC', 'RoHS'],
             warrantyPeriod: '1 year',
             licenses: [],
-            brochureUrl: null,
-            videoUrl: null,
-            images: ['https://cdsassets.apple.com/live/SZLF0YNV/images/sp/111846_sp875-sp876-iphone14-pro-promax.png','https://www.apple.com/newsroom/images/product/iphone/standard/Apple-iPhone-14-Pro-iPhone-14-Pro-Max-hero-220907_Full-Bleed-Image.jpg.large.jpg'],
-            tags: ['smartphone', 'apple', 'iphone'],
-            keywords: ['iPhone 14 Pro Max', 'Apple smartphone'],
+            brochureUrl: '',
+            videoUrl: '',
+            images: [
+                'https://cdsassets.apple.com/live/SZLF0YNV/images/sp/111846_sp875-sp876-iphone14-pro-promax.png',
+                'https://www.apple.com/newsroom/images/product/iphone/standard/Apple-iPhone-14-Pro-iPhone-14-Pro-Max-hero-220907_Full-Bleed-Image.jpg.large.jpg',
+                'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/iphone-14-pro-finish-select-202209-6-7inch-deeppurple?wid=5120&hei=2880&fmt=p-jpg&qlt=80&.v=1663703841896'
+            ],
+            tags: ['smartphone', 'apple', 'iphone', 'premium', 'flagship'],
+            keywords: ['iPhone 14 Pro Max', 'Apple smartphone', 'A16 Bionic', 'Pro camera'],
+            agreedToTerms: true
         },
         {
-            name: 'Samsung Galaxy S23 Ultra 5G (Cream, 256 GB)  (12 GB RAM)',
-            description: 'The Samsung Galaxy S23 Ultra boasts a 200MP camera, Snapdragon 8 Gen 2 processor, 6.8-inch AMOLED display, and a massive 5000mAh battery for all-day performance.',
+            name: 'Samsung Galaxy S23 Ultra 5G (Cream, 256 GB) (12 GB RAM)',
+            description: 'The Samsung Galaxy S23 Ultra redefines premium with its 200MP camera with advanced nightography, built-in S Pen for seamless note-taking, and the fastest Snapdragon processor. Features a stunning 6.8-inch Dynamic AMOLED 2X display with 120Hz refresh rate, massive 5000mAh battery with 45W fast charging, and up to 1TB storage. Perfect for photography enthusiasts and productivity power users.',
             price: 1199.99,
             currency: 'USD',
             quantity: 40,
             minimumOrderQuantity: 1,
+            deliveryTimeInDays: 2,
+            logisticsSupport: 'INTERLINK',
             listingType: 'SELL',
             condition: 'NEW',
             validityPeriod: 365,
             industry: 'Electronics',
             category: 'Smartphones',
-            productCode: 'SGS23U-512GB-BLK',
+            productCode: 'SGS23U-256GB-CREAM',
             model: 'Galaxy S23 Ultra',
-            specifications: '6.8-inch QHD+ AMOLED, Snapdragon 8 Gen 2, 200MP camera, 12GB RAM',
+            specifications: '6.8-inch QHD+ Dynamic AMOLED 2X, Snapdragon 8 Gen 2, 200MP camera, 12GB RAM, 256GB storage, S Pen included, 5000mAh battery',
             countryOfSource: 'South Korea',
             hsnCode: '85171200',
-            certifications: ['CE', 'RoHS'],
+            certifications: ['CE', 'RoHS', 'FCC'],
             warrantyPeriod: '1 year',
             licenses: [],
-            brochureUrl: null,
-            videoUrl: null,
-            images: ['https://m.media-amazon.com/images/I/71goZuIha-L._UF1000,1000_QL80_.jpg','https://images.moneycontrol.com/static-mcnews/2023/02/Samsung-one-ui-770x433.jpg?impolicy=website&width=770&height=431'],
-            tags: ['samsung', 'android', 'smartphone'],
-            keywords: ['Galaxy S23 Ultra', 'Samsung flagship phone'],
+            brochureUrl: '',
+            videoUrl: '',
+            images: [
+                'https://m.media-amazon.com/images/I/71goZuIha-L._UF1000,1000_QL80_.jpg',
+                'https://images.samsung.com/is/image/samsung/p6pim/in/2302/gallery/in-galaxy-s23-s918-sm-s918bzkcins-534992340?$650_519_PNG$',
+                'https://images.samsung.com/is/image/samsung/p6pim/in/2302/gallery/in-galaxy-s23-ultra-s918-sm-s918bzkcins-534992341?$650_519_PNG$'
+            ],
+            tags: ['samsung', 'android', 'smartphone', 'camera', 's-pen'],
+            keywords: ['Galaxy S23 Ultra', 'Samsung flagship phone', '200MP camera', 'S Pen'],
+            agreedToTerms: true
         },
         {
-            name: 'OnePlus 11 5G',
-            description: 'The OnePlus 11 5G offers a flagship experience with a Snapdragon 8 Gen 2 chipset, 120Hz AMOLED display, and 100W fast charging in a sleek and minimal design.',
+            name: 'OnePlus 11 5G (Titan Black, 256GB) (16GB RAM)',
+            description: 'The OnePlus 11 5G delivers flagship performance with the powerful Snapdragon 8 Gen 2 processor, stunning 6.7-inch 120Hz AMOLED display with Dolby Vision, and incredibly fast 100W SUPERVOOC charging. Features Hasselblad camera system with 50MP main sensor, OxygenOS 13 based on Android 13, and premium build quality. Experience speed like never before.',
             price: 699.99,
             currency: 'USD',
             quantity: 100,
             minimumOrderQuantity: 1,
+            deliveryTimeInDays: 1,
+            logisticsSupport: 'BOTH',
             listingType: 'SELL',
             condition: 'NEW',
             validityPeriod: 365,
             industry: 'Electronics',
             category: 'Smartphones',
-            productCode: 'OP11-256GB-GREEN',
+            productCode: 'OP11-256GB-BLACK',
             model: 'OnePlus 11',
-            specifications: 'Snapdragon 8 Gen 2, 120Hz AMOLED, 100W charging, 50MP triple camera',
+            specifications: 'Snapdragon 8 Gen 2, 6.7-inch 120Hz AMOLED, 100W SUPERVOOC charging, Hasselblad camera, 50MP triple camera system, 16GB RAM, 256GB storage',
             countryOfSource: 'China',
             hsnCode: '85171200',
-            certifications: ['CE', 'ISO'],
+            certifications: ['CE', 'ISO', 'FCC'],
             warrantyPeriod: '1 year',
             licenses: [],
-            brochureUrl: null,
-            videoUrl: null,
-            images: [],
-            tags: ['oneplus', 'fast charging', 'android'],
-            keywords: ['OnePlus 11 5G', 'Flagship Android phone'],
+            brochureUrl: '',
+            videoUrl: '',
+            images: [
+                'https://oasis.opstatics.com/content/dam/oasis/page/2023/global/products/11/pc/11-green-image.png',
+                'https://image01.oneplus.net/ebp/202302/07/1-m00-46-44-rb8bwmphxkqab8g9aae5v4h4tk8536.png',
+                'https://oasis.opstatics.com/content/dam/oasis/page/2023/global/products/11/pc/11-black-image.png'
+            ],
+            tags: ['oneplus', 'fast charging', 'android', 'flagship', 'hasselblad'],
+            keywords: ['OnePlus 11 5G', 'Flagship Android phone', 'Snapdragon 8 Gen 2', '100W charging'],
+            agreedToTerms: true
         },
         {
-            name: 'Google Pixel 7 Pro',
-            description: 'Google Pixel 7 Pro features a custom-built Google Tensor G2 chip, AI-enhanced camera, and a 6.7-inch LTPO OLED display for a fluid and responsive experience.',
+            name: 'Google Pixel 7 Pro (Snow, 128GB) (12GB RAM)',
+            description: 'Google Pixel 7 Pro powered by the custom-built Google Tensor G2 chip delivers exceptional AI-powered photography, computational photography features, and the purest Android experience. Features a brilliant 6.7-inch LTPO OLED display with 120Hz refresh rate, advanced camera system with Magic Eraser, and guaranteed 5 years of security updates. Perfect for photography enthusiasts who want the best of Google AI.',
             price: 899.99,
             currency: 'USD',
             quantity: 60,
             minimumOrderQuantity: 1,
+            deliveryTimeInDays: 2,
+            logisticsSupport: 'SELF',
             listingType: 'SELL',
             condition: 'NEW',
             validityPeriod: 365,
@@ -160,190 +242,252 @@ async function main() {
             category: 'Smartphones',
             productCode: 'PIX7PRO-128GB-SNOW',
             model: 'Pixel 7 Pro',
-            specifications: 'Tensor G2 chip, 6.7-inch LTPO OLED, 12GB RAM, Android 13',
+            specifications: 'Google Tensor G2 chip, 6.7-inch LTPO OLED 120Hz, 12GB RAM, 128GB storage, Triple camera system, Android 13, 5G capable',
             countryOfSource: 'USA',
             hsnCode: '85171200',
-            certifications: ['FCC', 'CE'],
+            certifications: ['FCC', 'CE', 'IC'],
             warrantyPeriod: '1 year',
             licenses: [],
-            brochureUrl: null,
-            videoUrl: null,
-            images: ['https://cdn.vox-cdn.com/thumbor/0b1c3a2f8d4e5f6c7e9b8c8d8e8e8e8e/e0x0:3000x2000/1200x800/filters:focal(1260x800:1740x1280)/cdn.vox-cdn.com/uploads/chorus_image/image/72012334/google_pixel_7_pro_review.0.jpg'],
-            tags: ['google', 'pixel', 'smartphone'],
-            keywords: ['Pixel 7 Pro', 'Google smartphone'],
+            brochureUrl: '',
+            videoUrl: '',
+            images: [
+                'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/pixel-7-pro-snow-select?wid=940&hei=1112&fmt=png-alpha&.v=1656618925088',
+                'https://lh3.googleusercontent.com/DW42JbEpk_0VFrAjA_rF_l9JZFKwL_zKc3JKmDWyV3qrY6xKhcK8k5p3p3p3p3p3p3p3p3p',
+                'https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Pixel_7_Pro_in_Snow.width-1000.format-webp.webp'
+            ],
+            tags: ['google', 'pixel', 'smartphone', 'ai', 'camera'],
+            keywords: ['Pixel 7 Pro', 'Google smartphone', 'Tensor G2', 'AI photography'],
+            agreedToTerms: true
         },
         {
-            name: 'Xiaomi 13 Pro',
-            description: 'Xiaomi 13 Pro comes with Leica camera optics, Snapdragon 8 Gen 2, and a vibrant WQHD+ AMOLED display, setting a new benchmark for Android flagships.',
+            name: 'Xiaomi 13 Pro (Ceramic Black, 256GB) (12GB RAM)',
+            description: 'Xiaomi 13 Pro elevates mobile photography with professional Leica camera system, featuring a 50.3MP main sensor with 1-inch sensor size for DSLR-quality photos. Powered by Snapdragon 8 Gen 2, boasts a stunning 6.73-inch WQHD+ AMOLED display with 120Hz refresh rate, and blazing-fast 120W wired + 50W wireless charging. Experience flagship performance with premium ceramic build quality.',
             price: 799.99,
             currency: 'USD',
             quantity: 70,
             minimumOrderQuantity: 1,
+            deliveryTimeInDays: 3,
+            logisticsSupport: 'INTERLINK',
             listingType: 'SELL',
             condition: 'NEW',
             validityPeriod: 365,
             industry: 'Electronics',
             category: 'Smartphones',
-            productCode: 'XM13PRO-512GB-BLACK',
+            productCode: 'XM13PRO-256GB-BLACK',
             model: 'Xiaomi 13 Pro',
-            specifications: 'Leica camera, WQHD+ AMOLED, 120W fast charging, Snapdragon 8 Gen 2',
+            specifications: 'Leica camera system, 6.73-inch WQHD+ AMOLED 120Hz, 120W fast charging, Snapdragon 8 Gen 2, 12GB RAM, 256GB storage, ceramic body',
             countryOfSource: 'China',
             hsnCode: '85171200',
-            certifications: ['CE'],
+            certifications: ['CE', 'FCC'],
             warrantyPeriod: '1 year',
             licenses: [],
-            brochureUrl: null,
-            videoUrl: null,
-            images: ['https://example.com/xiaomi13pro.jpg'],
-            tags: ['xiaomi', 'leica', 'smartphone'],
-            keywords: ['Xiaomi 13 Pro', 'Android flagship'],
+            brochureUrl: '',
+            videoUrl: '',
+            images: [
+                'https://i01.appmifile.com/v1/MI_18455B3E4DA706226CF7535A58E875F0267/pms_1669282030.46516115.jpg',
+                'https://cdn.mos.cms.futurecdn.net/YpEHdNjqMxRb6rKHGK9KhL-1200-80.jpg',
+                'https://fdn2.gsmarena.com/vv/pics/xiaomi/xiaomi-13-pro-1.jpg'
+            ],
+            tags: ['xiaomi', 'leica', 'smartphone', 'ceramic', 'camera'],
+            keywords: ['Xiaomi 13 Pro', 'Android flagship', 'Leica camera', 'ceramic build'],
+            agreedToTerms: true
         },
 
-        // 5 products from different industries/categories
+        // 5 products from different industries/categories - All fields according to schema
         {
-            name: 'LG 1.5 Ton 5 Star Inverter AC',
-            description: 'Efficient cooling with LG’s dual inverter compressor, 5-star energy rating, and silent operation for superior comfort during hot summers.',
-            price: 499.99,
+            name: 'LG 1.5 Ton 5 Star Dual Inverter AC (Copper, White) - AI ThinQ Smart',
+            description: 'Beat the heat with LG\'s most efficient 1.5 Ton 5-Star Dual Inverter Air Conditioner featuring AI ThinQ smart connectivity, Ocean Black Protection anti-corrosion coating, and 4-way swing for uniform cooling. The dual inverter compressor delivers 40% energy savings, faster cooling, and whisper-quiet operation. Features HD filter with anti-virus protection, auto-cleaning, and smart diagnosis for hassle-free maintenance.',
+            price: 599.99,
             currency: 'USD',
             quantity: 30,
             minimumOrderQuantity: 1,
+            deliveryTimeInDays: 7,
+            logisticsSupport: 'BOTH',
             listingType: 'SELL',
             condition: 'NEW',
             validityPeriod: 180,
             industry: 'Home Appliances',
             category: 'Air Conditioners',
-            productCode: 'LGAC15T5S2023',
-            model: 'JW-Q18WUZA',
-            specifications: 'Dual inverter, 1.5 Ton, 5 Star, Anti-virus protection, Auto clean',
+            productCode: 'LGAC15T5S2024',
+            model: 'JS-Q18AUXA2',
+            specifications: 'Dual Inverter Technology, 1.5 Ton capacity, 5 Star BEE rating, Copper condenser, 4-way swing, HD filter with anti-virus protection, AI ThinQ smart features',
             countryOfSource: 'India',
             hsnCode: '84151010',
-            certifications: ['BEE', 'ISO'],
-            warrantyPeriod: '10 years compressor',
+            certifications: ['BEE 5 Star', 'ISO 14001', 'ISO 9001'],
+            warrantyPeriod: '10 years compressor, 5 years PCB, 1 year complete unit',
             licenses: [],
-            brochureUrl: null,
-            videoUrl: null,
-            images: ['https://example.com/lgac.jpg'],
-            tags: ['AC', 'LG', 'cooling'],
-            keywords: ['LG AC', 'Inverter Air Conditioner'],
+            brochureUrl: '',
+            videoUrl: '',
+            images: [
+                'https://www.lg.com/in/images/air-conditioners/md07537037/gallery/1100-V1.jpg',
+                'https://www.lg.com/in/images/air-conditioners/md07537037/gallery/1100-V2.jpg',
+                'https://www.lg.com/content/dam/channel/wcms/in/images/air-conditioners/js-q18auxa2_arinbbk_eail_in_c/gallery/JS-Q18AUXA2_ARINBBK_EAIL_IN_C-1100.jpg'
+            ],
+            tags: ['AC', 'LG', 'cooling', 'smart', 'energy efficient'],
+            keywords: ['LG AC', 'Inverter Air Conditioner', 'AI ThinQ', 'Dual Inverter'],
+            agreedToTerms: true
         },
         {
-            name: 'Adidas Ultraboost 22 Running Shoes',
-            description: 'Experience unparalleled comfort with Adidas Ultraboost 22 featuring a Primeknit upper, responsive Boost midsole, and stylish silhouette.',
+            name: 'Adidas Ultraboost 22 Running Shoes (Core Black/Carbon/Grey) - Men\'s',
+            description: 'Step into next-level comfort with Adidas Ultraboost 22, engineered for runners who demand performance and style. Features responsive BOOST midsole with 20% more energy return, Primeknit+ upper for adaptive fit, Linear Energy Push system for smooth transitions, and Continental™ Rubber outsole for exceptional grip. Perfect for daily training, long runs, and casual wear with modern athletic aesthetic.',
             price: 179.99,
             currency: 'USD',
             quantity: 100,
             minimumOrderQuantity: 1,
+            deliveryTimeInDays: 5,
+            logisticsSupport: 'SELF',
             listingType: 'SELL',
             condition: 'NEW',
             validityPeriod: 365,
             industry: 'Fashion',
             category: 'Footwear',
-            productCode: 'ADUB22-BLK-10',
+            productCode: 'ADUB22-BLK-US10',
             model: 'Ultraboost 22',
-            specifications: 'Primeknit upper, Boost midsole, Stretchweb outsole with Continental™ Rubber',
+            specifications: 'Primeknit+ upper, BOOST midsole technology, Linear Energy Push system, Continental™ Rubber outsole, Regular fit, Lace closure',
             countryOfSource: 'Germany',
             hsnCode: '64041100',
-            certifications: [],
-            warrantyPeriod: null,
+            certifications: ['OEKO-TEX', 'Better Cotton Initiative'],
+            warrantyPeriod: '6 months manufacturing defects',
             licenses: [],
-            brochureUrl: null,
-            videoUrl: null,
-            images: ['https://example.com/ultraboost22.jpg'],
-            tags: ['shoes', 'adidas', 'running'],
-            keywords: ['Ultraboost 22', 'Adidas running shoes'],
+            brochureUrl: '',
+            videoUrl: '',
+            images: [
+                'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/89d0db28c9cf47da9ed0ad7b00e73104_9366/Ultraboost_22_Shoes_Black_GX3131_01_standard.jpg',
+                'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/4e5bc98c2b8d4b518e37ad7b00e731c7_9366/Ultraboost_22_Shoes_Black_GX3131_02_standard_hover.jpg',
+                'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/45de9b5c2e2c4f54a0f7ad7b00e73251_9366/Ultraboost_22_Shoes_Black_GX3131_03_standard.jpg'
+            ],
+            tags: ['shoes', 'adidas', 'running', 'boost', 'athletic'],
+            keywords: ['Ultraboost 22', 'Adidas running shoes', 'BOOST technology', 'performance footwear'],
+            agreedToTerms: true
         },
         {
-            name: 'Yonex Nanoray Light 18i Badminton Racket',
-            description: 'Built for speed and power, the Yonex Nanoray Light 18i is ideal for beginners and intermediate players seeking precision in their shots.',
+            name: 'Yonex Nanoray Light 18i Badminton Racket (Blue/Silver) - Beginner to Intermediate',
+            description: 'Master your badminton game with the Yonex Nanoray Light 18i, specifically designed for beginner to intermediate players seeking precision and control. Features lightweight graphite construction for easy maneuverability, Isometric head shape for enlarged sweet spot, and optimized weight distribution for powerful yet controlled shots. The flexible shaft provides excellent feel and repulsion power for consistent performance.',
             price: 39.99,
             currency: 'USD',
             quantity: 200,
             minimumOrderQuantity: 2,
+            deliveryTimeInDays: 4,
+            logisticsSupport: 'BOTH',
             listingType: 'SELL',
             condition: 'NEW',
             validityPeriod: 180,
             industry: 'Sports Equipment',
             category: 'Badminton',
-            productCode: 'YNR18I-BLUE',
+            productCode: 'YNR18I-BLUE-SILVER',
             model: 'Nanoray Light 18i',
-            specifications: 'Graphite shaft, Isometric head shape, Lightweight design',
+            specifications: 'Graphite shaft and frame, Isometric head shape, Weight: 85-89g, Grip size: G4, Flexible shaft, String tension: 17-22 lbs',
             countryOfSource: 'Japan',
             hsnCode: '95065900',
-            certifications: [],
-            warrantyPeriod: '6 months',
+            certifications: ['BWF Approved', 'Japanese Quality Standards'],
+            warrantyPeriod: '6 months against manufacturing defects',
             licenses: [],
-            brochureUrl: null,
-            videoUrl: null,
-            images: ['https://example.com/yonex18i.jpg'],
-            tags: ['badminton', 'racket', 'yonex'],
-            keywords: ['Yonex racket', 'Nanoray 18i'],
+            brochureUrl: '',
+            videoUrl: '',
+            images: [
+                'https://www.yonex.com/media/catalog/product/cache/1/image/650x/040ec09b1e35df139433887a97daa66f/n/r/nrl18i_1.jpg',
+                'https://contents.mediadecathlon.com/p1428096/k$1a9b9c8c8a8c8c8c8c8c8c8c8c8c8c8c/badminton-racket-br-160-blue.jpg',
+                'https://www.yonex.com/media/catalog/product/cache/1/image/650x/040ec09b1e35df139433887a97daa66f/n/r/nrl18i_2.jpg'
+            ],
+            tags: ['badminton', 'racket', 'yonex', 'lightweight', 'beginner'],
+            keywords: ['Yonex racket', 'Nanoray 18i', 'badminton equipment', 'graphite racket'],
+            agreedToTerms: true
         },
         {
-            name: 'Nilkamal Leo Plastic Chair',
-            description: 'Durable and lightweight plastic chair by Nilkamal, suitable for both indoor and outdoor use, with a weight-bearing capacity of up to 100kg.',
-            price: 14.99,
+            name: 'Nilkamal Leo Plastic Chair (Brown) - Set of 4 - Stackable & Weather Resistant',
+            description: 'Transform your space with the versatile Nilkamal Leo Plastic Chair, perfect for both indoor and outdoor use. Crafted from high-quality virgin plastic with UV stabilizers for long-lasting durability and fade resistance. Features ergonomic design for comfort, stackable construction for space-saving storage, and weather-resistant properties. Supports up to 100kg weight capacity with easy-to-clean surface.',
+            price: 59.99,
             currency: 'USD',
             quantity: 300,
             minimumOrderQuantity: 4,
+            deliveryTimeInDays: 6,
+            logisticsSupport: 'SELF',
             listingType: 'SELL',
             condition: 'NEW',
             validityPeriod: 365,
             industry: 'Furniture',
             category: 'Chairs',
-            productCode: 'NKLEO-PL-BROWN',
-            model: 'Leo',
-            specifications: 'Ergonomic design, weather-resistant plastic, stackable',
+            productCode: 'NKLEO-PL-BROWN-SET4',
+            model: 'Leo Plastic Chair',
+            specifications: 'High-grade plastic construction, UV stabilized, Ergonomic design, Stackable up to 20 pieces, Weight capacity: 100kg, Dimensions: 45x52x80cm',
             countryOfSource: 'India',
             hsnCode: '94037000',
-            certifications: [],
-            warrantyPeriod: '1 year',
+            certifications: ['ISI Mark', 'BIS Certified'],
+            warrantyPeriod: '1 year against manufacturing defects',
             licenses: [],
-            brochureUrl: null,
-            videoUrl: null,
-            images: ['https://example.com/nilkamalchair.jpg'],
-            tags: ['chair', 'nilkamal', 'furniture'],
-            keywords: ['Plastic Chair', 'Nilkamal Leo'],
+            brochureUrl: '',
+            videoUrl: '',
+            images: [
+                'https://www.nilkamal.com/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/n/i/nilkamal-leo-chair-brown_1.jpg',
+                'https://m.media-amazon.com/images/I/61LqGN8KGYL._SL1500_.jpg',
+                'https://www.nilkamal.com/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/n/i/nilkamal-leo-chair-brown_2.jpg'
+            ],
+            tags: ['chair', 'nilkamal', 'furniture', 'plastic', 'stackable'],
+            keywords: ['Plastic Chair', 'Nilkamal Leo', 'outdoor furniture', 'stackable chair'],
+            agreedToTerms: true
         },
         {
-            name: 'Prestige IRIS 750W Mixer Grinder',
-            description: 'The Prestige IRIS mixer grinder comes with 3 stainless steel jars and 1 juicer jar, featuring a powerful motor and elegant design for modern kitchens.',
-            price: 49.99,
+            name: 'Prestige IRIS 750W Mixer Grinder (White/Blue) - 4 Jars with Juicer Attachment',
+            description: 'Revolutionize your kitchen with the Prestige IRIS 750W Mixer Grinder, designed for modern Indian kitchens. Features powerful 750W motor with overload protection, 4 stainless steel jars including dedicated juicer jar, and ergonomic design with easy-grip handles. The advanced blade system ensures efficient grinding, mixing, and juicing. Includes warranty and superior build quality that Prestige is known for.',
+            price: 89.99,
             currency: 'USD',
             quantity: 150,
             minimumOrderQuantity: 1,
+            deliveryTimeInDays: 3,
+            logisticsSupport: 'BOTH',
             listingType: 'SELL',
             condition: 'NEW',
             validityPeriod: 365,
             industry: 'Kitchen Appliances',
             category: 'Mixers & Grinders',
-            productCode: 'PRIRIS750W',
+            productCode: 'PRIRIS750W-4JAR',
             model: 'IRIS 750W',
-            specifications: '750W motor, 3 SS jars + 1 juicer jar, overload protection',
+            specifications: '750W powerful motor, 4 stainless steel jars (1.5L, 1.0L, 0.4L grinding, 1.0L juicer), Overload protection, Speed control, Ergonomic handles, Non-slip base',
             countryOfSource: 'India',
             hsnCode: '85094010',
-            certifications: ['ISI'],
-            warrantyPeriod: '2 years',
+            certifications: ['ISI Mark', 'CE Certified', 'RoHS Compliant'],
+            warrantyPeriod: '2 years motor warranty, 1 year complete product warranty',
             licenses: [],
-            brochureUrl: null,
-            videoUrl: null,
-            images: ['https://example.com/prestigeiris.jpg'],
-            tags: ['mixer', 'grinder', 'kitchen'],
-            keywords: ['Prestige Mixer', 'IRIS 750W'],
+            brochureUrl: '',
+            videoUrl: '',
+            images: [
+                'https://www.prestigeonline.co.in/media/catalog/product/cache/1/image/1200x/9df78eab33525d08d6e5fb8d27136e95/i/r/iris_750w_mixer_grinder_1.jpg',
+                'https://m.media-amazon.com/images/I/81KhYL0RTNL._SL1500_.jpg',
+                'https://www.prestigeonline.co.in/media/catalog/product/cache/1/image/1200x/9df78eab33525d08d6e5fb8d27136e95/i/r/iris_750w_mixer_grinder_2.jpg'
+            ],
+            tags: ['mixer', 'grinder', 'kitchen', 'prestige', 'appliance'],
+            keywords: ['Prestige Mixer', 'IRIS 750W', 'mixer grinder', 'kitchen appliance'],
+            agreedToTerms: true
         }
     ];
 
-    for (const product of products) {
-        await prisma.product.create({
-            data: {
-                ...product,
-                sellerId: seller.id, // Use seller.id instead of SELLERID
-                status: 'APPROVED',
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            },
-        });
+    // Validate and insert products using the schema
+    for (const productData of products) {
+        try {
+            // Validate product data against schema
+            const validatedProduct = productSchema.parse(productData);
+
+            await prisma.product.create({
+                data: {
+                    ...validatedProduct,
+                    sellerId: seller.id,
+                    status: 'APPROVED',
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    slug: validatedProduct.name
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/(^-|-$)+/g, ''),
+                },
+            });
+
+            console.log(`✅ Successfully inserted product: ${validatedProduct.name}`);
+        } catch (error) {
+            console.error(`❌ Error inserting product ${productData.name}:`, error);
+        }
     }
 
+    console.log('🎉 Seeding completed successfully!');
 }
 
 main()
