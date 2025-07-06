@@ -8,12 +8,39 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Eye, Check, X, Building, User, Calendar, DollarSign, Package, MessageSquare, Search, RefreshCw, AlertCircle, CheckCircle, TrendingUp, Clock } from 'lucide-react';
 import { formatDate, formatPrice } from '@/src/lib/listing-formatter';
-import { Listing } from '@/src/lib/types/listing';
 import useListing from './useListing';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs } from '@radix-ui/react-tabs';
 import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
+interface Listing {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  quantity: number;
+  status: 'PENDING' | 'ACTIVE' | 'REJECTED';
+  seller: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    businessName: string;
+  };
+  _count: {
+    rfqs: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Stats {
+  pending: number;
+  active: number;
+  rejected: number;
+  total: number;
+}
 
 const ListingsManagement = () => {
   const {
