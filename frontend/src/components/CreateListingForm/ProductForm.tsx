@@ -41,8 +41,6 @@ import {
     ReviewSubmitStep
 } from './index'
 
-import { htmlToText } from './RichTextEditor';
-
 // Form steps configuration with icons
 const STEP_ICONS = [Package, DollarSign, Truck, FileText, ImageIcon, Tag, Check];
 

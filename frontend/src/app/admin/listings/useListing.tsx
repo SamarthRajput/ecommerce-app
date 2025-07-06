@@ -1,12 +1,39 @@
 // src/app/admin/listings/useListing.tsx
 import { useAuth } from '@/src/context/AuthContext';
-import { Listing, Stats } from '@/src/lib/types/listing';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react'
 import { useCallback } from 'react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1';
 
+interface Listing {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    quantity: number;
+    status: 'PENDING' | 'ACTIVE' | 'REJECTED';
+    seller: {
+        id: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+        businessName: string;
+    };
+    _count: {
+        rfqs: number;
+    };
+    createdAt: string;
+    updatedAt: string;
+}
+
+interface Stats {
+    pending: number;
+    active: number;
+    rejected: number;
+    total: number;
+}
+  
 interface Toast {
     id: string;
     message: string;
