@@ -8,7 +8,7 @@ listingRouter.get('/active', async (req: Request, res: Response) => {
     try {
         const activeListings = await prisma.product.findMany({
             where: {
-                status: "ACTIVE"
+                status: "APPROVED"
             },
             include: {
                 seller: {

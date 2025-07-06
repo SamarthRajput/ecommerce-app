@@ -439,10 +439,10 @@ export const editListing = async (req: AuthenticatedRequest, res: Response) => {
         const updatedListing = await prisma.product.update({
             where: { id: listingId },
             data: {
-                listingType,
+                listingType: "SELL", // Assuming listingType is always 'SELL' for now
                 industry,
                 category,
-                condition,
+                condition: "USED", // Assuming condition is always 'USED' for now
                 productCode,
                 name: productName,
                 description,
@@ -504,9 +504,6 @@ export const toggleListingStatus = async (req: AuthenticatedRequest, res: Respon
             case 'deactivate':
                 updatedStatus = "INACTIVE";
                 break;
-            case 'activate':
-                updatedStatus = "ACTIVE";
-                break;
             case 'archive':
                 updatedStatus = "ARCHIVED";
                 break;
@@ -552,7 +549,7 @@ export const getDashboardStats = async (req: AuthenticatedRequest, res: Response
 
         // Get active listings
         const activeListings = await prisma.product.count({
-            where: { sellerId, status: 'ACTIVE' }
+            where: { sellerId, status: 'APPROVED' }
         });
 
         // Get inactive listings
@@ -570,14 +567,14 @@ export const getDashboardStats = async (req: AuthenticatedRequest, res: Response
             _sum: {
                 price: true
             },
-            where: { sellerId, status: 'ACTIVE' }
+            where: { sellerId, status: 'APPROVED' }
         });
 
         const totalListingsWithStatus = await prisma.product.count({
             where: {
                 sellerId,
                 status: {
-                    in: ['ACTIVE', 'INACTIVE', 'ARCHIVED']
+                    in: ['APPROVED', 'INACTIVE', 'ARCHIVED']
                 }
             }
         });
@@ -946,10 +943,10 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
             data: {
                 sellerId,
                 slug,
-                listingType,
+                listingType: "SELL",
                 industry,
                 category,
-                condition,
+                condition: "USED",
                 productCode,
                 name: productName,
                 description,

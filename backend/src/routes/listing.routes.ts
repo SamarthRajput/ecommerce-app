@@ -1,8 +1,7 @@
 import { Request, Response, Router } from "express";
-// Define ProductStatus enum locally since it's not exported from @prisma/client
 enum ProductStatus {
     PENDING = "PENDING",
-    ACTIVE = "ACTIVE",
+    APPROVED = "APPROVED",
     REJECTED = "REJECTED"
 }
 import { requireAdmin } from "../middlewares/authAdmin";
@@ -63,7 +62,7 @@ listingRouter.get('/active', async (req: Request, res: Response) => {
     try {
         const activeListings = await prisma.product.findMany({
             where: {
-                status: ProductStatus.ACTIVE
+                status: ProductStatus.APPROVED
             },
             include: {
                 seller: {
@@ -137,7 +136,7 @@ listingRouter.post('/approve/:id', async (req: Request, res: Response) => {
 
         const approvedListing = await prisma.product.update({
             where: { id },
-            data: { status: ProductStatus.ACTIVE }
+            data: { status: ProductStatus.APPROVED }
         });
 
         console.log(`Listing with ID: ${id} approved successfully`);
@@ -236,8 +235,8 @@ listingRouter.get('/category/:category', async (req: Request, res: Response) => 
         const listings = await prisma.product.findMany({
             where: {
                 category: category,
-                status: ProductStatus.ACTIVE
-            }, // Filter by category and active status
+                status: "APPROVED"
+            }, // Filter by category and approved status
             include: {
                 seller: {
                     select: {

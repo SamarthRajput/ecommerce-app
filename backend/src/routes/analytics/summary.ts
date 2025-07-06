@@ -38,7 +38,7 @@ summaryRouter.get("/", apiLimiter, async (req: Request, res: Response) => {
             }),
             prisma.product.count({
                 where: {
-                    status: "ACTIVE"
+                    status: "APPROVED"
                 }
             }),
             prisma.product.count({
