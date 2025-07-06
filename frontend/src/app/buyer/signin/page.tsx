@@ -67,13 +67,10 @@ const BuyerLogin = () => {
       // Store token in localStorage
       localStorage.setItem('buyerToken', data.token);
       localStorage.setItem('buyerId', data.buyer._id);
-
-      setTimeout(async () => {
-        await refetch();
+      if(response.ok){
+        refetch(); 
         router.push('/buyer/dashboard');
-      }, 100);
-      // refetch(); 
-      // router.push('/buyer/dashboard');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {

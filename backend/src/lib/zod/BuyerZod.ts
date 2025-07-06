@@ -19,15 +19,17 @@ export const signinSchema = z.object({
     email: z.string().email(),
     password: z.string().min(8)
 });
+
 // Buyer update schemas
 export const updateProfileSchema = z.object({
-    email: z.string().email().optional(),
     password: z.string().min(8).optional(),
-    name: z.string().optional(),
+    firstName: z.string().min(1).optional(),
+    lastName: z.string().min(1).optional(),
     phoneNumber: z.string().min(10).optional(),
-    state: z.string().optional(),
-    city: z.string().optional(),
-    zipCode: z.string().optional(),
-    country: z.string().optional()
-})
+    street: z.string().min(1).optional(),
+    state: z.string().min(1).optional(),
+    city: z.string().min(1).optional(),
+    zipCode: z.string().min(1).optional(),
+    country: z.string().min(1).optional()
+});
 

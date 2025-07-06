@@ -37,7 +37,7 @@ const BuyerSignUp = () => {
     const [loading, setLoading] = useState(false);
     const [verifying, setVerifying] = useState(true);
     const router = useRouter();
-    const { authenticated, isBuyer } = useAuth();
+    const { authenticated, isBuyer, refetch } = useAuth();
 
     // Check if user is already logged in
     useEffect(() => {
@@ -119,9 +119,11 @@ const BuyerSignUp = () => {
             // Store the token and redirect
             localStorage.setItem('buyerToken', data.token);
             localStorage.setItem('buyerId', data.buyer._id);
-
-            // Redirect to products page
-            router.push('/products');
+            if(response.ok){
+                refetch();
+                // Redirect to products page
+                router.push('/products');
+            }
 
         } catch (error) {
             setErrors({

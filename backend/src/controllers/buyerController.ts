@@ -8,6 +8,7 @@ import { AuthenticatedRequest } from "../middlewares/authBuyer";
 import { JWT_SECRET } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
 
+// POST /api/v1/buyer/signup
 export const signupBuyer = async (req: Request, res: Response) => {
     const body = req.body;
 
@@ -64,7 +65,7 @@ export const signupBuyer = async (req: Request, res: Response) => {
     }
 };
 
-// Signin buyer
+// POST /api/v1/buyer/signin
 export const signinBuyer = async (req: Request, res: Response) => {
     const body = req.body;
     const { success } = signinSchema.safeParse(body);
@@ -134,6 +135,7 @@ export const signinBuyer = async (req: Request, res: Response) => {
 }
 
 // Get buyer profile
+// GET /api/v1/buyer/profile
 export const getBuyerProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const buyerId = req.buyer?.buyerId;
@@ -193,8 +195,8 @@ export const getBuyerProfile = async (req: AuthenticatedRequest, res: Response) 
 };
 
 // Update buyer profile
+// PUT - /api/v1/buyer/update
 export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Response) => {
-
     try {
         const buyerId = req.buyer?.buyerId;
 
@@ -204,13 +206,15 @@ export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Respons
             });
             return;
         }
+        
         const body = req.body;
+        
         // Validate request body
-        const { success } = updateProfileSchema.safeParse(body);
+        const { success, data } = updateProfileSchema.safeParse(body);
 
         if (!success) {
-            res.status(401).json({
-                error: "Wrong Inputs"
+            res.status(400).json({
+                error: "Invalid input data"
             });
             return;
         }
@@ -221,49 +225,51 @@ export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Respons
                 id: buyerId
             }
         });
+        
         if (!existingBuyer) {
-            res.status(401).json({
-                error: "Buyer doesnt exist"
+            res.status(404).json({
+                error: "Buyer not found"
             });
             return;
         }
 
-        // Update buyer profile
-        const updateBuyer = await prisma.buyer.update({
+        // Update buyer profile - only update fields that are provided
+        const updateData: any = {};
+        
+        if (data.firstName) updateData.firstName = data.firstName;
+        if (data.lastName) updateData.lastName = data.lastName;
+        if (data.phoneNumber) updateData.phoneNumber = data.phoneNumber;
+        if (data.street) updateData.street = data.street;
+        if (data.state) updateData.state = data.state;
+        if (data.city) updateData.city = data.city;
+        if (data.zipCode) updateData.zipCode = data.zipCode;
+        if (data.country) updateData.country = data.country;
+        
+        const updatedBuyer = await prisma.buyer.update({
             where: { id: buyerId },
-            data: {
-                firstName: body.firstName,
-                lastName: body.lastName,
-                phoneNumber: body.phoneNumber,
-                street: body.street,
-                state: body.state,
-                city: body.city,
-                zipCode: body.zipCode,
-                country: body.country
-            }
+            data: updateData
         });
 
         res.json({
-            message: "Profile Updated successfully",
+            message: "Profile updated successfully",
             buyer: {
-                id: updateBuyer.id,
-                email: updateBuyer.email,
-                firstName: updateBuyer.firstName,
-                lastName: updateBuyer.lastName,
-                phoneNumber: updateBuyer.phoneNumber,
-                street: updateBuyer.street,
-                state: updateBuyer.state,
-                city: updateBuyer.city,
-                zipCode: updateBuyer.zipCode,
-                country: updateBuyer.country
+                id: updatedBuyer.id,
+                email: updatedBuyer.email,
+                firstName: updatedBuyer.firstName,
+                lastName: updatedBuyer.lastName,
+                phoneNumber: updatedBuyer.phoneNumber,
+                street: updatedBuyer.street,
+                state: updatedBuyer.state,
+                city: updatedBuyer.city,
+                zipCode: updatedBuyer.zipCode,
+                country: updatedBuyer.country
             }
         });
-    }
-    catch (error) {
+    } catch (error) {
         console.log(error);
-        res.status(501).json({
-            message: "Server error"
-        })
+        res.status(500).json({
+            error: "Internal server error"
+        });
     }
 };
 
