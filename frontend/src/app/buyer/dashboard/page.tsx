@@ -124,36 +124,18 @@ const EnhancedBuyerDashboard = () => {
 
     // State and handlers for profile editing
     const [isEditing, setIsEditing] = useState(false);
-    const [profileForm, setProfileForm] = useState<any>(buyer);
+    const [profileForm, setProfileForm] = useState({
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+        street: '',
+        state: '',
+        city: '',
+        zipCode: '',
+        country: ''
+    });
     const [profileLoading, setProfileLoading] = useState(false);
     const [profileError, setProfileError] = useState('');
-
-    const handleUpdateProfile = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setProfileLoading(true);
-        setProfileError('');
-        try {
-            const response = await fetch(`${API_BASE_URL}/profile`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify(profileForm)
-            });
-            if (response.ok) {
-                toast.success('Profile updated!');
-                fetchProfile();
-                setIsEditing(false);
-            } else {
-                setProfileError('Failed to update profile');
-            }
-        } catch (err) {
-            setProfileError('Failed to update profile');
-        } finally {
-            setProfileLoading(false);
-        }
-    };
 
     useEffect(() => {
         if (!isBuyer && !user) {
@@ -164,6 +146,85 @@ const EnhancedBuyerDashboard = () => {
         initializeDashboard();
     }, [user, isBuyer]);
 
+    // Fetch buyer profile
+    const fetchProfile = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/profile`, {
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setBuyer(data.buyer);
+                // Initialize profileForm with the current buyer data
+                setProfileForm({
+                    firstName: data.buyer.firstName || '',
+                    lastName: data.buyer.lastName || '',
+                    phoneNumber: data.buyer.phoneNumber || '',
+                    street: data.buyer.street || '',
+                    state: data.buyer.state || '',
+                    city: data.buyer.city || '',
+                    zipCode: data.buyer.zipCode || '',
+                    country: data.buyer.country || ''
+                });
+            } else {
+                throw new Error('Failed to fetch profile');
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+            toast.error('Failed to load profile');
+        }
+    };
+
+    // Update buyer profile
+    const handleUpdateProfile = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setProfileLoading(true);
+        setProfileError('');
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/update`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    firstName: profileForm.firstName,
+                    lastName: profileForm.lastName,
+                    phoneNumber: profileForm.phoneNumber,
+                    street: profileForm.street,
+                    state: profileForm.state,
+                    city: profileForm.city,
+                    zipCode: profileForm.zipCode,
+                    country: profileForm.country
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                toast.success(data.message || 'Profile updated successfully!');
+                
+                // Update the buyer state with the new data
+                setBuyer(data.buyer);
+                setProfileForm(data.buyer);
+                setIsEditing(false);
+            } else {
+                const errorData = await response.json();
+                setProfileError(errorData.error || 'Failed to update profile');
+                toast.error(errorData.error || 'Failed to update profile');
+            }
+        } catch (err) {
+            const errorMessage = 'Failed to update profile. Please try again.';
+            setProfileError(errorMessage);
+            toast.error(errorMessage);
+            console.error('Profile update error:', err);
+        } finally {
+            setProfileLoading(false);
+        }
+    };
+
+    // Initialize Buyer Dashboard 
     const initializeDashboard = async () => {
         try {
             setDashboardLoading(true);
@@ -183,52 +244,7 @@ const EnhancedBuyerDashboard = () => {
         }
     };
 
-    const fetchProfile = async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/profile`, {
-                credentials: 'include'
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setBuyer(data.buyer);
-                setProfileForm(data.buyer);
-            } else {
-                throw new Error('Failed to fetch profile');
-            }
-        } catch (error) {
-            console.error('Error fetching profile:', error);
-            toast.error('Failed to load profile');
-        }
-    };
-
-    // const fetchDashboardStats = async () => {
-    //     try {
-    //         const response = await fetch(`${API_BASE_URL}/dashboard-stats`, {
-    //             credentials: 'include'
-    //         });
-
-    //         if (response.ok) {
-    //             const data = await response.json();
-    //             setDashboardStats(data.stats);
-    //         } else {
-    //             // Mock data for development
-    //             setDashboardStats({
-    //                 totalRFQs: 15,
-    //                 pendingRFQs: 3,
-    //                 activeOrders: 5,
-    //                 completedOrders: 12,
-    //                 totalSpend: 28750,
-    //                 monthlySpend: 6250,
-    //                 favoriteCategories: ['Industrial Equipment', 'Raw Materials', 'Electronics'],
-    //                 recentActivity: 8
-    //             });
-    //         }
-    //     } catch (error) {
-    //         console.error('Error fetching dashboard stats:', error);
-    //     }
-    // };
-
+    // Fetch Buyer rfqs 
     const fetchRFQs = async () => {
         const buyerId = buyer?.id;
         try {
@@ -259,6 +275,35 @@ const EnhancedBuyerDashboard = () => {
             setLoading(false);
         }
     };
+
+
+    // const fetchDashboardStats = async () => {
+    //     try {
+    //         const response = await fetch(`${API_BASE_URL}/dashboard-stats`, {
+    //             credentials: 'include'
+    //         });
+
+    //         if (response.ok) {
+    //             const data = await response.json();
+    //             setDashboardStats(data.stats);
+    //         } else {
+    //             // Mock data for development
+    //             setDashboardStats({
+    //                 totalRFQs: 15,
+    //                 pendingRFQs: 3,
+    //                 activeOrders: 5,
+    //                 completedOrders: 12,
+    //                 totalSpend: 28750,
+    //                 monthlySpend: 6250,
+    //                 favoriteCategories: ['Industrial Equipment', 'Raw Materials', 'Electronics'],
+    //                 recentActivity: 8
+    //             });
+    //         }
+    //     } catch (error) {
+    //         console.error('Error fetching dashboard stats:', error);
+    //     }
+    // };
+
 
     // const fetchOrders = async () => {
     //     try {
