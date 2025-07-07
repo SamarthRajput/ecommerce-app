@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import bcrypt from "bcryptjs";
+import { AuthenticatedRequest } from "../middlewares/authSeller";
 
 // POST /rfq
 export const createRFQ = async (req: Request, res: Response) => {
@@ -201,11 +202,11 @@ export const getPendingRFQs = async (req: Request, res: Response) => {
   }
 };
 
-// GET /rfq/approved - Get all approved RFQs
-export const getApprovedRFQs = async (req: Request, res: Response) => {
+// GET /rfq/forwarded - Get all forwarded RFQs
+export const getForwardedRFQs = async (req: Request, res: Response) => {
   try {
-    const approvedRFQs = await prisma.rFQ.findMany({
-      where: { status: "APPROVED" },
+    const forwardedRFQs = await prisma.rFQ.findMany({
+      where: { status: "FORWARDED" },
       include: {
         product: {
           include: {
@@ -220,12 +221,12 @@ export const getApprovedRFQs = async (req: Request, res: Response) => {
     });
 
     const count = await prisma.rFQ.count({
-      where: { status: "APPROVED" }
+      where: { status: "FORWARDED" }
     });
 
     res.status(200).json({
       success: true,
-      data: approvedRFQs,
+      data: forwardedRFQs,
       count
     });
   } catch (error) {
@@ -238,17 +239,8 @@ export const getApprovedRFQs = async (req: Request, res: Response) => {
 };
 
 // POST /rfq/forward/:id?sellerId=xxx
-export const forwardRFQ = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { sellerId, isUpdatedByAdmin = false } = req.query;
-
-  if (!sellerId || typeof sellerId !== "string") {
-    res.status(400).json({
-      success: false,
-      error: "Missing or invalid sellerId"
-    });
-    return;
-  }
+export const forwardRFQ = async (req: AuthenticatedRequest, res: Response) => {
+  const { id, isUpdatedByAdmin = false } = req.params;
 
   try {
     // 1. Check RFQ exists
@@ -268,12 +260,15 @@ export const forwardRFQ = async (req: Request, res: Response) => {
       return;
     }
 
+    // get seller id from product of rfq
+    const sellerId = rfq.product.sellerId;
+
     // 2. Check if already forwarded to this seller
     const existingForward = await prisma.rFQForward.findUnique({
       where: {
         rfqId_sellerId: {
           rfqId: id,
-          sellerId
+          sellerId: sellerId
         }
       }
     });
@@ -299,12 +294,12 @@ export const forwardRFQ = async (req: Request, res: Response) => {
     const forwardRecord = await prisma.rFQForward.create({
       data: {
         rfqId: id,
-        sellerId,
+        sellerId: sellerId,
         isUpdatedByAdmin: isUpdatedByAdmin === 'true', // Convert string to boolean
         forwardedAt: new Date()
       }
     });
-    
+
     res.status(200).json({
       success: true,
       data: {

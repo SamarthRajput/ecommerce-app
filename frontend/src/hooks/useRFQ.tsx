@@ -97,7 +97,7 @@ const useRFQ = () => {
 
     const fetchApprovedRFQs = useCallback(async (): Promise<void> => {
         try {
-            const data: ApiResponse = await apiCall('/rfq/approved');
+            const data: ApiResponse = await apiCall('/rfq/forwarded');
 
             if (data.success) {
                 setActiveRFQs(data.data);
@@ -114,12 +114,10 @@ const useRFQ = () => {
     const approveRFQ = async (rfqId: string): Promise<void> => {
         setProcessingAction(rfqId);
         try {
+            
             const data = await apiCall(`/rfq/forward/${rfqId}`, {
                 method: 'POST',
             });
-            if (!data.success) {
-                throw new Error(data.error || 'Failed to approve RFQ');
-            }
 
             if (data.success) {
                 // Remove from pending list and update stats
@@ -141,7 +139,7 @@ const useRFQ = () => {
             }
         } catch (error) {
             console.error('Error approving RFQ:', error);
-            addToast(`${error}`, 'error');
+            addToast(`${error} aa gaya bhai`, 'error');
         } finally {
             setProcessingAction(null);
         }

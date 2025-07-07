@@ -1,6 +1,6 @@
 import express from 'express';
 import { requireBuyer } from '../middlewares/authBuyer';
-import { createRFQ, forwardRFQ, getApprovedRFQs, getPendingRFQs, getRFQsByBuyer, getRFQStats, getSellerForwardedRFQs, rejectRFQ } from '../controllers/rfq.controller';
+import { createRFQ, forwardRFQ, getForwardedRFQs, getPendingRFQs, getRFQsByBuyer, getRFQStats, getSellerForwardedRFQs, rejectRFQ } from '../controllers/rfq.controller';
 import { requireAdmin } from '../middlewares/authAdmin';
 import { requireAuth } from '../middlewares/requireAuth';
 
@@ -17,8 +17,8 @@ rfqRouter.get('/buyer/:buyerId', requireBuyer, getRFQsByBuyer);
 
 // Admin routes
 rfqRouter.get('/pending', requireAdmin, getPendingRFQs);
-rfqRouter.get('/approved', requireAdmin, getApprovedRFQs);
-rfqRouter.post('/forward/:id', requireAdmin, forwardRFQ); // Changed from approveRFQ to forwardrFQ
+rfqRouter.get('/forwarded', requireAdmin, getForwardedRFQs);
+rfqRouter.post('/forward/:id', requireAdmin, forwardRFQ); // Changed from approveRFQ to forwardRFQ
 rfqRouter.post('/reject/:id', requireAdmin, rejectRFQ);
 rfqRouter.get('/stats', requireAdmin, getRFQStats);
 
