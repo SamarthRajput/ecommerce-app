@@ -353,7 +353,21 @@ export const resetSellerPassword = async (req: Request, res: Response) => {
             }
         });
 
-        // Notify Seller that password 
+        // Notify Seller that password has been reset via email
+        const transporter = nodemailer.createTransport({
+            service: 'Gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            },
+        });
+        const info = await transporter.sendMail({
+            from: '"TradeConnect"',
+            to: seller.email,
+            subject: 'Your Password Has Been Reset',
+            text: `Your password has been reset successfully. If you did not request this, please contact support.`,
+            html: `<p>Your password has been reset successfully. If you did not request this, please contact support.</p>`,
+        });
 
         res.status(200).json({ message: 'Password has been reset successfully' });
 
