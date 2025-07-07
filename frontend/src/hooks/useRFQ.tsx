@@ -114,7 +114,7 @@ const useRFQ = () => {
     const approveRFQ = async (rfqId: string): Promise<void> => {
         setProcessingAction(rfqId);
         try {
-            const data = await apiCall(`/rfq/approve/${rfqId}`, {
+            const data = await apiCall(`/rfq/forward/${rfqId}`, {
                 method: 'POST',
             });
 

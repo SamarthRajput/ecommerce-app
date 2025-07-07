@@ -42,9 +42,10 @@ enum LogisticsType {
 }
 
 enum RFQStatus {
-  PENDING
-  APPROVED
-  REJECTED
+  PENDING         // Buyer submitted
+  FORWARDED       // Admin reviewed and forwarded to seller
+  REJECTED        // Admin rejected
+  APPROVED        // Seller accepted and RFQ is confirmed
 }
 
 enum TradeStatus {
@@ -153,6 +154,7 @@ model Seller {
 
   product         Product[]
   chatRooms       ChatRoom[]
+  rfqForwards     RFQForward[]
   trades          Trade[]      @relation("SellerTrades")
 
   createdAt       DateTime     @default(now())
@@ -223,10 +225,26 @@ model RFQ {
   reviewedAt  DateTime?
   trade      Trade?
 
+  forwardedToSellers RFQForward[]
   chatRooms  ChatRoom[]
 
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
+}
+
+model RFQForward {
+  id              String   @id @default(uuid())
+
+  rfqId           String
+  rfq             RFQ      @relation(fields: [rfqId], references: [id])
+
+  sellerId        String
+  seller          Seller   @relation(fields: [sellerId], references: [id])
+
+  isUpdatedByAdmin Boolean  @default(false)
+  forwardedAt      DateTime @default(now())
+
+  @@unique([rfqId, sellerId]) // prevent duplicate forward
 }
 
 model Trade {
