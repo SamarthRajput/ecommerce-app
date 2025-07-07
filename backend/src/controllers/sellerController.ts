@@ -15,6 +15,8 @@ export const upload = multer({ storage });
 import validator from 'validator';
 import { uploadImageToCloudinary } from "../utils/uploadImageToCloudinary";
 import slugify from "slugify";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 // Sign up seller
 export const signupSeller = async (req: Request, res: Response) => {
@@ -241,6 +243,126 @@ export const signinSeller = async (req: Request, res: Response) => {
     }
 }
 
+// Forgot password
+export const forgotSellerPassword = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            res.status(400).json({ error: 'Email is required' });
+            return;
+        }
+
+        // Find seller by email
+        const seller = await prisma.seller.findUnique({
+            where: { email }
+        });
+
+        if (!seller) {
+            res.status(204).json({ message: 'Reset password link sent to your email if it exists in our records' });
+            return;
+        }
+        // Generate Token
+
+        const resetPasswordToken = crypto.randomBytes(32).toString('hex');
+        const resetPasswordUrl = `${process.env.FRONTEND_URL}/seller/reset-password?token=${resetPasswordToken}`;
+        const hashedToken = crypto.createHash('sha256').update(resetPasswordToken).digest('hex');
+        try {
+            await prisma.seller.update({
+                where: { id: seller.id },
+                data: {
+                    resetToken: hashedToken,
+                    resetTokenExpiry: new Date(Date.now() + 10 * 60 * 1000)
+                }
+            });
+
+            const transporter = nodemailer.createTransport({
+                service: 'Gmail',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                },
+            });
+
+            const info = await transporter.sendMail({
+                from: '"Sam"',
+                to: seller.email,
+                subject: 'Reset Your Password',
+                text: `Click the link below to reset your password:\n\n` + `${resetPasswordUrl}`,
+                html: `<p>Click the link below to reset your password:</p><p><a href="${resetPasswordUrl}">Reset Password</a></p>`,
+            });
+            console.log('Email sent:', info.response);
+        } catch (error) {
+            console.error('Error updating seller with reset token:', error);
+            res.status(500).json({ error: 'Server error' });
+            return;
+        }
+        res.status(200).json({
+            message: 'Password reset link sent to your email',
+            email: seller.email
+        });
+        return;
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({ error: 'Server error' });
+        return;
+    }
+};
+
+// Reset seller password
+export const resetSellerPassword = async (req: Request, res: Response) => {
+    try {
+        const { token } = req.query;
+        const { newPassword } = req.body;
+
+        if (!token || typeof token !== 'string') {
+            console.log('Invalid or missing token:', token);
+            return res.status(400).json({ error: 'Invalid or missing token, please request a new password reset' });
+        }
+
+        if (!newPassword || newPassword.length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters' });
+        }
+
+        // Hash token to match with DB
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+        // Find seller with matching hashed token and valid expiry
+        const seller = await prisma.seller.findFirst({
+            where: {
+                resetToken: hashedToken,
+                resetTokenExpiry: {
+                    gte: new Date()
+                }
+            }
+        });
+
+        if (!seller) {
+            return res.status(400).json({ error: 'Invalid or expired token, please request a new password reset' });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password and clear reset token fields
+        await prisma.seller.update({
+            where: { id: seller.id },
+            data: {
+                password: hashedPassword,
+                resetToken: null,
+                resetTokenExpiry: null
+            }
+        });
+
+        // Notify Seller that password 
+
+        res.status(200).json({ message: 'Password has been reset successfully' });
+
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({ error: 'Server error. Please try again later.' });
+    }
+};
+
 // Update seller profile
 export const updateSellerProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -340,6 +462,8 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
         res.status(500).json({ error: 'Server error' });
     }
 }
+
+
 
 // Get Seller Listings
 export const getSellerListings = async (req: AuthenticatedRequest, res: Response) => {

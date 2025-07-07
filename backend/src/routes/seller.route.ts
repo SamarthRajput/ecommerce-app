@@ -1,27 +1,18 @@
 import { Request, Response, Router } from "express";
 import { AuthenticatedRequest, requireSeller } from "../middlewares/authSeller";
-import { createListing, editListing, getDashboardStats, getSellerListings, getSellerProfile, getSellerPublicProfile, getSellerRFQRequests, getSingleListingForEdit, signinSeller, signupSeller, toggleListingStatus, updateSellerProfile, upload, uploadDocuments } from "../controllers/sellerController";
+import { createListing, editListing, forgotSellerPassword, getDashboardStats, getSellerListings, getSellerProfile, getSellerPublicProfile, getSellerRFQRequests, getSingleListingForEdit, resetSellerPassword, signinSeller, signupSeller, toggleListingStatus, updateSellerProfile, upload, uploadDocuments } from "../controllers/sellerController";
 import { apiLimiter } from "../utils/rateLimit";
+import asyncHandler from "../utils/asyncHandler";
 
 export const sellerRouter = Router();
 
 // Base url: http://localhost:3001/api/v1/seller
 
-sellerRouter.get("/", (req: Request, res: Response) => {
-    res.send("Welcome to the Seller API");
-}
-);
 // Seller Authentication Routes
-// SignUp route
-sellerRouter.post("/signup",apiLimiter, async (req: Request, res: Response) => {
-    await signupSeller(req, res);
-});
-
-// signin route
-sellerRouter.post("/signin", apiLimiter, async (req: Request, res: Response) => {
-    console.log('Received login request:', req.body)
-    await signinSeller(req, res);
-});
+sellerRouter.post("/signup", apiLimiter, asyncHandler(signupSeller));
+sellerRouter.post("/signin", apiLimiter, asyncHandler(signinSeller));
+sellerRouter.post("/forgotPassword", apiLimiter, asyncHandler(forgotSellerPassword));
+sellerRouter.post("/resetPassword", apiLimiter, asyncHandler(resetSellerPassword));
 
 
 // Logout route

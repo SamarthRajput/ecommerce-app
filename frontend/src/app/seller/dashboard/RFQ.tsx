@@ -449,12 +449,12 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: RFQ[] }) => {
                             {selectedRFQ.status === 'FORWARDED' && (
                                 <div className="flex justify-end space-x-3 pt-4 border-t">
                                     <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50"
-                                        onClick={() => alert('Reject RFQ functionality not implemented yet')}>
+                                        onClick={() => alert('Reject RFQ functionality API Call not implemented yet')}>
                                         <X className="w-4 h-4 mr-2" />
                                         Reject RFQ
                                     </Button>
                                     <Button className="bg-green-600 hover:bg-green-700"
-                                        onClick={() => alert('Accept RFQ functionality not implemented yet')}>
+                                        onClick={() => alert('Accept RFQ functionality API call not implemented yet')}>
                                         <Check className="w-4 h-4 mr-2" />
                                         Accept RFQ
                                     </Button>

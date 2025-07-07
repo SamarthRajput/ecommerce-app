@@ -286,7 +286,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         
         if(!existingBuyer){
             res.status(404).json ({
-                message: "Buyer doesnot exists"
+                message: "Buyer does not exist"
             })
             return;
         }

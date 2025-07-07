@@ -31,8 +31,8 @@ interface LoginResponse {
 
 const SellerLogin = () => {
     const [formData, setFormData] = useState<LoginFormData>({
-        email: 'rohitkuyada@gmail.com',
-        password: '12345678'
+        email: '',
+        password: ''
     });
     const [error, setError] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
