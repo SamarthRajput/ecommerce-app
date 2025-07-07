@@ -425,7 +425,7 @@ const EnhancedProductsPage = () => {
                                 <ShoppingCart className="w-3 h-3 mr-1" />
                                 Quote
                             </Button>
-                            <Button
+                            {/* <Button
                                 variant="outline"
                                 size="sm"
                                 className="h-8 px-2"
@@ -440,7 +440,7 @@ const EnhancedProductsPage = () => {
                                 }}
                             >
                                 <MessageSquare className="w-3 h-3" />
-                            </Button>
+                            </Button> */}
                         </div>
                     </div>
                 </CardContent>

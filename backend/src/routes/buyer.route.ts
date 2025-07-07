@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { AuthenticatedRequest, requireBuyer } from "../middlewares/authBuyer";
-import { getBuyerProfile, signinBuyer, signupBuyer, updateBuyerProfile, verifyBuyerProfile } from "../controllers/buyerController";
+import { forgotPassword, getBuyerProfile, signinBuyer, signupBuyer, updateBuyerProfile, updatePassword } from "../controllers/buyerController";
 import { apiLimiter } from "../utils/rateLimit";
 
 export const buyerRouter = Router();
@@ -27,10 +27,14 @@ buyerRouter.put("/update", requireBuyer, async (req: AuthenticatedRequest, res: 
     await updateBuyerProfile(req, res);
 });
 
-// verify buyer details
-buyerRouter.get("/verify", requireBuyer, async (req: AuthenticatedRequest, res: Response) => {
-    await verifyBuyerProfile(req, res);
+buyerRouter.post("/forgotPassword", async (req: Request, res: Response) => {
+    await forgotPassword(req, res);
+});
+
+buyerRouter.post("/updatePassword", async (req: Request, res: Response) => {
+    await updatePassword(req, res);
 })
+
 
 
 buyerRouter.post("/logout", requireBuyer, (req, res) => {
