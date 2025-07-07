@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 
-export const ResetSellerPassword = () => {
+const ResetSellerPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
