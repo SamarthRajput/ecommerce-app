@@ -656,7 +656,7 @@ const EnhancedBuyerDashboard = () => {
             case 'rfqs':
                 return <OverviewTab buyerId={buyer?.id} />
             case 'orders':
-                return <OrdersDashboard />
+                return <div className="p-4 text-center text-gray-500">All Orders history - Coming soon</div>;
             case 'saved':
                 return <div className="p-4 text-center text-gray-500">Saved items - Coming soon</div>;
             case 'history':

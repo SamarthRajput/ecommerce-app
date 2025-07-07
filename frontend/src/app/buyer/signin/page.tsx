@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/context/AuthContext';
+import toast , { Toaster } from 'react-hot-toast';
 
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
 const API_BASE_URL = `${API_BACKEND_URL}/buyer`;
@@ -28,10 +29,10 @@ interface LoginResponse {
 
 const BuyerLogin = () => {
   const [formData, setFormData] = useState<LoginFormData>({
-    email: 'test@gmail.com',
-    password: '12345678',
+    email: '',
+    password: '',
   });
-  const [error, setError] = useState<string>('');
+
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
   const { refetch } = useAuth();
@@ -46,7 +47,6 @@ const BuyerLogin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
@@ -64,15 +64,11 @@ const BuyerLogin = () => {
         throw new Error(data.message || 'Login failed');
       }
 
-      // Store token in localStorage
-      localStorage.setItem('buyerToken', data.token);
-      localStorage.setItem('buyerId', data.buyer._id);
-      if(response.ok){
-        refetch(); 
-        router.push('/buyer/dashboard');
-      }
+      toast.success('Successfully signed in');
+      refetch(); 
+      router.push('/products');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      toast.error(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -111,12 +107,7 @@ const BuyerLogin = () => {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-              {error}
-            </div>
-          )}
-
+          
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">

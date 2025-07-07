@@ -549,10 +549,6 @@ const ProductPage = () => {
                                                 Request Quote
                                             </Button>
                                         </Link>
-                                        <Button variant="outline" className="w-full h-10 md:h-12">
-                                            <MessageSquare className="w-4 h-4 mr-2" />
-                                            Contact Seller
-                                        </Button>
                                     </div>
 
                                     {/* Trust indicators */}
