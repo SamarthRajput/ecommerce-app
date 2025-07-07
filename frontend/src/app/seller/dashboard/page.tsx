@@ -16,7 +16,7 @@ const EnhancedSellerDashboard = () => {
     } = useSellerDashboard();
 
     // Calculate pending RFQs count
-    const pendingRFQsCount = rfqRequests.filter(rfq => rfq.status === 'PENDING').length;
+    const pendingRFQsCount = rfqRequests.filter(rfq => rfq.status === 'FORWARDED').length;
 
     // Loading state component
     const LoadingSpinner = () => (

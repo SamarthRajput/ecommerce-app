@@ -75,7 +75,7 @@ interface RFQ {
     buyerId: string;
     quantity: number;
     message?: string;
-    status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+    status: 'FORWARDED';
     rejectionReason?: string;
     reviewedAt?: Date;
     createdAt: Date;

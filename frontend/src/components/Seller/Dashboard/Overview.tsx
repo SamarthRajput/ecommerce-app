@@ -61,7 +61,7 @@ interface RFQ {
     quantity: number;
     targetPrice?: number;
     urgency?: string;
-    status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+    status: 'FORWARDED';
     createdAt: Date | string;
     message?: string;
 }
@@ -118,7 +118,7 @@ const RenderOverview: React.FC<OverviewProps> = ({
     const router = useRouter();
 
     // Calculate derived metrics
-    const pendingRFQs = rfqRequests?.filter(rfq => rfq.status === 'PENDING') || [];
+    const pendingRFQs = rfqRequests?.filter(rfq => rfq.status === 'FORWARDED') || [];
     const recentRFQs = rfqRequests?.slice(0, 5) || [];
     const topListings = listings
         ?.sort((a, b) => (b.views + b.rfqCount * 5) - (a.views + a.rfqCount * 5))

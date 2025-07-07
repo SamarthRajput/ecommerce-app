@@ -28,7 +28,7 @@ interface RFQ {
     buyerId: string;
     quantity: number;
     message?: string;
-    status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+    status: 'FORWARDED';
     rejectionReason?: string;
     reviewedAt?: Date;
     createdAt: Date;
@@ -54,27 +54,6 @@ const parseMessage = (message?: string): ParsedMessage | string | null => {
     }
 };
 
-const STATUS_CONFIG = {
-    PENDING: {
-        color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-        icon: Clock,
-        label: 'Pending Review',
-        bgColor: 'bg-yellow-50'
-    },
-    ACCEPTED: {
-        color: 'bg-green-100 text-green-700 border-green-200',
-        icon: CheckCircle,
-        label: 'Accepted',
-        bgColor: 'bg-green-50'
-    },
-    REJECTED: {
-        color: 'bg-red-100 text-red-700 border-red-200',
-        icon: XCircle,
-        label: 'Rejected',
-        bgColor: 'bg-red-50'
-    }
-};
-
 const RFQComponent = ({ rfqRequests }: { rfqRequests: RFQ[] }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -85,12 +64,9 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: RFQ[] }) => {
     // Calculate statistics
     const stats = useMemo(() => {
         const total = rfqRequests.length;
-        const pending = rfqRequests.filter(rfq => rfq.status === 'PENDING').length;
-        const accepted = rfqRequests.filter(rfq => rfq.status === 'ACCEPTED').length;
-        const rejected = rfqRequests.filter(rfq => rfq.status === 'REJECTED').length;
-        const responseRate = total > 0 ? Math.round(((accepted + rejected) / total) * 100) : 0;
+        const forwarded = rfqRequests.filter(rfq => rfq.status === 'FORWARDED').length;
 
-        return { total, pending, accepted, rejected, responseRate };
+        return { total, forwarded };
     }, [rfqRequests]);
 
     // Filter and sort RFQs
@@ -151,69 +127,6 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: RFQ[] }) => {
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Refresh
                 </Button>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                            <MessageSquare className="w-5 h-5 text-blue-600" />
-                            <div>
-                                <p className="text-sm text-gray-600">Total RFQs</p>
-                                <p className="text-xl font-bold">{stats.total}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                            <Clock className="w-5 h-5 text-yellow-600" />
-                            <div>
-                                <p className="text-sm text-gray-600">Pending</p>
-                                <p className="text-xl font-bold text-yellow-600">{stats.pending}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                            <CheckCircle className="w-5 h-5 text-green-600" />
-                            <div>
-                                <p className="text-sm text-gray-600">Accepted</p>
-                                <p className="text-xl font-bold text-green-600">{stats.accepted}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                            <XCircle className="w-5 h-5 text-red-600" />
-                            <div>
-                                <p className="text-sm text-gray-600">Rejected</p>
-                                <p className="text-xl font-bold text-red-600">{stats.rejected}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-4">
-                        <div className="flex items-center space-x-2">
-                            <DollarSign className="w-5 h-5 text-purple-600" />
-                            <div>
-                                <p className="text-sm text-gray-600">Response Rate</p>
-                                <p className="text-xl font-bold text-purple-600">{stats.responseRate}%</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
 
             {/* Filters */}
@@ -297,7 +210,12 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: RFQ[] }) => {
             ) : (
                 <div className="space-y-4">
                     {filteredRFQs.map((rfq) => {
-                        const statusConfig = STATUS_CONFIG[rfq.status];
+                        const statusConfig = {
+                            color: 'bg-gray-100 text-gray-700 border-gray-200',
+                            icon: MessageSquare,
+                            label: 'Unknown',
+                            bgColor: 'bg-gray-50'
+                        };
                         const StatusIcon = statusConfig.icon;
                         const parsedMessage = parseMessage(rfq.message);
 
@@ -405,13 +323,16 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: RFQ[] }) => {
                                             </span>
                                         </div>
 
-                                        {rfq.status === 'PENDING' && (
+                                        {rfq.status === 'FORWARDED' && (
                                             <div className="flex space-x-2">
-                                                <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50">
+                                                <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50"
+                                                    onClick={() => handleViewDetails(rfq)}>
                                                     <Check className="w-4 h-4 mr-1" />
                                                     Accept
                                                 </Button>
-                                                <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
+                                                <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50"
+                                                    onClick={() => handleViewDetails(rfq)}
+                                                >
                                                     <X className="w-4 h-4 mr-1" />
                                                     Reject
                                                 </Button>
@@ -459,9 +380,8 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: RFQ[] }) => {
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500">Status</p>
-                                            <Badge className={STATUS_CONFIG[selectedRFQ.status].color}>
-                                                {STATUS_CONFIG[selectedRFQ.status].label}
-                                            </Badge>
+                                            <p className="font-medium">{selectedRFQ.status}</p>
+
                                         </div>
                                     </div>
                                 </div>
@@ -526,13 +446,15 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: RFQ[] }) => {
                             )}
 
                             {/* Actions */}
-                            {selectedRFQ.status === 'PENDING' && (
+                            {selectedRFQ.status === 'FORWARDED' && (
                                 <div className="flex justify-end space-x-3 pt-4 border-t">
-                                    <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
+                                    <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50"
+                                        onClick={() => alert('Reject RFQ functionality not implemented yet')}>
                                         <X className="w-4 h-4 mr-2" />
                                         Reject RFQ
                                     </Button>
-                                    <Button className="bg-green-600 hover:bg-green-700">
+                                    <Button className="bg-green-600 hover:bg-green-700"
+                                        onClick={() => alert('Accept RFQ functionality not implemented yet')}>
                                         <Check className="w-4 h-4 mr-2" />
                                         Accept RFQ
                                     </Button>

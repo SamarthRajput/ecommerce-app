@@ -523,7 +523,8 @@ export const getSellerRFQRequests = async (req: AuthenticatedRequest, res: Respo
         }
 
         const rfqRequests = await prisma.rFQ.findMany({
-            where: { product: { sellerId } },
+            where: { product: { sellerId }, status: 'FORWARDED' },
+            orderBy: { createdAt: 'desc' },
             include: { product: true }
         });
         // console.log(`RFQ requests for seller ${sellerId}:`, rfqRequests);
