@@ -35,8 +35,6 @@ buyerRouter.post("/updatePassword", async (req: Request, res: Response) => {
     await updatePassword(req, res);
 })
 
-
-
 buyerRouter.post("/logout", requireBuyer, (req, res) => {
     res.clearCookie("BuyerToken", {
         httpOnly: true,

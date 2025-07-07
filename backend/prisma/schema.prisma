@@ -118,6 +118,9 @@ model Seller {
   phone           String       @unique
   countryCode     String
 
+  resetToken          String? 
+  resetTokenExpiry    DateTime?
+
   role            String       @default("seller")
   isEmailVerified Boolean      @default(false)
   isPhoneVerified Boolean      @default(false) // for OTP logic
