@@ -12,6 +12,7 @@ import { useAuth } from '@/src/context/AuthContext';
 import { Seller, Listing, DashboardStats, RFQ } from '@/src/lib/types/seller/sellerDashboard';
 import ListingDashboard from '../components/Seller/Dashboard/ManageListing';
 import ChatDashboard from '../components/Seller/Dashboard/ChatDashboard';
+import Certifications from '../components/Seller/Dashboard/Certifications';
 
 // Constants
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
@@ -24,6 +25,7 @@ const NAVIGATION_ITEMS = [
     { id: 'listings', label: 'My Listings', icon: Package },
     { id: 'rfqs', label: 'RFQ Requests', icon: MessageSquare },
     { id: 'profile', label: 'Profile', icon: User },
+    { id: 'certifications', label: 'Certifications', icon: BarChart3 },
     { id: 'chats', label: 'Chats', icon: MessageCircle },
     { id: 'settings', label: 'Settings', icon: Settings },
 ] as const;
@@ -246,6 +248,9 @@ const useSellerDashboard = () => {
                     loading: profileLoading,
                     error: profileError
                 });
+
+            case 'certifications':
+                return <Certifications />;
 
             case 'chats':
                 return <ChatDashboard />;

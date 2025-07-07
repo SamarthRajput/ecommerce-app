@@ -308,8 +308,8 @@ export const ListingCard: React.FC<ListingCardProps> = ({
                                     {listing.category}
                                 </p>
                             </div>
-                            <Badge className={statusConfig.color}>
-                                {statusConfig.label}
+                            <Badge className={statusConfig?.color ?? ''}>
+                                {statusConfig?.label ?? listing.status}
                             </Badge>
                         </div>
 
