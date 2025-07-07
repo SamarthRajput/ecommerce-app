@@ -84,7 +84,7 @@ interface OverviewProps {
     rfqRequests: RFQ[];
     listings: Listing[];
     setCurrentView: React.Dispatch<React.SetStateAction<
-        'overview' | 'listings' | 'rfqs' | 'profile' | 'chats' | 'settings'
+        'overview' | 'listings' | 'rfqs' | 'profile' | 'certifications' | 'chats' | 'settings'
     >>;
 }
 
@@ -266,6 +266,54 @@ const RenderOverview: React.FC<OverviewProps> = ({
                 ))}
             </div>
 
+            {/*Quick action button above recent rFQ requests*/}
+            {/* Quick Actions */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <Button
+                            className="flex flex-col items-center justify-center gap-3 h-24 bg-orange-600 hover:bg-orange-700 text-white"
+                            onClick={() => router.push('/seller/create-listing')}
+                        >
+                            <Plus className="w-6 h-6" />
+                            <span className="text-sm font-medium">Add New Product</span>
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            className="flex flex-col items-center justify-center gap-3 h-24 hover:bg-orange-50 hover:border-orange-200"
+                            onClick={() => setCurrentView('rfqs')}
+                        >
+                            <MessageSquare className="w-6 h-6" />
+                            <span className="text-sm font-medium">
+                                Review RFQs ({pendingRFQs.length})
+                            </span>
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            className="flex flex-col items-center justify-center gap-3 h-24 hover:bg-blue-50 hover:border-blue-200"
+                            onClick={() => setCurrentView('listings')}
+                        >
+                            <Eye className="w-6 h-6" />
+                            <span className="text-sm font-medium">View Active Listings</span>
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            className="flex flex-col items-center justify-center gap-3 h-24 hover:bg-green-50 hover:border-green-200"
+                            onClick={() => setCurrentView('settings')}
+                        >
+                            <TrendingUp className="w-6 h-6" />
+                            <span className="text-sm font-medium">Upload Certificates</span>
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
             {/* Content Grid */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {/* Recent RFQ Requests */}
@@ -395,52 +443,7 @@ const RenderOverview: React.FC<OverviewProps> = ({
                 </Card>
             </div>
 
-            {/* Quick Actions */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Button
-                            className="flex flex-col items-center justify-center gap-3 h-24 bg-orange-600 hover:bg-orange-700 text-white"
-                            onClick={() => router.push('/seller/create-listing')}
-                        >
-                            <Plus className="w-6 h-6" />
-                            <span className="text-sm font-medium">Create Listing</span>
-                        </Button>
 
-                        <Button
-                            variant="outline"
-                            className="flex flex-col items-center justify-center gap-3 h-24 hover:bg-orange-50 hover:border-orange-200"
-                            onClick={() => setCurrentView('rfqs')}
-                        >
-                            <MessageSquare className="w-6 h-6" />
-                            <span className="text-sm font-medium">
-                                Review RFQs ({pendingRFQs.length})
-                            </span>
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            className="flex flex-col items-center justify-center gap-3 h-24 hover:bg-blue-50 hover:border-blue-200"
-                            onClick={() => setCurrentView('profile')}
-                        >
-                            <User className="w-6 h-6" />
-                            <span className="text-sm font-medium">Update Profile</span>
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            className="flex flex-col items-center justify-center gap-3 h-24 hover:bg-green-50 hover:border-green-200"
-                            onClick={() => setCurrentView('listings')}
-                        >
-                            <TrendingUp className="w-6 h-6" />
-                            <span className="text-sm font-medium">Manage Listings</span>
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     );
 };
