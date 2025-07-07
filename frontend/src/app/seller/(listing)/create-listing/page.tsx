@@ -3,6 +3,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ProductFormData } from '@/src/lib/types/listing';
 import ProductForm from '@/src/components/CreateListingForm/ProductForm';
+import { toast } from "sonner"
 
 export default function CreateListingPage() {
     const router = useRouter();
@@ -45,15 +46,16 @@ export default function CreateListingPage() {
 
             const result = await response.json();
             if (response.ok) {
-                alert(isDraft ? 'Product saved as draft!' : 'Product submitted for approval!');
-                router.push('/seller/listings');
+                // alert(isDraft ? 'Product saved as draft!' : 'Product submitted for approval!');
+                toast.success(isDraft ? 'Product saved as draft!' : 'Product submitted for approval!');
+                router.push('/seller/dashboard?tab=listings');
             } else {
-                alert(`Error: ${result.error || 'Unknown error'}`);
+                toast.error(`Error: ${result.error || 'Unknown error'}`);
                 throw new Error(`Failed to submit product: ${result.error || 'Unknown error'}`);
             }
         } catch (error) {
             console.error('Error submitting product:', error);
-            alert('Error submitting product. Please try again.');
+            toast.error('Error submitting product. Please try again.');
             throw error;
         }
     };
