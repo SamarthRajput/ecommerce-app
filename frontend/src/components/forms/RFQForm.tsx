@@ -43,13 +43,13 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
     // Memoized default values
     const defaultValues = useMemo<RFQFormSchema>(() => ({
         listingId,
-        quantity: 10,
-        currency: 'USD',
-        deliveryDate: '2024-01-01',
-        budget: 1000,
-        paymentTerms: '30 days after delivery',
-        specialRequirements: 'No special requirements',
-        additionalNotes: 'Please contact me for any clarifications.'
+        quantity: 0,
+        currency: '',
+        deliveryDate: '',
+        budget: 0,
+        paymentTerms: '',
+        specialRequirements: '',
+        additionalNotes: ''
     }), [listingId]);
 
     const {
@@ -82,7 +82,7 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
             };
             // alert('Submitting RFQ...');
             const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-            console.log(BASE_URL + "/rfq/create");
+            // console.log(BASE_URL + "/rfq/create");
             const response = await fetch(`${BASE_URL}/rfq/create`, {
                 method: 'POST',
                 credentials: 'include',
@@ -93,14 +93,14 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
             });
 
             if (!response.ok) {
-                alert(`Error: ${response.status} - ${response.statusText}`);
+                // alert(`Error: ${response.status} - ${response.statusText}`);
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to submit RFQ');
             }
-            alert('RFQ submitted successfully!');
+            // alert('RFQ submitted successfully!');
 
             const result = await response.json();
-            console.log('RFQ created:', result);
+            // console.log('RFQ created:', result);
 
             showSuccess('RFQ submitted successfully!');
             reset(); // Reset form after successful submission

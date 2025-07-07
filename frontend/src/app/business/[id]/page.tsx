@@ -387,7 +387,7 @@ const SellerPublicProfileComponent: React.FC = () => {
                         </Card>
 
                         {/* Contact Information */}
-                        <Card>
+                        {/* <Card>
                             <CardHeader>
                                 <CardTitle className="flex items-center space-x-2">
                                     <Mail className="w-5 h-5" />
@@ -446,10 +446,10 @@ const SellerPublicProfileComponent: React.FC = () => {
                                     </div>
                                 </div>
                             </CardContent>
-                        </Card>
+                        </Card> */}
 
                         {/* Quick Actions */}
-                        <Card>
+                        {/* <Card>
                             <CardHeader>
                                 <CardTitle>Get in Touch</CardTitle>
                             </CardHeader>
@@ -467,7 +467,7 @@ const SellerPublicProfileComponent: React.FC = () => {
                                     Request Quote
                                 </Button>
                             </CardContent>
-                        </Card>
+                        </Card> */}
                     </div>
 
                     {/* Products Section */}

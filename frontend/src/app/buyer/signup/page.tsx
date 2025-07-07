@@ -116,9 +116,6 @@ const BuyerSignUp = () => {
                 throw new Error(data.message || 'Registration failed');
             }
 
-            // Store the token and redirect
-            localStorage.setItem('buyerToken', data.token);
-            localStorage.setItem('buyerId', data.buyer._id);
             if(response.ok){
                 refetch();
                 // Redirect to products page

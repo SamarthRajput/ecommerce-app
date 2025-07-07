@@ -46,13 +46,13 @@ export function Header() {
 
   const navigationItems = getNavigationItems();
 
-  // Public navigation - always visible
-  const publicNavigation = [
-    { href: "/#features", label: "Features" },
-    { href: "/#how-it-works", label: "How It Works" },
-    { href: "/about", label: "About" },
-    { href: "/contact", label: "Contact" },
-  ];
+  // // Public navigation - always visible
+  // const publicNavigation = [
+  //   { href: "/#features", label: "Features" },
+  //   { href: "/#how-it-works", label: "How It Works" },
+  //   { href: "/about", label: "About" },
+  //   { href: "/contact", label: "Contact" },
+  // ];
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -69,7 +69,7 @@ export function Header() {
           </div>
 
           {/* Desktop Navigation - Always show public navigation */}
-          <nav className="hidden lg:flex items-center space-x-6">
+          {/* <nav className="hidden lg:flex items-center space-x-6">
             {publicNavigation.map((item) => (
               <Link
                 key={item.label}
@@ -79,7 +79,7 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
-          </nav>
+          </nav> */}
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2 sm:space-x-3">
@@ -209,7 +209,7 @@ export function Header() {
         </div>
 
         {/* Mobile Navigation Menu - Always show public navigation */}
-        {mobileMenuOpen && (
+        {/* {mobileMenuOpen && (
           <div className="lg:hidden mt-4 pb-4 border-t border-gray-200">
             <nav className="flex flex-col space-y-2 pt-4">
               {publicNavigation.map((item) => (
@@ -224,7 +224,7 @@ export function Header() {
               ))}
             </nav>
           </div>
-        )}
+        )} */}
       </div>
     </header>
   );

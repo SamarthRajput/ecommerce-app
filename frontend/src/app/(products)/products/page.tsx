@@ -18,15 +18,9 @@ import {
     AlertTriangle,
     Eye,
     TrendingUp,
-    Award,
     ShoppingCart,
     MessageSquare,
-    ArrowRight,
-    Globe,
-    CheckCircle,
-    Truck,
-    Shield,
-    ThumbsUp
+    ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -783,13 +777,6 @@ const EnhancedProductsPage = () => {
                 {/* Hero Section */}
                 <div className="mb-8 md:mb-12">
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-                            Discover Quality Products
-                        </h1>
-                        <p className="text-gray-600 text-lg md:text-xl max-w-2xl mx-auto mb-6">
-                            Browse thousands of products from verified sellers worldwide. Find exactly what you need for your business.
-                        </p>
-
                         {/* Main Search Bar */}
                         <div className="max-w-2xl mx-auto mb-6">
                             <div className="relative">
@@ -811,46 +798,6 @@ const EnhancedProductsPage = () => {
                                     </Button>
                                 )}
                             </div>
-                        </div>
-
-                        {/* Quick Stats */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                            <div className="text-center">
-                                <div className="text-2xl md:text-3xl font-bold text-orange-600">{stats.totalProducts.toLocaleString()}</div>
-                                <div className="text-sm text-gray-600">Products</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl md:text-3xl font-bold text-blue-600">{stats.totalSellers.toLocaleString()}</div>
-                                <div className="text-sm text-gray-600">Sellers</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl md:text-3xl font-bold text-green-600">{stats.totalCategories}</div>
-                                <div className="text-sm text-gray-600">Categories</div>
-                            </div>
-                            <div className="text-center">
-                                <div className="text-2xl md:text-3xl font-bold text-purple-600">{stats.averageRating.toFixed(1)}</div>
-                                <div className="text-sm text-gray-600">Avg Rating</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Trust Indicators */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white rounded-lg p-4 md:p-6 shadow-sm border">
-                        <div className="flex items-center space-x-2">
-                            <CheckCircle className="w-5 h-5 text-green-500" />
-                            <span className="text-sm font-medium">Quality Assured</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Shield className="w-5 h-5 text-blue-500" />
-                            <span className="text-sm font-medium">Secure Transactions</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Truck className="w-5 h-5 text-orange-500" />
-                            <span className="text-sm font-medium">Fast Delivery</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <ThumbsUp className="w-5 h-5 text-purple-500" />
-                            <span className="text-sm font-medium">Verified Sellers</span>
                         </div>
                     </div>
                 </div>
@@ -1153,54 +1100,6 @@ const EnhancedProductsPage = () => {
                             </>
                         )}
                     </div>
-                </div>
-
-                {/* Why Choose Us Section */}
-                <div className="mt-12 md:mt-16">
-                    <Card className="bg-gradient-to-r from-orange-50 to-blue-50 border-0">
-                        <CardContent className="p-8 md:p-12">
-                            <div className="text-center mb-8">
-                                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                                    Why Choose Our Marketplace?
-                                </h2>
-                                <p className="text-gray-600 max-w-2xl mx-auto">
-                                    Join thousands of satisfied buyers and sellers who trust our platform for their business needs.
-                                </p>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Shield className="w-8 h-8 text-orange-600" />
-                                    </div>
-                                    <h3 className="font-semibold text-lg mb-2">Secure & Trusted</h3>
-                                    <p className="text-gray-600 text-sm">
-                                        All sellers are verified and transactions are protected with our secure payment system.
-                                    </p>
-                                </div>
-
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Globe className="w-8 h-8 text-blue-600" />
-                                    </div>
-                                    <h3 className="font-semibold text-lg mb-2">Global Reach</h3>
-                                    <p className="text-gray-600 text-sm">
-                                        Connect with suppliers and buyers from around the world to expand your business.
-                                    </p>
-                                </div>
-
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Award className="w-8 h-8 text-green-600" />
-                                    </div>
-                                    <h3 className="font-semibold text-lg mb-2">Quality Products</h3>
-                                    <p className="text-gray-600 text-sm">
-                                        Every product is quality-checked and backed by our satisfaction guarantee.
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
                 </div>
             </div>
 
