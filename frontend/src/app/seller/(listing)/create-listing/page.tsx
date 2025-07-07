@@ -48,7 +48,7 @@ export default function CreateListingPage() {
             if (response.ok) {
                 // alert(isDraft ? 'Product saved as draft!' : 'Product submitted for approval!');
                 toast.success(isDraft ? 'Product saved as draft!' : 'Product submitted for approval!');
-                router.push('/seller/listings');
+                router.push('/seller/dashboard?tab=listings');
             } else {
                 toast.error(`Error: ${result.error || 'Unknown error'}`);
                 throw new Error(`Failed to submit product: ${result.error || 'Unknown error'}`);
