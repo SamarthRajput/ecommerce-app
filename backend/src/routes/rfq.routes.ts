@@ -1,6 +1,6 @@
 import express from 'express';
 import { requireBuyer } from '../middlewares/authBuyer';
-import { approveRFQ, createRFQ, getApprovedRFQs, getPendingRFQs, getRFQsByBuyer, getRFQStats, getSellerPendingRFQs, rejectRFQ } from '../controllers/rfq.controller';
+import { createRFQ, forwardRFQ, getApprovedRFQs, getPendingRFQs, getRFQsByBuyer, getRFQStats, getSellerForwardedRFQs, rejectRFQ } from '../controllers/rfq.controller';
 import { requireAdmin } from '../middlewares/authAdmin';
 import { requireAuth } from '../middlewares/requireAuth';
 
@@ -18,12 +18,12 @@ rfqRouter.get('/buyer/:buyerId', requireBuyer, getRFQsByBuyer);
 // Admin routes
 rfqRouter.get('/pending', requireAdmin, getPendingRFQs);
 rfqRouter.get('/approved', requireAdmin, getApprovedRFQs);
-rfqRouter.post('/approve/:id', requireAdmin, approveRFQ);
+rfqRouter.post('/forward/:id', requireAdmin, forwardRFQ); // Changed from approveRFQ to forwardrFQ
 rfqRouter.post('/reject/:id', requireAdmin, rejectRFQ);
 rfqRouter.get('/stats', requireAdmin, getRFQStats);
 
 // Get all RFQs for a Seller
-rfqRouter.get('/seller/pending', requireAuth({ allowedRoles: ["seller"] }), getSellerPendingRFQs);
+rfqRouter.get('/seller/pending', requireAuth({ allowedRoles: ["seller"] }), getSellerForwardedRFQs);
 
 
 
