@@ -297,7 +297,7 @@ export const forgotSellerPassword = async (req: Request, res: Response) => {
             return;
         }
         res.status(200).json({
-            message: 'Password reset link sent to your email',
+            message: 'Password reset link sent to your email, please check your inbox',
             email: seller.email
         });
         return;
