@@ -117,6 +117,9 @@ const useRFQ = () => {
             const data = await apiCall(`/rfq/forward/${rfqId}`, {
                 method: 'POST',
             });
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to approve RFQ');
+            }
 
             if (data.success) {
                 // Remove from pending list and update stats
@@ -156,7 +159,6 @@ const useRFQ = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                 },
                 body: JSON.stringify({ reason: rejectionReason }),
                 credentials: 'include'

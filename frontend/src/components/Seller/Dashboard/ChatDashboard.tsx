@@ -1,24 +1,6 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
-import {
-    MessageSquare,
-    Send,
-    Search,
-    User,
-    Clock,
-    CheckCircle,
-    Circle,
-    RefreshCw,
-    AlertTriangle,
-    Phone,
-    Video,
-    MoreVertical,
-    Paperclip,
-    Smile,
-    X,
-    Users,
-    Package
-} from "lucide-react";
+import { MessageSquare, Send, Search, User, CheckCircle, Circle, RefreshCw, AlertTriangle, MoreVertical, Paperclip, Smile, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,9 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 interface ChatRoom {
     id: string;
     rfqId: string;
-    type: "BUYER" | "SELLER";
-    buyerId?: string;
-    sellerId?: string;
+    type: "SELLER";
     adminId: string;
     createdAt: Date;
     updatedAt: Date;
@@ -42,38 +22,19 @@ interface ChatMessage {
     id: string;
     chatRoomId: string;
     senderId: string;
-    senderRole: "ADMIN" | "BUYER" | "SELLER";
+    senderRole: "SELLER" | "ADMIN";
     content: string;
     sentAt: Date;
     read: boolean;
-}
-
-interface RFQ {
-    id: string;
-    product: {
-        id: string;
-        name: string;
-    };
-    buyer: {
-        id: string;
-        firstName: string;
-        lastName: string;
-        email: string;
-    };
-    status: "PENDING" | "COMPLETED";
-    createdAt: Date;
-    updatedAt: Date;
+    edited?: boolean;
 }
 
 const ChatDashboard: React.FC = () => {
     // State management
-    const [activeTab, setActiveTab] = useState<"buyer" | "seller">("seller");
     const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
-    const [rfqs, setRfqs] = useState<RFQ[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loadingRooms, setLoadingRooms] = useState(false);
     const [loadingMessages, setLoadingMessages] = useState(false);
-    const [loadingRfqs, setLoadingRfqs] = useState(false);
     const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [newMessage, setNewMessage] = useState("");
@@ -120,29 +81,6 @@ const ChatDashboard: React.FC = () => {
         }
     };
 
-    const fetchRFQs = async () => {
-        setLoadingRfqs(true);
-        try {
-            const response = await fetch(`${BASE_URL}/rfq/seller/pending`, {
-                method: "GET",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Failed to fetch RFQs");
-            }
-
-            const data = await response.json();
-            setRfqs(data);
-        } catch (err) {
-            setError((err as Error).message);
-        } finally {
-            setLoadingRfqs(false);
-        }
-    };
-
     const fetchChatMessages = async (chatRoomId: string) => {
         setLoadingMessages(true);
         try {
@@ -163,7 +101,7 @@ const ChatDashboard: React.FC = () => {
             const data: ChatMessage[] = await response.json();
             setMessages(data);
 
-            // Mark messages as read when viewing
+            // Mark admin messages as read when viewing
             await markMessagesAsRead(chatRoomId);
         } catch (err) {
             setError((err as Error).message);
@@ -216,7 +154,7 @@ const ChatDashboard: React.FC = () => {
 
             const data: ChatMessage[] = await response.json();
             const unreadMessageIds = data
-                .filter(msg => msg.senderRole !== "SELLER" && !msg.read) // Only mark messages from other then seller as read
+                .filter(msg => msg.senderRole === "ADMIN" && !msg.read)
                 .map(msg => msg.id);
 
             if (unreadMessageIds.length === 0) return;
@@ -238,7 +176,6 @@ const ChatDashboard: React.FC = () => {
     // Effects
     useEffect(() => {
         fetchChatRooms();
-        fetchRFQs();
     }, []);
 
     // Handle room selection
@@ -256,87 +193,18 @@ const ChatDashboard: React.FC = () => {
         }
     };
 
-    // Filter chat rooms based on search and active tab
+    // Filter chat rooms based on search
     const filteredRooms = chatRooms.filter(room => {
-        const matchesTab = room.type === activeTab.toUpperCase();
-        const matchesSearch = searchTerm === '' ||
-            room.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            room.rfqId.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesTab && matchesSearch;
+        return searchTerm === '' ||
+            room.rfqId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            room.id.toLowerCase().includes(searchTerm.toLowerCase());
     });
 
-    // Get unread message count for a room
+    // Get unread message count for a room (admin messages only)
     const getUnreadCount = (roomId: string) => {
-        // This would need to be implemented based on your API
-        return 0;
-    };
-    const pinMessage = async (messageId: string) => {
-        try {
-            const response = await fetch(`${BASE_URL}/chat/message/${messageId}/pin`, {
-                method: "PATCH",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Failed to pin message");
-            }
-
-        } catch (err) {
-            console.error("Error pinning message:", err);
-        }
-    };
-    const unpinMessage = async (messageId: string) => {
-        try {
-            const response = await fetch(`${BASE_URL}/chat/message/${messageId}/unpin`, {
-                method: "PATCH",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Failed to unpin message");
-            }
-
-        } catch (err) {
-            console.error("Error unpinning message:", err);
-        }
-    };
-    const editMessage = async (messageId: string, newContent: string) => {
-        if (!newContent.trim()) return;
-        // only 15 minutes after the message is sent can be edited
-        const message = messages.find(msg => msg.id === messageId);
-        if (!message) return;
-
-        const now = new Date();
-        const messageTime = new Date(message.sentAt);
-        const timeDiff = now.getTime() - messageTime.getTime();
-
-        if (timeDiff > 15 * 60 * 1000) {
-            console.warn("Message editing is allowed only within 15 minutes");
-            return;
-        }
-
-        try {
-            const response = await fetch(`${BASE_URL}/chat/message/${messageId}/edit`, {
-                method: "PUT",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content: newContent }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Failed to edit message");
-            }
-
-            // update the local state to reflect the edited message along with the representation that it has been edited
-            setMessages(prevMessages => prevMessages.map(msg => msg.id === messageId ? { ...msg, content: newContent, edited: true } : msg));
-        } catch (err) {
-            console.error("Error editing message:", err);
-        }
+        return messages.filter(
+            (msg) => msg.chatRoomId === roomId && !msg.read && msg.senderRole === "ADMIN"
+        ).length;
     };
 
     // Format message time
@@ -344,23 +212,18 @@ const ChatDashboard: React.FC = () => {
         return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
-    // Get user role color
-    const getRoleColor = (role: string) => {
-        switch (role) {
-            case 'ADMIN': return 'bg-purple-100 text-purple-700';
-            case 'BUYER': return 'bg-blue-100 text-blue-700';
-            case 'SELLER': return 'bg-green-100 text-green-700';
-            default: return 'bg-gray-100 text-gray-700';
-        }
+    // Format RFQ ID for display
+    const formatRfqId = (rfqId: string) => {
+        return rfqId.length > 12 ? `${rfqId.slice(0, 8)}...${rfqId.slice(-4)}` : rfqId;
     };
 
     return (
         <div className="h-[calc(100vh-2rem)] max-w-7xl mx-auto p-6">
             {/* Header */}
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900">Chat Center</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Support Chat</h1>
                 <p className="text-gray-600 mt-1">
-                    Communicate with buyers and sellers
+                    Connect with admin support for your RFQs
                 </p>
             </div>
 
@@ -381,52 +244,24 @@ const ChatDashboard: React.FC = () => {
                         <CardHeader className="pb-4">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="flex items-center space-x-2">
-                                    <MessageSquare className="w-5 h-5" />
-                                    <span>Conversations</span>
+                                    <MessageSquare className="w-5 h-5 text-blue-600" />
+                                    <span>RFQ Chats</span>
                                 </CardTitle>
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => {
-                                        fetchChatRooms();
-                                        fetchRFQs();
-                                    }}
+                                    onClick={fetchChatRooms}
                                     disabled={loadingRooms}
                                 >
                                     <RefreshCw className={`w-4 h-4 ${loadingRooms ? 'animate-spin' : ''}`} />
                                 </Button>
                             </div>
 
-                            {/* Tab Navigation */}
-                            <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-
-                                <button
-                                    onClick={() => setActiveTab("seller")}
-                                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${activeTab === "seller"
-                                        ? "bg-white text-gray-900 shadow-sm"
-                                        : "text-gray-600 hover:text-gray-900"
-                                        }`}
-                                >
-                                    <Package className="w-4 h-4 inline mr-1" />
-                                    Sellers
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab("buyer")}
-                                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${activeTab === "buyer"
-                                        ? "bg-white text-gray-900 shadow-sm"
-                                        : "text-gray-600 hover:text-gray-900"
-                                        }`}
-                                >
-                                    <Users className="w-4 h-4 inline mr-1" />
-                                    Buyers
-                                </button>
-                            </div>
-
                             {/* Search */}
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <Input
-                                    placeholder="Search conversations..."
+                                    placeholder="Search RFQ ID..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="pl-10"
@@ -442,10 +277,11 @@ const ChatDashboard: React.FC = () => {
                             ) : filteredRooms.length === 0 ? (
                                 <div className="p-6 text-center text-gray-500">
                                     <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                                    <p className="text-sm">No conversations found</p>
+                                    <p className="text-sm">No chat rooms found</p>
+                                    <p className="text-xs mt-1">Submit an RFQ to start chatting</p>
                                 </div>
                             ) : (
-                                <div className="space-y-1 p-3">
+                                <div className="space-y-2 p-3">
                                     {filteredRooms.map((room) => {
                                         const unreadCount = getUnreadCount(room.id);
                                         const isSelected = selectedRoom?.id === room.id;
@@ -454,33 +290,33 @@ const ChatDashboard: React.FC = () => {
                                             <button
                                                 key={room.id}
                                                 onClick={() => handleRoomSelect(room)}
-                                                className={`w-full p-3 rounded-lg text-left transition-colors ${isSelected
-                                                    ? 'bg-blue-100 border border-blue-200'
-                                                    : 'hover:bg-gray-50 border border-transparent'
+                                                className={`w-full p-4 rounded-lg text-left transition-all duration-200 ${isSelected
+                                                    ? 'bg-blue-50 border-2 border-blue-200 shadow-sm'
+                                                    : 'hover:bg-gray-50 border-2 border-transparent hover:border-gray-200'
                                                     }`}
                                             >
                                                 <div className="flex items-center justify-between mb-2">
-                                                    <div className="flex items-center space-x-2">
-                                                        <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                                                            <User className="w-4 h-4 text-gray-600" />
+                                                    <div className="flex items-center space-x-3">
+                                                        <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
+                                                            <Shield className="w-5 h-5 text-blue-600" />
                                                         </div>
-                                                        <div>
-                                                            <p className="font-medium text-sm text-gray-900">
-                                                                {room.type} Chat
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-semibold text-sm text-gray-900 truncate">
+                                                                Admin Support
                                                             </p>
-                                                            <p className="text-xs text-gray-500">
-                                                                RFQ: {room.rfqId.slice(-8)}
+                                                            <p className="text-xs text-gray-600 font-mono">
+                                                                {formatRfqId(room.rfqId)}
                                                             </p>
                                                         </div>
                                                     </div>
                                                     {unreadCount > 0 && (
-                                                        <Badge className="bg-red-500 text-white text-xs">
+                                                        <Badge className="bg-red-500 text-white text-xs px-2 py-1">
                                                             {unreadCount}
                                                         </Badge>
                                                     )}
                                                 </div>
                                                 <p className="text-xs text-gray-500">
-                                                    {new Date(room.updatedAt).toLocaleDateString()}
+                                                    Updated {new Date(room.updatedAt).toLocaleDateString()}
                                                 </p>
                                             </button>
                                         );
@@ -497,29 +333,26 @@ const ChatDashboard: React.FC = () => {
                         {selectedRoom ? (
                             <>
                                 {/* Chat Header */}
-                                <CardHeader className="border-b">
+                                <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-indigo-50">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-3">
-                                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                                                <User className="w-5 h-5 text-gray-600" />
+                                            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
+                                                <Shield className="w-6 h-6 text-blue-600" />
                                             </div>
                                             <div>
-                                                <h3 className="font-semibold text-gray-900">
-                                                    {selectedRoom.type} Conversation
+                                                <h3 className="font-semibold text-gray-900 text-lg">
+                                                    Admin Support Chat
                                                 </h3>
                                                 <p className="text-sm text-gray-600">
-                                                    RFQ ID: {selectedRoom.rfqId}
+                                                    RFQ: <span className="font-mono font-medium">{selectedRoom.rfqId}</span>
                                                 </p>
                                             </div>
                                         </div>
 
                                         <div className="flex items-center space-x-2">
-                                            <Button variant="ghost" size="sm">
-                                                <Phone className="w-4 h-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="sm">
-                                                <Video className="w-4 h-4" />
-                                            </Button>
+                                            <Badge className="bg-green-100 text-green-700 border border-green-200">
+                                                Online
+                                            </Badge>
                                             <Button variant="ghost" size="sm">
                                                 <MoreVertical className="w-4 h-4" />
                                             </Button>
@@ -528,7 +361,7 @@ const ChatDashboard: React.FC = () => {
                                 </CardHeader>
 
                                 {/* Messages Area */}
-                                <CardContent className="flex-1 overflow-y-auto p-4">
+                                <CardContent className="flex-1 overflow-y-auto p-6 bg-gray-50">
                                     {loadingMessages ? (
                                         <div className="flex items-center justify-center h-32">
                                             <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
@@ -536,45 +369,60 @@ const ChatDashboard: React.FC = () => {
                                     ) : messages.length === 0 ? (
                                         <div className="flex items-center justify-center h-32 text-gray-500">
                                             <div className="text-center">
-                                                <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                                                <p>No messages yet</p>
-                                                <p className="text-sm">Start the conversation!</p>
+                                                <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                                                <h4 className="font-semibold mb-2">No messages yet</h4>
+                                                <p className="text-sm">Start the conversation with admin support!</p>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="space-y-4">
+                                        <div className="space-y-6">
                                             {messages.map((message) => {
-                                                const isAdmin = message.senderRole === 'ADMIN';
+                                                const isFromSeller = message.senderRole === 'SELLER';
 
                                                 return (
                                                     <div
                                                         key={message.id}
-                                                        className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}
+                                                        className={`flex ${isFromSeller ? 'justify-end' : 'justify-start'}`}
                                                     >
-                                                        <div className={`max-w-xs lg:max-w-md ${isAdmin ? 'order-2' : 'order-1'}`}>
-                                                            <div
-                                                                className={`px-4 py-2 rounded-lg ${isAdmin
-                                                                    ? 'bg-blue-600 text-white'
-                                                                    : 'bg-gray-100 text-gray-900'
-                                                                    }`}
-                                                            >
-                                                                <p className="text-sm">{message.content}</p>
-                                                            </div>
-                                                            <div className={`flex items-center mt-1 space-x-2 ${isAdmin ? 'justify-end' : 'justify-start'}`}>
-                                                                <Badge className={getRoleColor(message.senderRole)}>
-                                                                    {message.senderRole}
+                                                        <div className={`max-w-md ${isFromSeller ? 'order-2' : 'order-1'}`}>
+                                                            <div className="flex items-center mb-2 space-x-2">
+                                                                {!isFromSeller && (
+                                                                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                                                        <Shield className="w-3 h-3 text-blue-600" />
+                                                                    </div>
+                                                                )}
+                                                                <Badge
+                                                                    className={isFromSeller
+                                                                        ? "bg-green-100 text-green-700 border-green-200"
+                                                                        : "bg-blue-100 text-blue-700 border-blue-200"
+                                                                    }
+                                                                >
+                                                                    {isFromSeller ? "You" : "Admin"}
                                                                 </Badge>
                                                                 <span className="text-xs text-gray-500">
                                                                     {formatMessageTime(message.sentAt)}
                                                                 </span>
-                                                                {isAdmin && (
-                                                                    message.read ? (
+                                                                {message.edited && (
+                                                                    <span className="text-xs text-gray-400">(edited)</span>
+                                                                )}
+                                                            </div>
+                                                            <div
+                                                                className={`px-4 py-3 rounded-2xl shadow-sm ${isFromSeller
+                                                                    ? 'bg-blue-600 text-white rounded-br-md'
+                                                                    : 'bg-white text-gray-900 border border-gray-200 rounded-bl-md'
+                                                                    }`}
+                                                            >
+                                                                <p className="text-sm leading-relaxed">{message.content}</p>
+                                                            </div>
+                                                            {isFromSeller && (
+                                                                <div className="flex justify-end mt-1">
+                                                                    {message.read ? (
                                                                         <CheckCircle className="w-3 h-3 text-blue-500" />
                                                                     ) : (
                                                                         <Circle className="w-3 h-3 text-gray-400" />
-                                                                    )
-                                                                )}
-                                                            </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 );
@@ -585,28 +433,28 @@ const ChatDashboard: React.FC = () => {
                                 </CardContent>
 
                                 {/* Message Input */}
-                                <div className="border-t p-4">
-                                    <div className="flex items-end space-x-2">
-                                        <Button variant="ghost" size="sm">
+                                <div className="border-t bg-white p-4">
+                                    <div className="flex items-end space-x-3">
+                                        <Button variant="ghost" size="sm" className="mb-2">
                                             <Paperclip className="w-4 h-4" />
                                         </Button>
-                                        <Button variant="ghost" size="sm">
+                                        <Button variant="ghost" size="sm" className="mb-2">
                                             <Smile className="w-4 h-4" />
                                         </Button>
                                         <div className="flex-1">
                                             <Textarea
-                                                placeholder="Type your message..."
+                                                placeholder="Type your message to admin..."
                                                 value={newMessage}
                                                 onChange={(e) => setNewMessage(e.target.value)}
                                                 onKeyPress={handleKeyPress}
                                                 rows={1}
-                                                className="resize-none"
+                                                className="resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                                             />
                                         </div>
                                         <Button
                                             onClick={sendMessage}
                                             disabled={!newMessage.trim() || sending}
-                                            className="h-10"
+                                            className="h-10 bg-blue-600 hover:bg-blue-700"
                                         >
                                             {sending ? (
                                                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -619,11 +467,16 @@ const ChatDashboard: React.FC = () => {
                             </>
                         ) : (
                             /* No Chat Selected */
-                            <div className="flex-1 flex items-center justify-center">
-                                <div className="text-center text-gray-500">
-                                    <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                                    <h3 className="text-lg font-semibold mb-2">Select a conversation</h3>
-                                    <p>Choose a conversation from the sidebar to start chatting</p>
+                            <div className="flex-1 flex items-center justify-center bg-gray-50">
+                                <div className="text-center text-gray-500 max-w-md">
+                                    <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <MessageSquare className="w-12 h-12 text-blue-600" />
+                                    </div>
+                                    <h3 className="text-xl font-semibold mb-3 text-gray-900">Welcome to Support Chat</h3>
+                                    <p className="text-gray-600 leading-relaxed">
+                                        Select an RFQ chat room from the sidebar to start communicating with our admin support team.
+                                        Get help with your requests, clarifications, and any questions you may have.
+                                    </p>
                                 </div>
                             </div>
                         )}
