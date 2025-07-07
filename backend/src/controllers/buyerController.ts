@@ -7,6 +7,7 @@ import { signinSchema, signupSchema, updateProfileSchema } from "../lib/zod/Buye
 import { AuthenticatedRequest } from "../middlewares/authBuyer";
 import { JWT_SECRET } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
+import nodemailer from "nodemailer";
 
 // POST /api/v1/buyer/signup
 export const signupBuyer = async (req: Request, res: Response) => {
@@ -273,26 +274,112 @@ export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Respons
     }
 };
 
-export const verifyBuyerProfile = async (req: AuthenticatedRequest, res: Response) => {
+export const forgotPassword = async (req: Request, res: Response) => {
+    const buyerEmail = req.body?.email;
     try {
-        if (!req.buyer) {
-            res.status(401).json({
-                error: "Unauthorized"
-            });
+        // check if buyer exists in database or not
+        const existingBuyer = await prisma.buyer.findMany({
+            where: {
+                email: buyerEmail
+            }
+        });
+        
+        if(!existingBuyer){
+            res.status(404).json ({
+                message: "Buyer doesnot exists"
+            })
             return;
         }
-        res.json({
-            message: "Buyer verified Successfullly",
-            buyer: {
-                id: req.buyer.buyerId,
-                email: req.buyer.email
+
+        // Generating the otp for buyer, and store the otp generated in database
+        const otp = Math.floor(1000 + Math.random() * 9000);
+        const otpExpiry = new Date();
+        // valid for 5 minutes
+        otpExpiry.setMinutes(otpExpiry.getMinutes() + 5);
+
+        // Storing otp in database
+        const response = await prisma.buyer.update({
+            where: {
+                email: buyerEmail
+            },
+            data: {
+                otp: otp,
+                otpExpiry: otpExpiry
             }
+        });
+        
+        const transporter = nodemailer.createTransport({
+            service: 'Gmail',
+            auth: {
+                user: 'samarthrajput224@gmail.com',
+                pass: 'oguaakqdvokgxhdb'
+            },
+        });
+
+        const info = await transporter.sendMail({
+            from: '"Sam"',
+            to: buyerEmail,
+            subject: 'Password reset OTP',
+            text: `Your OTP (It will expiry after 5 min) : ${otp}`,
+        });
+        res.status(200).json({
+            message: "OTP send successfully"
+        })
+        console.log(info);
+        console.log(info.messageId);
+    }
+    catch(error) {
+        res.status(404).json({
+            data: "Problem in sending OTP"
         })
     }
-    catch (error) {
-        console.log(error);
-        res.status(501).json({
-            message: "server error"
-        })
-    };
 }
+
+export const updatePassword = async (req: Request, res: Response) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (!email || !otp || !newPassword) {
+    return res.status(400).json({ message: "Email, OTP and newPassword are required" });
+  }
+
+  try {
+    // Find buyer by email
+    const buyer = await prisma.buyer.findUnique({
+      where: { email }
+    });
+
+    if (!buyer) {
+      return res.status(404).json({ message: "Buyer not found" });
+    }
+
+    // Validate OTP
+    if (buyer.otp !== Number(otp)) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    // Check OTP expiry
+    const now = new Date();
+    if (!buyer.otpExpiry || now > buyer.otpExpiry) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update buyer password and clear OTP & expiry
+    await prisma.buyer.update({
+      where: { email },
+      data: {
+        password: hashedPassword,
+        otp: null,
+        otpExpiry: null,
+      }
+    });
+
+    return res.status(200).json({ message: "Password updated successfully" });
+
+  } catch (error) {
+    console.error("Error updating password:", error);
+    return res.status(500).json({ message: "Failed to update password" });
+  }
+};
