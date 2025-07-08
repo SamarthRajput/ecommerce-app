@@ -1,5 +1,6 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001/api/v1';
 const API_URL = `${BACKEND_URL}/seller`;
@@ -249,7 +250,7 @@ const useSignup = () => {
                 body: JSON.stringify(formData)
             });
             const data = await response.json();
-            alert(data.message);
+            toast(data.message);
             setLoading(false);
             if (!response.ok) {
                 setErrors(data.message || 'An error occurred');
@@ -260,7 +261,7 @@ const useSignup = () => {
                 return;
             }
             if (data.seller) {
-                alert('Registration successful! Please wait for approval.');
+                toast.success('Registration successful! Please wait for approval.');
                 router.push('/seller/dashboard');
             }
         } catch (error) {
@@ -269,7 +270,7 @@ const useSignup = () => {
             alert(`Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
             setLoading(false);
-            alert(`${errors}`);
+            // alert(`${errors}`);
         }
     };
     return {
