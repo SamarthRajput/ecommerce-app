@@ -13,6 +13,7 @@ import { Seller, Listing, DashboardStats, RFQ } from '@/src/lib/types/seller/sel
 import ListingDashboard from '../components/Seller/Dashboard/ManageListing';
 import ChatDashboard from '../components/Seller/Dashboard/ChatDashboard';
 import Certifications from '../components/Seller/Dashboard/Certifications';
+import SellerCertifications from '../components/SellerCertifications';
 
 // Constants
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
@@ -250,8 +251,11 @@ const useSellerDashboard = () => {
                 });
 
             case 'certifications':
-                return <Certifications />;
-
+                {/* Seller Certificates */}
+                const sellerId = seller?.id;
+                if(sellerId){
+                    return <SellerCertifications sellerId={sellerId} />;
+                }
             case 'chats':
                 return <ChatDashboard />;
                 // router.push('/seller/chats');

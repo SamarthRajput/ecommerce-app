@@ -69,6 +69,6 @@ export default function CreateListingPage() {
             mode="create"
             onSubmit={handleSubmit}
             onCancel={handleCancel}
-        />
+        />  
     );
 }
