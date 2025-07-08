@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001/api/v1';
 const API_URL = `${BACKEND_URL}/seller`;
+
 const useSignup = () => {
     const [currentSection, setCurrentSection] = useState(1);
     const [showPassword, setShowPassword] = useState(false);
@@ -47,27 +48,27 @@ const useSignup = () => {
         agreedToTerms: boolean;
     }>({
         // Section 1: Account & Verification
-        email: 'rohitkuyada@gmail.com',
-        password: '123456789',
-        confirmPassword: '123456789',
-        phone: '6392177974',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        phone: '',
         countryCode: '+91',
 
         // Section 2: Business Details
-        firstName: 'Rohit',
-        lastName: 'Kuyada',
-        businessName: 'Rohit Enterprises',
+        firstName: '',
+        lastName: '',
+        businessName: '',
         businessType: 'individual',
-        registrationNo: 'REG123456',
-        taxId: 'TAX123456',
-        panOrTin: 'PAN123456',
-        country: 'India',
-        street: '123 Main St',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        zipCode: '400001',
-        website: 'https://www.rohitenterprises.com',
-        linkedIn: 'https://www.linkedin.com/in/rohitkuyada',
+        registrationNo: '',
+        taxId: '',
+        panOrTin: '',
+        country: '',
+        street: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        website: '',
+        linkedIn: '',
 
         // Section 3: Documents
         govIdUrl: null,
@@ -76,13 +77,13 @@ const useSignup = () => {
         otherDocsUrl: null,
 
         // Section 4: Business Profile
-        companyBio: 'We are a leading enterprise in the industry.',
-        industryTags: ['ecommerce', 'retail'],
-        yearsInBusiness: '5',
-        keyProducts: ['Product 1', 'Product 2', 'Product 3'],
+        companyBio: '',
+        industryTags: [],
+        yearsInBusiness: '',
+        keyProducts: [],
 
         // Section 5: Terms
-        agreedToTerms: true
+        agreedToTerms: false
     });
 
     const handleInputChange = (field: string, value: any) => {
