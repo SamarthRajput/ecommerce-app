@@ -82,6 +82,13 @@ enum BusinessType {
   OTHER
 }
 
+enum CertificationStatus {
+  PENDING
+  PAID
+  ISSUED
+  REJECTED
+}
+
 //
 // ========================
 // ===== MODELS ===========
@@ -161,9 +168,10 @@ model Seller {
   chatRooms       ChatRoom[]
   rfqForwards     RFQForward[]
   trades          Trade[]      @relation("SellerTrades")
+  certifications   Certification[]
 
   createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  updatedAt       DateTime     @default(now())
 }
 
 model Product {
@@ -214,7 +222,10 @@ model Product {
   reviews              Review[]
 
   createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
+  updatedAt            DateTime       @default(now())
+
+  // certifications relation for Certification model
+  certificationsRelation Certification[]
 }
 
 model RFQ {
@@ -234,7 +245,7 @@ model RFQ {
   chatRooms  ChatRoom[]
 
   createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  updatedAt  DateTime   @default(now())
 }
 
 model RFQForward {
@@ -299,7 +310,7 @@ model User {
   chatRooms ChatRoom[]
 
   createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  updatedAt DateTime   @default(now())
 }
 
 model ChatRoom {
@@ -324,7 +335,7 @@ model ChatRoom {
   messages       ChatMessage[]
 
   createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  updatedAt      DateTime       @default(now())
 
   @@unique([rfqId, type])
 }
@@ -367,4 +378,21 @@ model MessageReaction {
 
   emoji       String     // like "❤️", "👍", etc.
   createdAt   DateTime   @default(now())
+}
+
+model Certification {
+  id            String   @id @default(uuid())
+  sellerId      String
+  seller        Seller   @relation(fields: [sellerId], references: [id])
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id])
+  status        CertificationStatus @default(PENDING)
+  paymentId     String? // PayPal payment ID
+  amount        Float
+  issuedAt      DateTime?
+  certificateUrl String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  @@unique([sellerId, productId]) // One cert per seller-product
 }

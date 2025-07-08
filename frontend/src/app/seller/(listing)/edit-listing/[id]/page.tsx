@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { ProductFormData } from '@/src/lib/types/listing';
 import ProductForm from '@/src/components/CreateListingForm/ProductForm';
 import { useAuth } from '@/src/context/AuthContext';
+import RequestCertificationButton from '@/src/components/RequestCertificationButton';
 
 export default function EditListingPage() {
     const router = useRouter();
@@ -129,11 +130,35 @@ export default function EditListingPage() {
     }
 
     return (
-        <ProductForm
-            mode="edit"
-            initialData={initialData}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-        />
-    );
+    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+        {/* Main Form Section */}
+        <div className="p-6">
+            <ProductForm
+                mode="edit"
+                initialData={initialData}
+                onSubmit={handleSubmit}
+                onCancel={handleCancel}
+            />
+        </div>
+        
+        {/* Certification Section - Styled as a distinct box */}
+        <div className="border-t border-gray-200 p-6 bg-gray-50">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Product Certification</h3>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <p className="text-sm text-gray-600 mb-2">
+                        Get your product certified to increase trust and visibility
+                    </p>
+                    <p className="text-xs text-gray-500">
+                        Certification fee: $100 (one-time payment)
+                    </p>
+                </div>
+                <RequestCertificationButton 
+                    productId={params.id as string} 
+                    amount={100} 
+                />
+            </div>
+        </div>
+    </div>
+);
 }
