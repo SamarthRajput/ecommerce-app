@@ -1,8 +1,26 @@
-import React from 'react';
-import { FileText, Upload, CheckCircle, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { FileText, Upload, CheckCircle, X, Loader2 } from 'lucide-react';
 import { Section3Props } from '@/src/lib/types/seller/signup';
 
 const Section3 = ({ formData, errors, handleInputChange, handleFileUpload }: Section3Props) => {
+    const [uploadingFiles, setUploadingFiles] = useState<{[key: string]: boolean}>({});
+
+    const handleFileUploadWithLoader = async (field: string, file: File | null) => {
+        if (!file) return;
+        
+        // Set loading state
+        setUploadingFiles(prev => ({ ...prev, [field]: true }));
+        
+        try {
+            // Call the original handleFileUpload function
+            await handleFileUpload(field, file);
+        } catch (error) {
+            console.error('File upload error:', error);
+        } finally {
+            // Remove loading state
+            setUploadingFiles(prev => ({ ...prev, [field]: false }));
+        }
+    };
 
     const renderFileUpload = (field: string, label: string, accept: string = "*/*") => (
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-500 transition-colors">
@@ -10,11 +28,18 @@ const Section3 = ({ formData, errors, handleInputChange, handleFileUpload }: Sec
                 type="file"
                 id={field}
                 accept={accept}
-                onChange={(e) => handleFileUpload(field, e.target.files && e.target.files[0] ? e.target.files[0] : null)}
+                onChange={(e) => handleFileUploadWithLoader(field, e.target.files && e.target.files[0] ? e.target.files[0] : null)}
                 className="hidden"
+                disabled={uploadingFiles[field]}
             />
-            <label htmlFor={field} className="cursor-pointer">
-                {(formData as any)[field] ? (
+            <label htmlFor={field} className={`cursor-pointer ${uploadingFiles[field] ? 'pointer-events-none' : ''}`}>
+                {uploadingFiles[field] ? (
+                    <div className="text-orange-500">
+                        <Loader2 className="mx-auto mb-2 animate-spin" size={32} />
+                        <p className="font-medium">Uploading...</p>
+                        <p className="text-sm">Please wait while we process your file</p>
+                    </div>
+                ) : (formData as any)[field] ? (
                     <div className="text-green-600">
                         <CheckCircle className="mx-auto mb-2" size={32} />
                         <p className="font-medium">File uploaded successfully</p>
@@ -38,8 +63,8 @@ const Section3 = ({ formData, errors, handleInputChange, handleFileUpload }: Sec
             {errors[field] && <p className="text-red-500 text-sm mt-2">{errors[field]}</p>}
         </div>
     );
-    return (
 
+    return (
         <div className="space-y-6">
             <div className="flex items-center mb-6">
                 <FileText className="text-orange-500 mr-3" size={24} />
@@ -82,4 +107,5 @@ const Section3 = ({ formData, errors, handleInputChange, handleFileUpload }: Sec
         </div>
     );
 }
+
 export default Section3;

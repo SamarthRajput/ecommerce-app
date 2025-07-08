@@ -8,7 +8,7 @@ export const summaryRouter = Router();
 // Summary router which returns the summary of the active listing, pending rfqs, completed trade
 summaryRouter.get("/", apiLimiter, async (req: Request, res: Response) => {
     try {
-        const [pendingRFQsCount, completedRFQsCount, rejectedRFQsCount, completedTradesCount, inprogressTradesCount, activeListingCount,
+        const [pendingRFQsCount, completedRFQsCount, rejectedRFQsCount, forwardedRFQsCount, completedTradesCount, inprogressTradesCount, activeListingCount,
             approvedListingCount, archivedListingCount, inactiveListingCount, pendingListingCount, rejectedListingCount
         ] = await Promise.all([
             prisma.rFQ.count({
@@ -24,6 +24,11 @@ summaryRouter.get("/", apiLimiter, async (req: Request, res: Response) => {
             prisma.rFQ.count({
                 where: {
                     status: "REJECTED"
+                }
+            }),
+            prisma.rFQ.count({
+                where: {
+                    status: "FORWARDED"
                 }
             }),
             prisma.trade.count({
@@ -74,6 +79,7 @@ summaryRouter.get("/", apiLimiter, async (req: Request, res: Response) => {
                 pendingRFQsCount: pendingRFQsCount,
                 completedRFQsCount: completedRFQsCount,
                 rejectedRFQsCount: rejectedRFQsCount,
+                forwardedRFQsCount: forwardedRFQsCount,
                 completedTradesCount: completedTradesCount,
                 inprogressTradesCount: inprogressTradesCount,
                 activeListingCount: activeListingCount,
