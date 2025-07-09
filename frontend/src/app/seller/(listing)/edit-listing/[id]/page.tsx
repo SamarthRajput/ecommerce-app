@@ -143,21 +143,10 @@ export default function EditListingPage() {
         
         {/* Certification Section - Styled as a distinct box */}
         <div className="border-t border-gray-200 p-6 bg-gray-50">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Product Certification</h3>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <p className="text-sm text-gray-600 mb-2">
-                        Get your product certified to increase trust and visibility
-                    </p>
-                    <p className="text-xs text-gray-500">
-                        Certification fee: $100 (one-time payment)
-                    </p>
-                </div>
                 <RequestCertificationButton 
                     productId={params.id as string} 
                     amount={100} 
                 />
-            </div>
         </div>
     </div>
 );

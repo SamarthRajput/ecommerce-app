@@ -162,7 +162,9 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
                                             <Package className="w-4 h-4 mr-2" />
                                             View on Marketplace
                                         </Button>
-                                        <Button onClick={() => setIsEdit(true)}>
+                                        <Button onClick={() => 
+                                            router.push(`/seller/edit-listing/${form.id}`)
+                                        }>
                                             <Edit className="w-4 h-4 mr-2" />
                                             Edit Listing
                                         </Button>
@@ -172,6 +174,7 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
 
                             {/* Edit Form */}
                             {isEdit ? (
+                                // need to remove this editing form 
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     {/* Basic Information */}
                                     <div>
