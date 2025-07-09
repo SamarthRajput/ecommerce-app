@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/src/context/AuthContext';
+import { toast } from 'sonner';
 
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
 const API_BASE_URL = `${API_BACKEND_URL}/seller`;
@@ -12,6 +13,7 @@ const ForgotPassword = () => {
     const { authenticated, isSeller } = useAuth();
 
     useEffect(() => {
+        // toast.success('If you have an account, please enter your email to receive a password reset link.');
         if (authenticated && isSeller) {
             window.location.href = '/seller/dashboard';
         }
@@ -48,6 +50,13 @@ const ForgotPassword = () => {
             <section className="bg-gray-100 dark:bg-gray-900 min-h-screen flex items-center justify-center">
                 <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
                     <h2 className="text-2xl font-bold mb-6 text-center">Forgot Password</h2>
+                    {/* Link to go back to login page */}
+                    <p className='text-sm text-gray-600 dark:text-gray-400 mb-4'>
+                        Remembered your password?{' '}
+                        <a href="/seller/login" className="text-blue-600 hover:underline">
+                            Login
+                        </a>
+                    </p>
                     <form onSubmit={handleSubmit} aria-busy={loading}>
                         <div className="mb-4">
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">

@@ -1,56 +1,40 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
+import asyncHandler from "../utils/asyncHandler";
 import { requireAdmin } from "../middlewares/authAdmin";
-import { AuthenticatedRequest } from "../middlewares/authBuyer";
 import { requireAuth } from "../middlewares/requireAuth";
-import { createChatRoomBetweenAdminAndSeller, deleteChatMessage, editChatMessage, getChatMessages, getUserChatRooms, markMessagesAsRead, pinChatMessage, sendChatMessage, unpinChatMessage } from "../controllers/chatMessageController";
+import { uploadSingleFile } from "../middlewares/multer";
+import { createChatRoomBetweenAdminAndSeller, sendChatMessage, getChatMessages, getUserChatRooms, markMessagesAsRead, editChatMessage, deleteChatMessage, pinChatMessage, unpinChatMessage, uploadMediaToChatRoom } from "../controllers/chatMessageController";
 
 const chatRouter = Router();
+
 // Base address: https://localhost:3001/api/v1/chat
 
-// Create a new chat room between admin and seller
-chatRouter.post("/chatroom", requireAdmin, async (req: Request, res: Response) => {
-    await createChatRoomBetweenAdminAndSeller(req as AuthenticatedRequest, res);
-});
+// ==========================
+// Admin-only routes
+// ==========================
+chatRouter.post("/chatroom", requireAdmin, asyncHandler(createChatRoomBetweenAdminAndSeller));
 
-// Send a message in a chat room
-chatRouter.post("/chatroom/message", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), async (req: Request, res: Response) => {
-    await sendChatMessage(req as AuthenticatedRequest, res);
-});
+// ==========================
+// Common routes for Admin, Seller, Buyer
+// ==========================
 
-// Get all message of a chat room
-chatRouter.get("/chatroom/:id/messages", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), async (req: Request, res: Response) => {
-    await getChatMessages(req as AuthenticatedRequest, res);
-});
+// Chat room management
+chatRouter.get("/chatrooms", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), asyncHandler(getUserChatRooms));
 
-// Get all chat rooms of admin
-chatRouter.get("/chatrooms", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), async (req: Request, res: Response) => {
-    await getUserChatRooms(req as AuthenticatedRequest, res);
-});
+// Message operations
+chatRouter.post("/chatroom/message", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), asyncHandler(sendChatMessage));
+chatRouter.get("/chatroom/:id/messages", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), asyncHandler(getChatMessages));
+chatRouter.post("/chatroom/:id/mark-read", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), asyncHandler(markMessagesAsRead));
 
-// Mark message as read
-chatRouter.post("/chatroom/:id/mark-read", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), async (req: Request, res: Response) => {
-    await markMessagesAsRead(req as AuthenticatedRequest, res);
-});
+// Message modifications
+chatRouter.put("/message/:messageId/edit", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), asyncHandler(editChatMessage));
+chatRouter.delete("/message/:messageId/delete", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), asyncHandler(deleteChatMessage));
 
-// Edit a message in a chat room
-chatRouter.put("/message/:messageId/edit", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), async (req: Request, res: Response) => {
-    await editChatMessage(req as AuthenticatedRequest, res);
-});
+// Pin/Unpin messages
+chatRouter.patch("/message/:messageId/pin", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), asyncHandler(pinChatMessage));
+chatRouter.patch("/message/:messageId/unpin", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), asyncHandler(unpinChatMessage));
 
-// Soft delete a message in a chat room
-chatRouter.delete("/message/:messageId/delete", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), async (req: Request, res: Response) => {
-    await deleteChatMessage(req as AuthenticatedRequest, res);
-});
+// Upload media/documents
+chatRouter.post("/chatroom/:roomId/upload", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), uploadSingleFile, asyncHandler(uploadMediaToChatRoom));
 
-// pin a message in a chat room
-chatRouter.patch("/message/:messageId/pin", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), async (req: Request, res: Response) => {
-    await pinChatMessage(req as AuthenticatedRequest, res);
-});
-
-// unpin a message in a chat room
-chatRouter.patch("/message/:messageId/unpin", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), async (req: Request, res: Response) => {
-    await unpinChatMessage(req as AuthenticatedRequest, res);
-});
-
-// Export the router
 export default chatRouter;
