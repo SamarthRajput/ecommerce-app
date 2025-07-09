@@ -11,26 +11,26 @@ export const requestCertification = async (req: AuthenticatedRequest, res: Respo
 
   try {
     // Check if already requested
-    if(sellerId){
-        const existing = await prisma.certification.findUnique({
-          where: { 
-            sellerId_productId: { 
-                sellerId, productId 
-            } 
+    if (sellerId) {
+      const existing = await prisma.certification.findUnique({
+        where: {
+          sellerId_productId: {
+            sellerId, productId
+          }
         },
-        });
-        if (existing) {
-            res.status(400).json({ message: 'Certification already requested.' });
-            return;
-        }
+      });
+      if (existing) {
+        res.status(400).json({ message: 'Certification already requested.' });
+        return;
+      }
     }
     const cert = await prisma.certification.create({
-        data: { 
-            sellerId: sellerId as string, 
-            productId,
-            amount, 
-            status: 'PENDING' 
-        },
+      data: {
+        sellerId: sellerId as string,
+        productId,
+        amount,
+        status: 'PENDING'
+      },
     });
     res.json(cert);
   } catch (err) {

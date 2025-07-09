@@ -5,6 +5,7 @@ import { DEFAULT_ADMIN_ID } from "../config";
 import validator from 'validator';
 import sanitizeHtml from 'sanitize-html';
 import { parsePagination } from "../utils/parsePagination";
+import { v2 as cloudinary } from "cloudinary";
 
 // Create a new chat room between admin and seller
 export const createChatRoomBetweenAdminAndSeller = async (req: AuthenticatedRequest, res: Response) => {
@@ -680,3 +681,63 @@ export const unpinChatMessage = async (req: AuthenticatedRequest, res: Response)
         return res.status(500).json({ error: "Internal server error" });
     }
 }
+
+// Upload media and documents to a chat room
+export const uploadMediaToChatRoom = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const senderId = req.user?.userId;
+        const roomId = req.params.roomId;
+        const userRole = req.user?.role;
+        if (!senderId || !roomId || !userRole) {
+            return res.status(400).json({ error: 'User ID, room ID, and role are required' });
+        }
+        console.log('Uploading documents in chatrooms:', req.files);
+        const file = req.file;
+        if (!file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (!allowedTypes.includes(file.mimetype)) {
+            return res.status(400).json({ error: 'Only PDF, JPG, and PNG files are allowed' });
+        }
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            return res.status(400).json({ error: 'File size exceeds 5MB limit' });
+        }
+
+        const resourceType = file.mimetype === 'application/pdf' ? 'raw' : 'image';
+
+        // Upload PDF/Image to Cloudinary
+        const uploadedUrl = await new Promise<string>((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+                {
+                    resource_type: resourceType,
+                    folder: 'chat_documents',
+                    public_id: `${Date.now()}_${file.originalname}_${Math.random().toString(36).substring(2, 15)}`,
+                },
+                (error, result) => {
+                    if (error || !result) return reject(error);
+                    resolve(result.secure_url);
+                }
+            );
+            stream.end(file.buffer);
+        });
+        console.log('Document uploaded successfully:', uploadedUrl);
+
+        // Save the uploaded file URL to the database in the chat room as a message
+        await prisma.chatMessage.create({
+            data: {
+                chatRoomId: roomId,
+                senderId: senderId,
+                senderRole: userRole.toUpperCase() as any,
+                content: uploadedUrl,
+                attachmentType: resourceType,
+                attachmentUrl: uploadedUrl,
+            },
+        });
+        res.status(200).json({ message: 'File uploaded and message created successfully', url: uploadedUrl });
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        res.status(500).json({ error: 'Failed to upload file' });
+    }
+};
