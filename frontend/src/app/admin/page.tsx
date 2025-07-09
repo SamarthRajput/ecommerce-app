@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
-import { BarChart3, Settings, Users, Package, FileText, LogOut, Bell, Search, Menu, Home, Loader2, HomeIcon, MessageSquare } from 'lucide-react';
+import { BarChart3, Settings, Users, Package, FileText, LogOut, Bell, Search, Menu, Home, Loader2, HomeIcon, MessageSquare, BookCheck } from 'lucide-react';
 import { useAuth } from '@/src/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -10,7 +10,7 @@ const quickLinks = [
     { href: '/admin/rfqs', label: 'Manage RFQs', icon: FileText, description: 'Accept, Reject and manage RFQs' },
     { href: '/admin/reports', label: 'View Reports', icon: BarChart3, description: 'Analytics and performance reports' },
     { href: '/admin/chat', label: 'Chat Dashboard', icon: MessageSquare, description: 'Communicate with buyers and sellers' },
-    { href: '/admin/settings', label: 'Settings', icon: Settings, description: 'System configuration and preferences' },
+    { href: '/admin/certifications', label: 'Certifications', icon: BookCheck, description: 'Seller Certification approval' },
 ];
 
 interface AdminUser {
