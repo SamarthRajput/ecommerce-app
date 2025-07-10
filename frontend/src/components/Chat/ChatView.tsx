@@ -63,6 +63,7 @@ interface ChatViewProps {
     onEditMessage?: (messageId: string, content: string) => Promise<void>;
     onDeleteMessage?: (messageId: string) => Promise<void>;
     onPinMessage?: (messageId: string) => Promise<void>;
+    onUnpinMessage?: (messageId: string) => Promise<void>;
     onReactToMessage?: (messageId: string, emoji: string) => Promise<void>;
     onMarkAsRead?: (messageId: string) => Promise<void>;
     headerContent?: React.ReactNode;
@@ -80,6 +81,7 @@ const ChatView: React.FC<ChatViewProps> = ({
     onEditMessage,
     onDeleteMessage,
     onPinMessage,
+    onUnpinMessage,
     onReactToMessage,
     onMarkAsRead,
     headerContent,

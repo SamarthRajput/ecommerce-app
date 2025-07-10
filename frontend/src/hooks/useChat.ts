@@ -426,7 +426,6 @@ export const useChat = () => {
 
     }
     const pinMessage = async (messageId: string): Promise<void> => {
-        // Optimistically update the message state
         setMessages((prevMessages: ChatMessage[]) =>
             prevMessages.map((msg: ChatMessage) =>
                 msg.id === messageId ? { ...msg, isPinned: true } : msg
@@ -452,36 +451,24 @@ export const useChat = () => {
         }
 
     }
-    const unpinMessage = async (messageId: string): Promise<void> => {
-        // Optimistically update the message state
-        setMessages((prevMessages: ChatMessage[]) =>
-            prevMessages.map((msg: ChatMessage) =>
-                msg.id === messageId ? { ...msg, isPinned: false } : msg
-            )
-        );
-        // API Call to unpin the message
-        const response = await fetch(`${BASE_URL}/chat/message/${messageId}/unpin`, {
-            method: "PATCH",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            toast.error(data.error || "Failed to unpin message");
-            // If unpinning fails, re-fetch messages or restore the pinned state
-            await fetchChatMessages(selectedRoom?.id || "");
-            return;
-        } else {
-            toast.success("Message unpinned successfully");
-        }
-    }
     const reactToMessage = async (messageId: string, reaction: string): Promise<void> => {
         // Optimistically update the message state
         setMessages((prevMessages: ChatMessage[]) =>
             prevMessages.map((msg: ChatMessage) =>
-                msg.id === messageId ? { ...msg, reaction } : msg
+                msg.id === messageId
+                    ? {
+                        ...msg,
+                        reactions: [
+                            ...msg.reactions,
+                            {
+                                reactorId: user?.id || "",
+                                reactorRole: currentUserRole.toUpperCase() as Role,
+                                emoji: reaction,
+                                reactedAt: new Date().toISOString(),
+                            },
+                        ],
+                    }
+                    : msg
             )
         );
 
@@ -500,8 +487,6 @@ export const useChat = () => {
             // If reaction fails, re-fetch messages or restore the previous state
             await fetchChatMessages(selectedRoom?.id || "");
             return;
-        } else {
-            toast.success("Reaction added successfully");
         }
 
     };
