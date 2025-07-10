@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '../../components/ui/button';
 import { Card, CardHeader, CardContent } from '../../components/ui/card';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +9,15 @@ import { Package, Users, Star, Globe, Shield, MessageSquare, ArrowRight } from '
 const HomePage = () => {
   const router = useRouter();
   const { authenticated, role, isAdmin, authLoading, isBuyer, isSeller } = useAuth();
+  const [showCookieBanner, setShowCookieBanner] = useState(false);
+
+  useEffect(() => {
+    const consentGiven = localStorage.getItem('cookieConsent');
+    if(!consentGiven){
+      setShowCookieBanner(true);
+    }
+  }, []);
+
 
   // Auto-redirect authenticated users immediately
   useEffect(() => {
@@ -22,6 +31,21 @@ const HomePage = () => {
       }
     }
   }, [authLoading, authenticated, isAdmin, isBuyer, isSeller, router]);
+
+
+  const handleAcceptCookies = () => {
+    // set cookie that will accessible across multiple subdomains
+    document.cookie = `cookieConsent=true; path=/; SameSite=None; Secure`;
+
+    // also store in localStorage for easy client side access
+    localStorage.setItem('cookieConsent', 'true');
+    
+    // this will allow third party cookies for cross origin requests
+    if(navigator.cookieEnabled){
+      document.cookie = `thirdPartyCookiesAllowed=true; path=/; SameSite=None; Secure`;
+    }
+    setShowCookieBanner(false);
+  }
 
   const goToBuyerSignin = () => router.push('/buyer/signin');
   const goToSellerSignin = () => router.push('/seller/signin');
@@ -62,6 +86,27 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+
+      {/* Cookie Consent Banner */}
+      {showCookieBanner && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg z-50 border-t border-gray-200">
+          <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
+            <div className="mb-4 md:mb-0">
+              <h2 className="text-lg font-semibold text-gray-900">We use cookies</h2>
+              <p className="text-gray-600">
+                Cookies help us deliver the best experience on our website. By using our website, you agree to the use of cookies.
+              </p>
+            </div>
+            <Button
+              onClick={handleAcceptCookies}
+              className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white"
+            >
+              ACCEPT
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative">
         <div className="max-w-6xl mx-auto px-4 py-20">
