@@ -311,6 +311,7 @@ export const getUserChatRooms = async (req: AuthenticatedRequest, res: Response)
         const userRole = req.user?.role;
         const { take, skip } = parsePagination(req.query);
 
+        console.log("Fetching chat rooms for user:", { userId, userRole, take, skip });
         if (!userId) {
             res.status(400).json({ error: "Invalid User ID format" });
             return;
@@ -584,8 +585,8 @@ export const pinChatMessage = async (req: AuthenticatedRequest, res: Response) =
     const userRole = req.user?.role;
 
     // Basic validation
-    if (!messageId || !validator.isUUID(messageId)) {
-        return res.status(400).json({ error: "Message ID is required and must be a valid UUID" });
+    if (!messageId) {
+        return res.status(400).json({ error: "Message ID is required" });
     }
 
     if (!userId || !userRole || !['ADMIN', 'BUYER', 'SELLER'].includes(userRole)) {
@@ -643,8 +644,8 @@ export const unpinChatMessage = async (req: AuthenticatedRequest, res: Response)
     const userRole = req.user?.role;
 
     // Basic validation
-    if (!messageId || !validator.isUUID(messageId)) {
-        return res.status(400).json({ error: "Message ID is required and must be a valid UUID" });
+    if (!messageId) {
+        return res.status(400).json({ error: "Message ID is required" });
     }
 
     if (!userId || !userRole || !['ADMIN', 'BUYER', 'SELLER'].includes(userRole)) {

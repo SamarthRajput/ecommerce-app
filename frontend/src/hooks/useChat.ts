@@ -62,7 +62,7 @@ export const useChat = () => {
     const fetchChatRooms = async () => {
         setLoadingRooms(true);
         try {
-            const response = await fetch(`${BASE_URL}/chat/chatrooms`, {
+            const response = await fetch(`${BASE_URL}/chat/chatrooms?page=1&limit=100`, {
                 method: "GET",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -75,11 +75,16 @@ export const useChat = () => {
 
             const data = await response.json();
             if (data.success) {
-                setChatRooms(data.chatRooms || []);
+                if (data.chatRooms.length === 0) {
+                    toast.info("No chat rooms found");
+                } else {
+                    setChatRooms(data.chatRooms || []);
+                }
             } else {
                 setError(data.error || "Failed to fetch chat rooms");
             }
         } catch (err) {
+            toast.error((err as Error).message || "An error occurred while fetching chat rooms");
             setError((err as Error).message);
         } finally {
             setLoadingRooms(false);
@@ -108,6 +113,7 @@ export const useChat = () => {
             // Mark admin messages as read when viewing
             await markMessagesAsRead(chatRoomId);
         } catch (err) {
+            toast.error((err as Error).message || "An error occurred while fetching chat messages");
             setError((err as Error).message);
             setMessages([]);
         }
@@ -203,7 +209,7 @@ export const useChat = () => {
 
             const data: ChatMessage[] = await response.json();
             const unreadMessageIds = data
-                .filter(msg => msg.senderRole === "ADMIN" && !msg.read)
+                .filter(msg => msg.senderRole !== currentUserRole && !msg.read)
                 .map(msg => msg.id);
 
             if (unreadMessageIds.length === 0) return;
