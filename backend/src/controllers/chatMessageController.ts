@@ -6,6 +6,7 @@ import validator from 'validator';
 import sanitizeHtml from 'sanitize-html';
 import { parsePagination } from "../utils/parsePagination";
 import { v2 as cloudinary } from "cloudinary";
+import generateChatTitle from "../utils/generateChatTitle";
 
 // Create a new chat room between admin and seller
 export const createChatRoomBetweenAdminAndSeller = async (req: AuthenticatedRequest, res: Response) => {
@@ -343,7 +344,21 @@ export const getUserChatRooms = async (req: AuthenticatedRequest, res: Response)
             include: {
                 buyer: true,
                 seller: true,
-                messages: true,
+                messages: {
+                    orderBy: { sentAt: 'desc' },
+                    take: 1
+                },
+                rfq: {
+                    select: {
+                        id: true,
+                        status: true,
+                        product: {
+                            select: {
+                                name: true,
+                            }
+                        }
+                    }
+                },
             },
             orderBy: {
                 updatedAt: 'desc',
@@ -352,10 +367,16 @@ export const getUserChatRooms = async (req: AuthenticatedRequest, res: Response)
             take,
         });
 
+        const chatRoomsWithTitles = chatRooms.map((chatRoom) => ({
+            ...chatRoom,
+            title: generateChatTitle(chatRoom, userRole),
+        }));
+
+
         res.status(200).json({
             success: true,
             role: userRole,
-            chatRooms,
+            chatRooms: chatRoomsWithTitles
         });
 
     } catch (error) {

@@ -84,7 +84,7 @@ const AdminChat = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                     <h3 className="font-semibold text-gray-900 truncate text-sm lg:text-base">
-                        {selectedRoom.type} Conversation
+                        {selectedRoom.title || (selectedRoom.type === 'BUYER' ? 'Buyer Chat' : 'Seller Chat')}
                     </h3>
                     <p className="text-xs lg:text-sm text-gray-600 truncate">
                         RFQ: <span className="font-mono">{formatRfqId(selectedRoom.rfqId)}</span>

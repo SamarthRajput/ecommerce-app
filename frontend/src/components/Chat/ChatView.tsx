@@ -109,7 +109,8 @@ const ChatView: React.FC<ChatViewProps> = ({
 
     // Auto-scroll to bottom
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        // will turn on later
+        // messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
     useEffect(() => {
@@ -126,6 +127,8 @@ const ChatView: React.FC<ChatViewProps> = ({
     // Handle message send
     const handleSendMessage = async () => {
         if (!newMessage.trim() || sending) return;
+        const currentMessage = newMessage.trim();
+        setNewMessage("");
 
         setSending(true);
         try {
@@ -133,6 +136,7 @@ const ChatView: React.FC<ChatViewProps> = ({
             setNewMessage("");
             setReplyingTo(null);
         } catch (error) {
+            setNewMessage(currentMessage);
             console.error("Failed to send message:", error);
         } finally {
             setSending(false);
@@ -434,7 +438,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                 ) : (
                     <div className="space-y-4 lg:space-y-6">
                         {messages.map((message) => {
-                            // Show sent messages (SELLER) on right, received (BUYER and ADMIN) on left
+                            // Show sent messages only if they are from the current user or the role matches
                             const isSent = message.senderRole === role?.toUpperCase();
                             const isFromCurrentUser = message.senderRole === currentUserRole;
                             const hasAttachment = isImageAttachment(message) || isPdfAttachment(message);
