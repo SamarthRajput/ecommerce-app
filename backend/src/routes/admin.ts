@@ -1,82 +1,44 @@
 import { Request, Response, Router } from "express";
 import { prisma } from "../lib/prisma";
 import { requireAdmin } from "../middlewares/authAdmin";
-import { getAdminSummary, getAllBuyers, getAllSellers, getRecentRFQs } from "../controllers/adminController";
+import {
+    getAdminSummary,
+    getAllBuyers,
+    getAllSellers,
+    getRecentRFQs
+} from "../controllers/adminController";
 import { getRecentChats } from "../controllers/chatMessageController";
-import bcrypt from "bcryptjs";
 
 const adminRouter = Router();
 
-// Base address: https://localhost:3001/api/v1/admin
+// Base URL: http://localhost:3001/api/v1/admin
 
-// GET /api/v1/admin/sellers - Get all sellers
+// * Sellers
 adminRouter.get('/sellers', requireAdmin, async (req: Request, res: Response) => {
     await getAllSellers(req, res);
 });
 
-// GET /api/v1/admin/buyers - Get all buyers
+// * Buyers
 adminRouter.get('/buyers', requireAdmin, async (req: Request, res: Response) => {
     await getAllBuyers(req, res);
 });
 
-// GET /api/v1/admin/summary - Get admin summary (sellers, buyers, total RFQs etc)
+// * Admin Dashboard Summary
 adminRouter.get('/dashboard-summary', requireAdmin, async (req: Request, res: Response) => {
     await getAdminSummary(req, res);
 });
 
-// GET /api/v1/admin/rfqs/recent - Get recent RFQs
+// * Recent RFQs
 adminRouter.get('/rfqs/recent', requireAdmin, async (req: Request, res: Response) => {
     await getRecentRFQs(req, res);
 });
 
-// GET /api/v1/admin/chats/recent - Get recent chats
+// * Recent Chats
 adminRouter.get('/chats/recent', requireAdmin, async (req: Request, res: Response) => {
     await getRecentChats(req, res);
 });
 
-// Add this to check functionality of admin 
-adminRouter.post('/insert', async (req: Request, res: Response) => {
-    try {
-        // Example: Insert a test admin user
-        const email = `1@1`;
-        const password = `1`;
-        const hashedPassword = await bcrypt.hash(password, 10);
-        // Check if the admin user already exists
-        const existingAdmin = await prisma.user.findUnique({
-            where: {
-                email
-            }
-        });
-        if (existingAdmin) {
-            res.status(400).json({
-                success: false,
-                error: 'Admin user already exists'
-            });
-            return;
-        }
-        const admin = await prisma.user.create({
-            data: {
-                email,
-                name: 'Rohit Admin',
-                role: 'admin',
-                password: hashedPassword
-            }
-        });
-        console.log('Inserted admin user:', admin);
-        res.json({
-            success: true,
-            data: admin
-        });
-    } catch (error: any) {
-        console.error('Error inserting admin user:', error);
-        res.status(500).json({
-            success: false,
-            error: `Failed to insert admin user: ${error.message}`
-        });
-    }
-});
-
-// Clean up Prisma connection
+// * Graceful Shutdown
 process.on('beforeExit', async () => {
     await prisma.$disconnect();
 });

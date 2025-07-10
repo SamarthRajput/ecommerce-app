@@ -95,7 +95,9 @@ export default function EditListingPage() {
     };
 
     const handleCancel = () => {
-        router.push('/seller/listings');
+        // confirm before navigating away
+        
+        router.push('/seller/dashboard?tab=listings');
     };
 
     if (loading) {
@@ -130,24 +132,24 @@ export default function EditListingPage() {
     }
 
     return (
-    <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
-        {/* Main Form Section */}
-        <div className="p-6">
-            <ProductForm
-                mode="edit"
-                initialData={initialData}
-                onSubmit={handleSubmit}
-                onCancel={handleCancel}
-            />
-        </div>
-        
-        {/* Certification Section - Styled as a distinct box */}
-        <div className="border-t border-gray-200 p-6 bg-gray-50">
-                <RequestCertificationButton 
-                    productId={params.id as string} 
-                    amount={100} 
+        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+            {/* Main Form Section */}
+            <div className="p-6">
+                <ProductForm
+                    mode="edit"
+                    initialData={initialData}
+                    onSubmit={handleSubmit}
+                    onCancel={handleCancel}
                 />
+            </div>
+
+            {/* Certification Section - Styled as a distinct box */}
+            <div className="border-t border-gray-200 p-6 bg-gray-50">
+                <RequestCertificationButton
+                    productId={params.id as string}
+                    amount={100}
+                />
+            </div>
         </div>
-    </div>
-);
+    );
 }

@@ -6,25 +6,20 @@ import { requireAuth } from '../middlewares/requireAuth';
 
 const rfqRouter = express.Router();
 
-// Base url: http://localhost:3001/api/v1/rfq
+// Base URL: http://localhost:3001/api/v1/rfq
 
-
-// Post RFQ from logged in buyer
+// * Buyer Routes
 rfqRouter.post('/create', requireAuth({ allowedRoles: ["buyer"] }), createRFQ);
-
-// Get all RFQs for a buyer
 rfqRouter.get('/buyer/:buyerId', requireBuyer, getRFQsByBuyer);
 
-// Admin routes
+// * Admin Routes
 rfqRouter.get('/pending', requireAdmin, getPendingRFQs);
 rfqRouter.get('/forwarded', requireAdmin, getForwardedRFQs);
-rfqRouter.post('/forward/:id', requireAdmin, forwardRFQ); // Changed from approveRFQ to forwardRFQ
+rfqRouter.post('/forward/:id', requireAdmin, forwardRFQ);
 rfqRouter.post('/reject/:id', requireAdmin, rejectRFQ);
 rfqRouter.get('/stats', requireAdmin, getRFQStats);
 
-// Get all RFQs for a Seller
+// * Seller Routes
 rfqRouter.get('/seller/pending', requireAuth({ allowedRoles: ["seller"] }), getSellerForwardedRFQs);
-
-
 
 export { rfqRouter };

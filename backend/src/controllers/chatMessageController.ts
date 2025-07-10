@@ -711,6 +711,7 @@ export const uploadMediaToChatRoom = async (req: AuthenticatedRequest, res: Resp
         const senderId = req.user?.userId;
         const roomId = req.params.roomId;
         const userRole = req.user?.role;
+        const content = req.body;
         if (!senderId || !roomId || !userRole) {
             return res.status(400).json({ error: 'User ID, room ID, and role are required' });
         }
@@ -753,7 +754,7 @@ export const uploadMediaToChatRoom = async (req: AuthenticatedRequest, res: Resp
                 chatRoomId: roomId,
                 senderId: senderId,
                 senderRole: userRole.toUpperCase() as any,
-                content: uploadedUrl,
+                content: content || "",
                 attachmentType: resourceType,
                 attachmentUrl: uploadedUrl,
             },

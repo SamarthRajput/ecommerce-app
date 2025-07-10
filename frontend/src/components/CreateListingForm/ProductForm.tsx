@@ -22,6 +22,17 @@ import {
     AlertCircle,
     Edit
 } from 'lucide-react';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 import {
     ProductFormData,
@@ -40,16 +51,25 @@ import {
     SeoTaggingStep,
     ReviewSubmitStep
 } from './index'
+import { useRouter } from 'next/navigation';
 
 // Form steps configuration with icons
 const STEP_ICONS = [Package, DollarSign, Truck, FileText, ImageIcon, Tag, Check];
 
-export default function ProductForm({ mode, initialData, onSubmit, onCancel }: ProductFormProps) {
+export default function ProductForm({ mode, initialData, onSubmit }: ProductFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [imageUrls, setImageUrls] = useState<string[]>([]);
     const [submitType, setSubmitType] = useState<'draft' | 'submit'>('submit');
+    const [open, setOpen] = useState(false);
+    const router = useRouter();
+
+    const handleConfirm = () => {
+        setOpen(false);
+        router.push("/seller/dashboard?tab=listings");
+    };
+
 
     // Use appropriate schema based on mode
     const schema = mode === 'create' ? createProductSchema : productSchema;
@@ -340,15 +360,24 @@ export default function ProductForm({ mode, initialData, onSubmit, onCancel }: P
                 {/* Navigation buttons */}
                 <div className="flex justify-between items-center">
                     <div className="flex gap-2">
-                        {onCancel && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={onCancel}
-                            >
-                                Cancel
-                            </Button>
-                        )}
+                        <AlertDialog open={open} onOpenChange={setOpen}>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="outline">Cancel</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Cancel editing?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Are you sure you want to cancel editing? Unsaved changes will be lost.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Stay</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleConfirm}>Leave</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+
                         <Button
                             type="button"
                             variant="outline"

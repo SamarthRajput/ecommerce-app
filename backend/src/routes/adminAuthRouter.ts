@@ -3,34 +3,26 @@ import { prisma } from "../lib/prisma";
 import { adminSignin, meRoute } from "../controllers/adminController";
 import { requireAdmin } from "../middlewares/authAdmin";
 import { apiLimiter } from "../utils/rateLimit";
+import { clearAuthCookies } from "../utils/clearAuthCookies";
+import asyncHandler from "../utils/asyncHandler";
 
 export const authRouter = Router();
 
-// POST /api/v1/auth/admin/signin - Admin login
-authRouter.post('/admin/signin', apiLimiter, async (req: Request, res: Response) => {
-    await adminSignin(req, res);
-});
+// Base URL: http://localhost:3001/api/v1/auth
 
+// * Admin Login
+authRouter.post('/admin/signin', apiLimiter, asyncHandler(adminSignin));
 
-// POST /api/v1/auth/admin/logout - Admin logout
-authRouter.post('/admin/logout', requireAdmin, async (req: Request, res: Response) => {
-    res.clearCookie('AdminToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        path: "/" // Ensure the path matches where the cookie was set
-    });
+// * Admin Logout
+authRouter.post('/admin/logout', requireAdmin, (req: Request, res: Response) => {
+    clearAuthCookies(res);
     res.status(200).json({ message: "Logged out successfully" });
 });
 
+// * Get current logged-in user info
+authRouter.get('/me', asyncHandler(meRoute));
 
-// /api/v1/auth/me - Get current Logged-in User
-authRouter.get('/me', async (req: Request, res: Response) => {
-    await meRoute(req, res);
-});
-
-
-// Clean up Prisma connection
+// * Graceful shutdown
 process.on('beforeExit', async () => {
     await prisma.$disconnect();
 });

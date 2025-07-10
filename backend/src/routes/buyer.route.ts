@@ -1,46 +1,32 @@
 import { Request, Response, Router } from "express";
+import {
+    forgotPassword,
+    getBuyerProfile,
+    signinBuyer,
+    signupBuyer,
+    updateBuyerProfile,
+    updatePassword
+} from "../controllers/buyerController";
 import { AuthenticatedRequest, requireBuyer } from "../middlewares/authBuyer";
-import { forgotPassword, getBuyerProfile, signinBuyer, signupBuyer, updateBuyerProfile, updatePassword } from "../controllers/buyerController";
 import { apiLimiter } from "../utils/rateLimit";
+import { clearAuthCookies } from "../utils/clearAuthCookies";
+import asyncHandler from "../utils/asyncHandler";
 
 export const buyerRouter = Router();
 
-// Base url: http://localhost:3001/api/v1/buyer
+// Base URL: http://localhost:3001/api/v1/buyer
 
-// Signup Route
-buyerRouter.post("/signup", apiLimiter, async (req: Request, res: Response) => {
-    await signupBuyer(req, res);
+// * Auth Routes
+buyerRouter.post("/signup", apiLimiter, asyncHandler(signupBuyer));
+buyerRouter.post("/signin", apiLimiter, asyncHandler(signinBuyer));
+buyerRouter.post("/logout", requireBuyer, (req: AuthenticatedRequest, res: Response) => {
+    clearAuthCookies(res);
 });
 
-// Signin Route
-buyerRouter.post("/signin", apiLimiter, async (req: Request, res: Response) => {
-    await signinBuyer(req, res);
-});
+// * Password Management
+buyerRouter.post("/forgotPassword", asyncHandler(forgotPassword));
+buyerRouter.post("/updatePassword", asyncHandler(updatePassword));
 
-// get buyer details
-buyerRouter.get("/profile", requireBuyer, async (req: AuthenticatedRequest, res: Response) => {
-    await getBuyerProfile(req, res);
-});
-
-// update buyer details
-buyerRouter.put("/update", requireBuyer, async (req: AuthenticatedRequest, res: Response) => {
-    await updateBuyerProfile(req, res);
-});
-
-buyerRouter.post("/forgotPassword", async (req: Request, res: Response) => {
-    await forgotPassword(req, res);
-});
-
-buyerRouter.post("/updatePassword", async (req: Request, res: Response) => {
-    await updatePassword(req, res);
-})
-
-buyerRouter.post("/logout", requireBuyer, (req, res) => {
-    res.clearCookie("BuyerToken", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        path: "/" // Ensure the path matches where the cookie was set
-    });
-    res.status(200).json({ message: "Logged out successfully" });
-});
+// * Profile Routes
+buyerRouter.get("/profile", requireBuyer, asyncHandler(getBuyerProfile));
+buyerRouter.put("/update", requireBuyer, asyncHandler(updateBuyerProfile));

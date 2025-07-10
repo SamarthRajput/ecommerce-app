@@ -5,23 +5,30 @@ import {
   handlePaypalSuccess,
   issueCertificate,
   getSellerCertifications,
-  getAllCertifications,
+  getAllCertifications
 } from '../controllers/certification.controller';
 import { requireSeller } from '../middlewares/authSeller';
 
 const router = Router();
 
-// Seller requests certification
+// Base URL: http://localhost:3001/api/v1/certification
+
+// * Seller: Request certification
 router.post('/request', requireSeller, requestCertification);
-// Seller initiates PayPal payment
+
+// * Seller: Initiate PayPal payment
 router.post('/paypal/create', createPaypalPayment);
-// PayPal payment success webhook/callback
+
+// * PayPal: Payment success callback/webhook
 router.post('/paypal/success', handlePaypalSuccess);
-// Admin issues certificate
+
+// * Admin: Issue certificate
 router.post('/issue', issueCertificate);
-// Get seller certifications (for profile)
+
+// * Seller: Get own certifications
 router.get('/seller/:sellerId', getSellerCertifications);
-// Admin: get all certifications
+
+// * Admin: Get all certification records
 router.get('/all', getAllCertifications);
 
 export default router;
