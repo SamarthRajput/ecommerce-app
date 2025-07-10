@@ -7,27 +7,59 @@ interface ChatRoom {
     id: string;
     title: string;
     rfqId: string;
-    type: "SELLER" | "BUYER" | "ADMIN";
+    type: Role;
     adminId: string;
     createdAt: Date;
     updatedAt: Date;
 }
+export type Role = "SELLER" | "BUYER" | "ADMIN";
 
-interface ChatMessage {
-    id: string;
-    chatRoomId: string;
-    senderId: string;
-    senderRole: "SELLER" | "ADMIN" | "BUYER";
-    content: string;
-    sentAt: Date;
-    read: boolean;
-    deleted: boolean;
-    isPinned: boolean;
-    attachmentUrl?: string;
-    attachmentType?: "image" | "raw"; // 'raw' for non-image files
-    edited?: boolean;
+export type MessageStatus = 'sending' | 'sent' | 'read';
+
+export interface ChatReaction {
+    reactorId: string;
+    reactorRole: Role;
+    emoji: string;
+    reactedAt: string; // ISO date
 }
 
+export interface ReplyToMessage {
+    id: string;
+    content: string | null;
+    senderId: string;
+    senderRole: Role;
+    deleted: boolean;
+}
+
+export interface ChatMessage {
+    id: string;
+    chatRoomId: string;
+    content: string | null;
+    senderId: string;
+    senderRole: Role;
+    sentAt: string; // ISO date
+    status: MessageStatus;
+    read: boolean;
+    edited: boolean;
+    deleted: boolean;
+    isPinned: boolean;
+    isStarred: boolean;
+    attachmentType: 'raw' | 'image';
+    attachmentUrl: string;
+    replyTo: ReplyToMessage | null;
+    reactions: ChatReaction[];
+}
+export interface ChatMessagesResponse {
+    success: boolean;
+    chatRoomId: string;
+    messages: ChatMessage[];
+    pagination: {
+        skip: number;
+        take: number;
+        count: number;
+        hasMore: boolean;
+    };
+}
 export const useChat = () => {
     // State management
     const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
@@ -39,7 +71,7 @@ export const useChat = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [sending, setSending] = useState(false);
     const [currentUserRole, setCurrentUserRole] = useState("");
-    const { authLoading, role } = useAuth();
+    const { authLoading, role, user } = useAuth();
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -108,8 +140,8 @@ export const useChat = () => {
                 throw new Error(errorData.error || "Failed to fetch chat messages");
             }
 
-            const data: ChatMessage[] = await response.json();
-            setMessages(data);
+            const data: ChatMessagesResponse = await response.json();
+            setMessages(data.messages || []);
 
             // Mark admin messages as read when viewing
             await markMessagesAsRead(chatRoomId);
@@ -122,7 +154,28 @@ export const useChat = () => {
 
     const sendMessage = async (content: string = newMessage, replyToId?: string) => {
         if (!content.trim() || !selectedRoom || sending) return;
-
+        // Add the new message to the local state
+        setMessages(prevMessages => [
+            ...prevMessages,
+            {
+                id: Date.now().toString(),
+                chatRoomId: selectedRoom.id,
+                content: content.trim(),
+                senderId: user?.id || "",
+                senderRole: currentUserRole.toUpperCase() as "SELLER" | "ADMIN" | "BUYER",
+                sentAt: new Date().toISOString(),
+                status: 'sending',
+                read: false,
+                edited: false,
+                deleted: false,
+                isPinned: false,
+                isStarred: false,
+                attachmentType: 'raw',
+                attachmentUrl: '',
+                replyTo: null,
+                reactions: [],
+            } as ChatMessage,
+        ]);
         setSending(true);
         try {
             const response = await fetch(`${BASE_URL}/chat/chatroom/message`, {
@@ -142,6 +195,8 @@ export const useChat = () => {
             }
 
             setNewMessage("");
+            setError(null);
+
             await fetchChatMessages(selectedRoom.id);
         } catch (err) {
             setError((err as Error).message);
@@ -259,9 +314,9 @@ export const useChat = () => {
     // Get unread message count for a room (admin messages only)
     const getUnreadCount = (roomId: string) => {
         return messages.filter(
-            (msg) => msg.chatRoomId === roomId && !msg.read && msg.senderRole !== currentUserRole && !msg.deleted
+            (msg) => msg.chatRoomId === roomId && !msg.read && msg.senderRole.toUpperCase() !== currentUserRole.toUpperCase() && !msg.deleted
         ).length;
-    };
+    }
 
     // Utility functions
     const formatMessageTime = (date: Date) => {
@@ -303,11 +358,15 @@ export const useChat = () => {
     const editMessage = async (messageId: string, content: string): Promise<void> => {
         // Save the original message content before editing
         let originalContent: string | undefined;
+        if (!content.trim()) {
+            toast.error("Message content cannot be empty");
+            return;
+        }
 
         setMessages((prevMessages: ChatMessage[]) =>
             prevMessages.map((msg: ChatMessage) => {
                 if (msg.id === messageId) {
-                    originalContent = msg.content;
+                    originalContent = msg.content ?? "";
                     return { ...msg, content: content, edited: true };
                 }
                 return msg;
