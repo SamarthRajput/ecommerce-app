@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
+import { useAuth } from '../context/AuthContext';
 
 // Types
 interface ChatRoom {
     id: string;
     rfqId: string;
-    type: "SELLER";
+    type: "SELLER" | "BUYER" | "ADMIN";
     adminId: string;
     createdAt: Date;
     updatedAt: Date;
@@ -14,7 +16,7 @@ interface ChatMessage {
     id: string;
     chatRoomId: string;
     senderId: string;
-    senderRole: "SELLER" | "ADMIN";
+    senderRole: "SELLER" | "ADMIN" | "BUYER";
     content: string;
     sentAt: Date;
     read: boolean;
@@ -25,7 +27,7 @@ interface ChatMessage {
     edited?: boolean;
 }
 
-export const useSellerChat = () => {
+export const useChat = () => {
     // State management
     const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
     const [error, setError] = useState<string | null>(null);
@@ -35,6 +37,8 @@ export const useSellerChat = () => {
     const [newMessage, setNewMessage] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [sending, setSending] = useState(false);
+    const [currentUserRole, setCurrentUserRole] = useState("");
+    const { authLoading, role } = useAuth();
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -43,6 +47,12 @@ export const useSellerChat = () => {
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
+
+    useEffect(() => {
+        if (!authLoading) {
+            setCurrentUserRole(role || "");
+        }
+    }, [authLoading, role]);
 
     useEffect(() => {
         scrollToBottom();
@@ -79,7 +89,7 @@ export const useSellerChat = () => {
     const fetchChatMessages = async (chatRoomId: string) => {
         try {
             const response = await fetch(
-                `${BASE_URL}/chat/chatroom/${chatRoomId}/messages`,
+                `${BASE_URL}/chat/chatroom/${chatRoomId}/messages?page=1&limit=100`,
                 {
                     method: "GET",
                     credentials: "include",
@@ -103,8 +113,8 @@ export const useSellerChat = () => {
         }
     };
 
-    const sendMessage = async () => {
-        if (!newMessage.trim() || !selectedRoom || sending) return;
+    const sendMessage = async (content: string = newMessage, replyToId?: string) => {
+        if (!content.trim() || !selectedRoom || sending) return;
 
         setSending(true);
         try {
@@ -114,8 +124,8 @@ export const useSellerChat = () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     chatRoomId: selectedRoom.id,
-                    content: newMessage.trim(),
-                    senderRole: "SELLER",
+                    content: content.trim(),
+                    senderRole: currentUserRole,
                 }),
             });
 
@@ -159,7 +169,7 @@ export const useSellerChat = () => {
             const formData = new FormData();
             formData.append("chatRoomId", selectedRoom.id);
             formData.append("file", file);
-            formData.append("senderRole", "SELLER");
+            formData.append("senderRole", currentUserRole);
 
             const response = await fetch(`${BASE_URL}/chat/chatroom/${selectedRoom.id}/upload`, {
                 method: "POST",
@@ -277,11 +287,157 @@ export const useSellerChat = () => {
         try {
             const urlParts = url.split('/');
             const fileName = urlParts[urlParts.length - 1];
-            // Remove cloudinary transformations and get clean filename
             return fileName.split('_').slice(-1)[0] || 'document';
         } catch {
             return 'document';
         }
+    };
+
+    const editMessage = async (messageId: string, content: string): Promise<void> => {
+        // Save the original message content before editing
+        let originalContent: string | undefined;
+
+        setMessages((prevMessages: ChatMessage[]) =>
+            prevMessages.map((msg: ChatMessage) => {
+                if (msg.id === messageId) {
+                    originalContent = msg.content;
+                    return { ...msg, content: content, edited: true };
+                }
+                return msg;
+            })
+        );
+
+        // API Call to edit the message
+        const response = await fetch(`${BASE_URL}/chat/message/${messageId}/edit`, {
+            method: "PUT",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            toast.error(data.error || "Failed to edit message");
+
+            // Revert the changes using the original content
+            setMessages((prevMessages: ChatMessage[]) =>
+                prevMessages.map((msg: ChatMessage) =>
+                    msg.id === messageId ? { ...msg, content: originalContent ?? "", edited: false } : msg
+                )
+            );
+            return;
+        } else {
+            toast.success(`${messageId} is edited successfully`);
+        }
+    };
+
+    const deleteMessage = async (messageId: string): Promise<void> => {
+        // Optimistically remove the message from the state
+        setMessages((prevMessages: ChatMessage[]) =>
+            prevMessages.map((msg: ChatMessage) =>
+                msg.id === messageId ? { ...msg, deleted: true } : msg
+            )
+        );
+
+        // API Call to delete the message
+        const response = await fetch(`${BASE_URL}/chat/message/${messageId}/delete`, {
+            method: "DELETE",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            toast.error(data.error || "Failed to delete message");
+            // If deletion fails, re-fetch messages or restore the deleted message
+            await fetchChatMessages(selectedRoom?.id || "");
+            return;
+        } else {
+            toast.success("Message deleted successfully");
+        }
+
+    }
+    const pinMessage = async (messageId: string): Promise<void> => {
+        // Optimistically update the message state
+        setMessages((prevMessages: ChatMessage[]) =>
+            prevMessages.map((msg: ChatMessage) =>
+                msg.id === messageId ? { ...msg, isPinned: true } : msg
+            )
+        );
+
+        // API Call to pin the message
+        const response = await fetch(`${BASE_URL}/chat/message/${messageId}/pin`, {
+            method: "PATCH",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            toast.error(data.error || "Failed to pin message");
+            // If pinning fails, re-fetch messages or restore the unpinned state
+            await fetchChatMessages(selectedRoom?.id || "");
+            return;
+        } else {
+            toast.success("Message pinned successfully");
+        }
+
+    }
+    const unpinMessage = async (messageId: string): Promise<void> => {
+        // Optimistically update the message state
+        setMessages((prevMessages: ChatMessage[]) =>
+            prevMessages.map((msg: ChatMessage) =>
+                msg.id === messageId ? { ...msg, isPinned: false } : msg
+            )
+        );
+        // API Call to unpin the message
+        const response = await fetch(`${BASE_URL}/chat/message/${messageId}/unpin`, {
+            method: "PATCH",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            toast.error(data.error || "Failed to unpin message");
+            // If unpinning fails, re-fetch messages or restore the pinned state
+            await fetchChatMessages(selectedRoom?.id || "");
+            return;
+        } else {
+            toast.success("Message unpinned successfully");
+        }
+    }
+    const reactToMessage = async (messageId: string, reaction: string): Promise<void> => {
+        // Optimistically update the message state
+        setMessages((prevMessages: ChatMessage[]) =>
+            prevMessages.map((msg: ChatMessage) =>
+                msg.id === messageId ? { ...msg, reaction } : msg
+            )
+        );
+
+        // API Call to add reaction
+        const response = await fetch(`${BASE_URL}/chat/message/${messageId}/react`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reaction }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            toast.error(data.error || "Failed to react to message");
+            // If reaction fails, re-fetch messages or restore the previous state
+            await fetchChatMessages(selectedRoom?.id || "");
+            return;
+        } else {
+            toast.success("Reaction added successfully");
+        }
+
     };
 
     return {
@@ -307,6 +463,12 @@ export const useSellerChat = () => {
         uploadFile,
         handleRoomSelect,
         handleKeyPress,
+
+
+        editMessage,
+        deleteMessage,
+        pinMessage,
+        reactToMessage,
 
         // Utilities
         getUnreadCount,

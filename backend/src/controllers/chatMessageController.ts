@@ -204,6 +204,9 @@ export const getChatMessages = async (req: AuthenticatedRequest, res: Response) 
                 read: true,
                 edited: true,
                 isPinned: true,
+                attachmentType: true,
+                attachmentUrl: true,
+                deleted: true,
             }
         });
         res.status(200).json(messages);
@@ -739,5 +742,47 @@ export const uploadMediaToChatRoom = async (req: AuthenticatedRequest, res: Resp
     } catch (error) {
         console.error('Error uploading file:', error);
         res.status(500).json({ error: 'Failed to upload file' });
+    }
+};
+
+// React on message reactOnMessage
+export const reactOnMessage = async (req: AuthenticatedRequest, res: Response) => {
+    const { messageId } = req.params;
+    const { reaction } = req.body;
+    const userId = req.user?.userId;
+    const userRole = req.user?.role;
+
+    if (!userId || !userRole) {
+        return res.status(400).json({ error: 'User ID and role are required' });
+    }
+
+    if (!reaction) {
+        return res.status(400).json({ error: 'Emoji is required' });
+    }
+
+    try {
+        // Check if the message exists
+        const message = await prisma.chatMessage.findUnique({
+            where: { id: messageId },
+        });
+
+        if (!message) {
+            return res.status(404).json({ error: 'Message not found' });
+        }
+
+        // Create a new reaction
+        const reactionResponse = await prisma.messageReaction.create({
+            data: {
+                messageId: message.id,
+                reactorId: userId,
+                reactorRole: userRole.toUpperCase() as any,
+                emoji: reaction,
+            },
+        });
+
+        return res.status(200).json({ message: 'Reaction added successfully', reactionResponse });
+    } catch (error) {
+        console.error('Error reacting to message:', error);
+        return res.status(500).json({ error: 'Internal server error' });
     }
 };
