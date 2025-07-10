@@ -1,58 +1,13 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
-import {
-    Send,
-    CheckCircle,
-    Circle,
-    RefreshCw,
-    AlertTriangle,
-    MoreVertical,
-    Paperclip,
-    Camera,
-    Shield,
-    FileText,
-    Download,
-    Reply,
-    Pin,
-    Trash2,
-    Edit,
-    MessageSquare,
-    X,
-    Smile,
-    Heart,
-    ThumbsUp,
-    Laugh,
-    Angry,
-    Eye
-} from "lucide-react";
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Send, RefreshCw, MoreVertical, Paperclip, Camera, Shield, FileText, Download, Reply, Pin, Trash2, Edit, MessageSquare, X, Smile } from "lucide-react";
+import { CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from "@/src/context/AuthContext";
-
-// Types
-interface ChatMessage {
-    id: string;
-    chatRoomId: string;
-    senderId: string;
-    senderRole: "SELLER" | "ADMIN" | "BUYER";
-    content: string;
-    sentAt: Date;
-    read: boolean;
-    edited?: boolean;
-    deleted?: boolean;
-    isPinned?: boolean;
-    isStarred?: boolean;
-    attachmentType?: string;
-    attachmentUrl?: string;
-    replyToId?: string;
-    replyTo?: ChatMessage;
-    reactions?: MessageReaction[];
-    status?: 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
-}
 
 interface MessageReaction {
     id: string;
@@ -62,7 +17,43 @@ interface MessageReaction {
     emoji: string;
     createdAt: Date;
 }
+export type Role = "SELLER" | "BUYER" | "ADMIN";
 
+export type MessageStatus = 'sending' | 'sent' | 'read';
+
+export interface ChatReaction {
+    reactorId: string;
+    reactorRole: Role;
+    emoji: string;
+    reactedAt: string; // ISO date
+}
+
+export interface ReplyToMessage {
+    id: string;
+    content: string | null;
+    senderId: string;
+    senderRole: Role;
+    deleted: boolean;
+}
+
+export interface ChatMessage {
+    id: string;
+    chatRoomId: string;
+    content: string | null;
+    senderId: string;
+    senderRole: Role;
+    sentAt: string; // ISO date
+    status: MessageStatus;
+    read: boolean;
+    edited: boolean;
+    deleted: boolean;
+    isPinned: boolean;
+    isStarred: boolean;
+    attachmentType: 'raw' | 'image';
+    attachmentUrl: string;
+    replyTo: ReplyToMessage | null;
+    reactions: ChatReaction[];
+}
 interface ChatViewProps {
     chatRoomId: string;
     messages: ChatMessage[];
@@ -215,31 +206,6 @@ const ChatView: React.FC<ChatViewProps> = ({
         }
     };
 
-    // Render message status
-    const renderMessageStatus = (message: ChatMessage) => {
-        const isFromCurrentUser = message.senderId === currentUserRole;
-        if (!isFromCurrentUser) return null;
-
-        switch (message.status) {
-            case 'sending':
-                return <RefreshCw className="w-3 h-3 text-gray-400 animate-spin" />;
-            case 'failed':
-                return <AlertTriangle className="w-3 h-3 text-red-500" />;
-            case 'sent':
-                return <Circle className="w-3 h-3 text-gray-400" />;
-            case 'delivered':
-                return <CheckCircle className="w-3 h-3 text-gray-400" />;
-            case 'read':
-                return <CheckCircle className="w-3 h-3 text-blue-500" />;
-            default:
-                return message.read ? (
-                    <CheckCircle className="w-3 h-3 text-blue-500" />
-                ) : (
-                    <Circle className="w-3 h-3 text-gray-400" />
-                );
-        }
-    };
-
     // Render attachment
     const renderAttachment = (message: ChatMessage) => {
         if (isImageAttachment(message)) {
@@ -354,7 +320,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                     {canEdit && onEditMessage && (
                         <DropdownMenuItem onClick={() => {
                             setEditingMessage(message.id);
-                            setEditContent(message.content);
+                            setEditContent(message.content ?? "");
                         }}>
                             <Edit className="w-4 h-4 mr-2" />
                             Edit
@@ -464,7 +430,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                                                 {isFromCurrentUser ? "You" : message.senderRole}
                                             </Badge>
                                             <span className="text-xs text-gray-500">
-                                                {formatMessageTime(message.sentAt)}
+                                                {formatMessageTime(new Date(message.sentAt))}
                                             </span>
                                             {message.edited && (
                                                 <Badge variant="outline" className="text-xs text-gray-400">
@@ -562,7 +528,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                                         {/* Message status */}
                                         {isFromCurrentUser && (
                                             <div className="flex justify-end mt-1">
-                                                {renderMessageStatus(message)}
+                                                <span className="text-xs text-gray-500">{message.status}</span>
                                             </div>
                                         )}
                                     </div>

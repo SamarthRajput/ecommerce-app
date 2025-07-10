@@ -154,71 +154,109 @@ export const sendChatMessage = async (req: AuthenticatedRequest, res: Response) 
     }
 };
 
-// Get all message of a chat room
+// Get all messages of a chat room (with full data for UI)
 export const getChatMessages = async (req: AuthenticatedRequest, res: Response) => {
     const chatRoomId = req.params.id;
     const { take, skip } = parsePagination(req.query);
     const userId = req.user?.userId;
 
     if (!chatRoomId) {
-        res.status(400).json({ error: "Invalid Chat Room ID format" });
-        return;
+        return res.status(400).json({ error: "Invalid Chat Room ID format" });
     }
-    // Validate user ID
-    if (!userId) {
-        res.status(401).json({ error: "User not authenticated" });
-        return;
-    }
-    // find chatroom and the user in this chatroom
-    try {
-        const chatRoom = await prisma.chatRoom.findUnique({
-            where: { id: chatRoomId }, select: {
-                id: true,
-                type: true,
-                rfqId: true,
-                adminId: true,
-                sellerId: true,
-                buyerId: true,
-            }
-        });
-        if (!chatRoom) {
-            res.status(404).json({ error: "Chat room not found" });
-            return;
-        }
 
-        const isUserInChatRoom = userId === chatRoom.adminId || userId === chatRoom.sellerId || userId === chatRoom.buyerId;
-        if (!isUserInChatRoom) {
-            res.status(403).json({ error: "User not authorized to access this chat room" });
-            return;
-        }
-        const messages = await prisma.chatMessage.findMany({
-            where: { chatRoomId: chatRoomId },
-            orderBy: { sentAt: 'asc' },
-            take: take,
-            skip: skip,
+    if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    try {
+        // Validate chat room and access
+        const chatRoom = await prisma.chatRoom.findUnique({
+            where: { id: chatRoomId },
             select: {
                 id: true,
+                adminId: true,
+                sellerId: true,
+                buyerId: true
+            }
+        });
+
+        if (!chatRoom) {
+            return res.status(404).json({ error: "Chat room not found" });
+        }
+
+        const isUserInChatRoom = [chatRoom.adminId, chatRoom.sellerId, chatRoom.buyerId].includes(userId);
+        if (!isUserInChatRoom) {
+            return res.status(403).json({ error: "User not authorized to access this chat room" });
+        }
+
+        // Fetch messages with full data for UI
+        const messages = await prisma.chatMessage.findMany({
+            where: { chatRoomId },
+            orderBy: { sentAt: 'asc' },
+            skip,
+            take,
+            select: {
+                id: true,
+                chatRoomId: true,
                 content: true,
                 senderId: true,
                 senderRole: true,
                 sentAt: true,
                 read: true,
                 edited: true,
+                deleted: true,
                 isPinned: true,
+                isStarred: true,
                 attachmentType: true,
                 attachmentUrl: true,
-                deleted: true,
+
+                // Reply-to preview
+                replyTo: {
+                    select: {
+                        id: true,
+                        content: true,
+                        senderId: true,
+                        senderRole: true,
+                        deleted: true
+                    }
+                },
+
+                // Reactions list
+                reactions: {
+                    select: {
+                        reactorId: true,
+                        reactorRole: true,
+                        emoji: true,
+                        createdAt: true
+                    }
+                }
             }
         });
-        res.status(200).json(messages);
+
+        // Prepare final response structure
+        type MessageStatus = 'sending' | 'sent' | 'read';
+
+        const messagesWithStatus = messages.map((msg) => ({
+            ...msg,
+            status: msg.read ? 'read' : 'sent' as MessageStatus,
+        })); return res.status(200).json({
+            success: true,
+            chatRoomId,
+            messages: messagesWithStatus,
+            pagination: {
+                skip,
+                take,
+                count: messagesWithStatus.length,
+                hasMore: messagesWithStatus.length === take
+            }
+        });
     } catch (error) {
         if (process.env.NODE_ENV !== 'production') {
             console.error("Chat fetch error:", error);
         }
-
-        res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({ error: "Internal server error" });
     }
-}
+};
 
 // get recent chats
 export const getRecentChats = async (req: AuthenticatedRequest, res: Response) => {
