@@ -1,7 +1,8 @@
-import express from "express";
+import express, { ErrorRequestHandler } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import { Request, Response, NextFunction } from "express";
 
 // Route imports
 import { buyerRouter } from "./routes/buyer.route";
@@ -14,18 +15,20 @@ import { adminRouter } from "./routes/admin";
 import productRouter from "./routes/product.routes";
 import chatRouter from "./routes/chat.route";
 import certificationRouter from "./routes/certification.routes";
+import multer from "multer";
+import errorHandler from "./middlewares/errorHandler";
 
 
 // Configs
 dotenv.config();
 const app = express();
 
-app.set('trust proxy', 1); 
+app.set('trust proxy', 1);
 
 // Middlewares
 app.use(cors({
-  origin: true, 
-  credentials: true 
+  origin: true,
+  credentials: true
 }));
 
 app.use(cookieParser());
@@ -45,13 +48,21 @@ app.use("/api/v1/certification", certificationRouter);
 console.log("all router called");
 // Root route
 app.get("/", (req, res) => {
-    res.send("Welcome to the API");
+  res.send("Welcome to the API");
+});
+
+// Catch-All Error Handler
+app.use(errorHandler as ErrorRequestHandler);
+
+// 404 Not Found Handler
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.status(404).json({ error: "Not Found" });
 });
 
 // Server start
 const PORT = process.env.PORT || 3001;
 const server = app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-    const actualPort = (server.address() as any).port;
-    console.log(`✅ Server is running on port ${actualPort}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
+  const actualPort = (server.address() as any).port;
+  console.log(`✅ Server is running on port ${actualPort}`);
 });

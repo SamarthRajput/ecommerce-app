@@ -1038,13 +1038,10 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
 export const editListing = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const sellerId = req.seller?.sellerId;
-        if (!sellerId) {
-            return res.status(401).json({ error: 'Unauthorized access' });
-        }
-
         const listingId = req.params.listingId;
-        if (!listingId) {
-            return res.status(400).json({ error: 'Listing ID is required' });
+
+        if (!listingId || !sellerId) {
+            return res.status(400).json({ error: 'Unauthorized or invalid request' });
         }
 
         // Parse numeric fields
@@ -1056,6 +1053,7 @@ export const editListing = async (req: AuthenticatedRequest, res: Response) => {
             'validityPeriod'
         ];
 
+        if (!req.body) req.body = {};
         numericFields.forEach(field => {
             if (req.body[field] !== undefined) {
                 req.body[field] = Number(req.body[field]);
@@ -1080,6 +1078,7 @@ export const editListing = async (req: AuthenticatedRequest, res: Response) => {
         // Validate request data
         const validationResult = productSchema.safeParse(req.body);
         if (!validationResult.success) {
+            console.log('Validation failed:', validationResult.error.issues);
             return res.status(400).json({
                 error: 'Validation failed',
                 details: validationResult.error.issues.map(issue => ({

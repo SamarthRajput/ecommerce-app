@@ -27,7 +27,7 @@ export const productSchema = z.object({
   validityPeriod: z.number().min(1, "Validity period must be at least 1 day"),
 
   // Product Details
-  specifications: z.string(),
+  specifications: z.string().min(10, "Specifications must be at least 10 characters"),
   hsnCode: z.string().min(1, "HSN code is required"),
   warrantyPeriod: z.string().optional(),
   certifications: z.array(z.string()).optional(),
@@ -35,7 +35,8 @@ export const productSchema = z.object({
 
   // Media & Attachments
   images: z.array(z.any()).min(1, "At least one image is required").max(5, "Maximum 5 images allowed"),
-  brochureUrl: z.string().optional(),
+  // brochureUrl: z.string().url().optional().nullable(),
+  brochureUrl: z.string().url().or(z.literal("")).or(z.literal(null)).optional(),
   videoUrl: z.string().url().optional().or(z.literal("")),
 
   // SEO & Tagging

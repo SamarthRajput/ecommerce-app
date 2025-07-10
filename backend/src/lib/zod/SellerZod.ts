@@ -6,10 +6,10 @@ export const registerSellerSchema = z.object({
     password: z.string()
         .min(8, 'Password must be at least 8 characters')
         .max(32, 'Password must not exceed 32 characters'),
-        // .regex(/[a-z]/, 'Must include at least one lowercase letter')
-        // .regex(/[A-Z]/, 'Must include at least one uppercase letter')
-        // .regex(/[0-9]/, 'Must include at least one number')
-        // .regex(/[@$!%*?&]/, 'Must include at least one special character'),
+    // .regex(/[a-z]/, 'Must include at least one lowercase letter')
+    // .regex(/[A-Z]/, 'Must include at least one uppercase letter')
+    // .regex(/[0-9]/, 'Must include at least one number')
+    // .regex(/[@$!%*?&]/, 'Must include at least one special character'),
 
 
     phone: z.string()
@@ -133,8 +133,8 @@ export const productSchema = z.object({
     licenses: z.preprocess(parseJsonArray, z.array(z.string()).optional()),
 
     // Media & Attachments
-    images: z.any().refine(val => Array.isArray(val) && val.length >= 1, {
-        message: "At least one image is required",
+    images: z.any().refine(val => Array.isArray(val) && val.length >= 0, {
+        message: "Images must be an array",
     }).refine(val => val.length <= 5, {
         message: "Maximum 5 images allowed",
     }),

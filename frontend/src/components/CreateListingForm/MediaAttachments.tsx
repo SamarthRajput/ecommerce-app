@@ -47,6 +47,7 @@ export default function MediaAttachmentsStep({
                     <input
                         type="file"
                         multiple
+                        name="files" 
                         accept="image/*"
                         onChange={(e) => handleFileUploadWithLoader(e.target.files)}
                         className="hidden"

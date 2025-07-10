@@ -1,6 +1,6 @@
 // components/form-steps/PricingQuantityStep.tsx
 import React from 'react';
-import { Controller, Control, FieldErrors } from 'react-hook-form';
+import { Controller, Control, FieldErrors, useWatch } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,6 +12,7 @@ interface PricingQuantityStepProps {
 }
 
 export default function PricingQuantityStep({ control, errors }: PricingQuantityStepProps) {
+    const quantity = useWatch({ control, name: "quantity" });
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -87,7 +88,7 @@ export default function PricingQuantityStep({ control, errors }: PricingQuantity
                             <Input
                                 {...field}
                                 type="number"
-                                min="1"
+                                max={quantity}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                                 className={errors.minimumOrderQuantity ? 'border-red-500' : ''}
                             />
