@@ -3,7 +3,7 @@ import asyncHandler from "../utils/asyncHandler";
 import { requireAdmin } from "../middlewares/authAdmin";
 import { requireAuth } from "../middlewares/requireAuth";
 import { uploadSingleFile } from "../middlewares/multer";
-import { createChatRoomBetweenAdminAndSeller, sendChatMessage, getChatMessages, getUserChatRooms, markMessagesAsRead, editChatMessage, deleteChatMessage, pinChatMessage, unpinChatMessage, uploadMediaToChatRoom } from "../controllers/chatMessageController";
+import { createChatRoomBetweenAdminAndSeller, sendChatMessage, getChatMessages, getUserChatRooms, markMessagesAsRead, editChatMessage, deleteChatMessage, pinChatMessage, unpinChatMessage, uploadMediaToChatRoom, reactOnMessage } from "../controllers/chatMessageController";
 
 const chatRouter = Router();
 
@@ -33,6 +33,7 @@ chatRouter.delete("/message/:messageId/delete", requireAuth({ allowedRoles: ["ad
 // Pin/Unpin messages
 chatRouter.patch("/message/:messageId/pin", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), asyncHandler(pinChatMessage));
 chatRouter.patch("/message/:messageId/unpin", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), asyncHandler(unpinChatMessage));
+chatRouter.post("/message/:messageId/react", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), asyncHandler(reactOnMessage));
 
 // Upload media/documents
 chatRouter.post("/chatroom/:roomId/upload", requireAuth({ allowedRoles: ["admin", "seller", "buyer"] }), uploadSingleFile, asyncHandler(uploadMediaToChatRoom));
