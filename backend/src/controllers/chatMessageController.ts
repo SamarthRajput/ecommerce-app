@@ -639,7 +639,7 @@ export const deleteChatMessage = async (req: AuthenticatedRequest, res: Response
 
 // Pin a message in a chat room
 export const pinChatMessage = async (req: AuthenticatedRequest, res: Response) => {
-    const messageId = req.params.id;
+    const messageId = req.params.messageId;
     const userId = req.user?.userId;
     const userRole = req.user?.role;
 
@@ -648,7 +648,7 @@ export const pinChatMessage = async (req: AuthenticatedRequest, res: Response) =
         return res.status(400).json({ error: "Message ID is required" });
     }
 
-    if (!userId || !userRole || !['ADMIN', 'BUYER', 'SELLER'].includes(userRole)) {
+    if (!userId || !userRole || !['ADMIN', 'BUYER', 'SELLER'].includes(userRole.toUpperCase())) {
         return res.status(401).json({ error: "Unauthorized access" });
     }
 
@@ -664,8 +664,17 @@ export const pinChatMessage = async (req: AuthenticatedRequest, res: Response) =
 
         // check for already pinned messages in the same chat room
         if (message.isPinned) {
-            return res.status(400).json({ error: "Message is already pinned" });
+            // Unpin the message
+            const updatedMessage = await prisma.chatMessage.update({
+                where: { id: messageId },
+                data: { isPinned: false }
+            });
+            return res.status(200).json({
+                message: "Message unpinned successfully",
+                updatedMessage
+            });
         } else {
+
             const pinnedCount = await prisma.chatMessage.count({
                 where: {
                     chatRoomId: message.chatRoomId,
@@ -694,56 +703,7 @@ export const pinChatMessage = async (req: AuthenticatedRequest, res: Response) =
         console.error("Error pinning chat message:", error);
         return res.status(500).json({ error: "Internal server error" });
     }
-}
-
-// Unpin a message in a chat room
-export const unpinChatMessage = async (req: AuthenticatedRequest, res: Response) => {
-    const messageId = req.params.id;
-    const userId = req.user?.userId;
-    const userRole = req.user?.role;
-
-    // Basic validation
-    if (!messageId) {
-        return res.status(400).json({ error: "Message ID is required" });
-    }
-
-    if (!userId || !userRole || !['ADMIN', 'BUYER', 'SELLER'].includes(userRole)) {
-        return res.status(401).json({ error: "Unauthorized access" });
-    }
-
-    try {
-
-        // Find the message
-        const message = await prisma.chatMessage.findUnique({
-            where: { id: messageId }
-        });
-
-        if (!message) {
-            return res.status(404).json({ error: "Message not found" });
-        }
-
-        // check if the message is already unpinned
-        if (!message.isPinned) {
-            return res.status(400).json({ error: "Message is not pinned" });
-        }
-
-
-        // Update the message to unpin it
-        const updatedMessage = await prisma.chatMessage.update({
-            where: { id: messageId },
-            data: { isPinned: false }
-        });
-
-        return res.status(200).json({
-            message: "Message unpinned successfully",
-            updatedMessage
-        });
-
-    } catch (error) {
-        console.error("Error unpinning chat message:", error);
-        return res.status(500).json({ error: "Internal server error" });
-    }
-}
+};
 
 // Upload media and documents to a chat room
 export const uploadMediaToChatRoom = async (req: AuthenticatedRequest, res: Response) => {
@@ -751,6 +711,7 @@ export const uploadMediaToChatRoom = async (req: AuthenticatedRequest, res: Resp
         const senderId = req.user?.userId;
         const roomId = req.params.roomId;
         const userRole = req.user?.role;
+        const content = req.body;
         if (!senderId || !roomId || !userRole) {
             return res.status(400).json({ error: 'User ID, room ID, and role are required' });
         }
@@ -793,7 +754,7 @@ export const uploadMediaToChatRoom = async (req: AuthenticatedRequest, res: Resp
                 chatRoomId: roomId,
                 senderId: senderId,
                 senderRole: userRole.toUpperCase() as any,
-                content: uploadedUrl,
+                content: content || "",
                 attachmentType: resourceType,
                 attachmentUrl: uploadedUrl,
             },
