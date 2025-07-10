@@ -6,6 +6,7 @@ import { ProductFormData } from '@/src/lib/types/listing';
 import ProductForm from '@/src/components/CreateListingForm/ProductForm';
 import { useAuth } from '@/src/context/AuthContext';
 import RequestCertificationButton from '@/src/components/RequestCertificationButton';
+import { toast } from 'sonner';
 
 export default function EditListingPage() {
     const router = useRouter();
@@ -61,7 +62,7 @@ export default function EditListingPage() {
                     if (Array.isArray(value)) {
                         value.forEach((item, index) => {
                             if (item instanceof File) {
-                                formData.append('newImages', item);
+                                formData.append('files', item);
                             } else if (typeof item === 'string') {
                                 formData.append('existingImages', item);
                             }
@@ -74,29 +75,43 @@ export default function EditListingPage() {
                 }
             });
 
+            if (typeof window === "undefined") {
+                throw new Error("Form submission with FormData must be done on the client side.");
+            }
             const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
             const response = await fetch(`${BACKEND_URL}/seller/edit-listing/${params.id}`, {
                 method: 'PUT',
                 credentials: 'include',
                 body: formData,
             });
-
+            const responseData = await response.json();
             if (response.ok) {
-                alert('Product updated successfully!');
-                router.push('/seller/listings');
+                toast.success(responseData.message || 'Product updated successfully');
+                router.push(`/products/${responseData.listing.category}/${responseData.listing.id}`);
             } else {
-                throw new Error('Failed to update product');
+                throw new Error(`Failed to update product: ${responseData.message || responseData.error}`);
             }
         } catch (error) {
-            console.error('Error updating product:', error);
-            alert('Error updating product. Please try again.');
+            toast.error(`Error updating product: ${error instanceof Error ? error.message : 'Unknown error'}`);
             throw error;
         }
     };
-
+    /*
+     res.json({
+                message: 'Listing updated successfully',
+                listing: {
+                    id: updatedListing.id,
+                    name: updatedListing.name,
+                    description: updatedListing.description,
+                    price: updatedListing.price,
+                    category: updatedListing.category,
+                    status: updatedListing.status
+                }
+            });
+            */
     const handleCancel = () => {
         // confirm before navigating away
-        
+
         router.push('/seller/dashboard?tab=listings');
     };
 

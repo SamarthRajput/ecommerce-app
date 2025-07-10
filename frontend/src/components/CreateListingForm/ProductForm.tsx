@@ -7,50 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-    Package,
-    DollarSign,
-    Truck,
-    FileText,
-    Image as ImageIcon,
-    Tag,
-    Check,
-    ChevronRight,
-    ChevronLeft,
-    Save,
-    Send,
-    AlertCircle,
-    Edit
-} from 'lucide-react';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-
-import {
-    ProductFormData,
-    ProductFormProps,
-    productSchema,
-    createProductSchema,
-    FORM_STEPS
-} from '@/src/lib/types/listing'
-
-import {
-    ProductBasicsStep,
-    PricingQuantityStep,
-    LogisticsValidityStep,
-    ProductDetailsStep,
-    MediaAttachmentsStep,
-    SeoTaggingStep,
-    ReviewSubmitStep
-} from './index'
+import { Package, DollarSign, Truck, FileText, Image as ImageIcon, Tag, Check, ChevronRight, ChevronLeft, Save, Send, AlertCircle, Edit } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui/alert-dialog"
+import { ProductFormData, ProductFormProps, productSchema, createProductSchema, FORM_STEPS } from '@/src/lib/types/listing'
+import { ProductBasicsStep, PricingQuantityStep, LogisticsValidityStep, ProductDetailsStep, MediaAttachmentsStep, SeoTaggingStep, ReviewSubmitStep } from './index'
 import { useRouter } from 'next/navigation';
 
 // Form steps configuration with icons
@@ -123,20 +83,6 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
         }
     }, [mode, initialData, reset]);
 
-    // Custom validation for description HTML content
-    // useEffect(() => {
-    //     const subscription = watch((value, { name }) => {
-    //         if (name === 'description' && value.description) {
-    //             const textContent = htmlToText(value.description);
-    //             if (textContent.length < 10) {
-    //                 // Re-trigger validation
-    //                 trigger('description');
-    //             }
-    //         }
-    //     });
-    //     return () => subscription.unsubscribe();
-    // }, [watch, trigger]);
-
     // File upload handler
     const handleFileUpload = async (files: FileList | null) => {
         if (!files || files.length === 0) return;
@@ -179,7 +125,7 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
             3: ['deliveryTimeInDays', 'logisticsSupport', 'countryOfSource', 'validityPeriod'],
             4: ['hsnCode'],
             5: ['images'],
-            6: [],
+            6: ['tags'],
             7: mode === 'create' ? ['agreedToTerms'] : []
         };
         return stepFields[stepId] || [];
@@ -411,10 +357,11 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
                                 <Button
                                     type="button"
                                     onClick={() => {
+                                        // alert(`IsValid : ${isValid}`)
                                         setSubmitType('submit');
                                         handleSubmit(onFormSubmit)();
                                     }}
-                                    disabled={loading || !isValid}
+                                    disabled={loading}
                                     className="flex items-center gap-2"
                                 >
                                     {loading ? (
@@ -444,12 +391,50 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>
                             Please fix the following errors before proceeding:
+                            <span>
+                                {JSON.stringify(errors)}
+                            </span>
                             <ul className="mt-2 list-disc list-inside">
-                                {Object.entries(errors).map(([field, error]) => (
-                                    <li key={field} className="text-sm">
-                                        {error?.message}
-                                    </li>
-                                ))}
+                                {Object.entries(errors).map(([field, error]) => {
+                                    // Zod errors may have nested errors (e.g., for arrays/objects)
+                                    const messages: string[] = [];
+                                    if (error?.message) {
+                                        messages.push(error.message as string);
+                                    }
+                                    // If error has 'types' (for union/enum), collect those messages
+                                    if (error?.types && typeof error.types === 'object') {
+                                        messages.push(
+                                            ...Object.values(error.types).filter(Boolean).map(String)
+                                        );
+                                    }
+                                    // If error has 'refine' errors (for arrays/objects)
+                                    if (Array.isArray((error as any)?.types?.refine)) {
+                                        messages.push(
+                                            ...(error as any).types.refine.map((msg: any) => String(msg))
+                                        );
+                                    }
+                                    // If error has 'root' (for array/object errors)
+                                    if (Array.isArray((error as any)?.root)) {
+                                        messages.push(
+                                            ...(error as any).root.map((msg: any) => String(msg))
+                                        );
+                                    }
+                                    // If error has 'message' in nested errors (for arrays)
+                                    if (Array.isArray((error as any)?.message)) {
+                                        messages.push(
+                                            ...(error as any).message.map((msg: any) => String(msg))
+                                        );
+                                    }
+                                    // Fallback: show JSON if nothing else
+                                    if (messages.length === 0) {
+                                        messages.push(JSON.stringify(error));
+                                    }
+                                    return messages.map((msg, i) => (
+                                        <li key={field + i} className="text-sm">
+                                            {msg}
+                                        </li>
+                                    ));
+                                })}
                             </ul>
                         </AlertDescription>
                     </Alert>

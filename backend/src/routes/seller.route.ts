@@ -29,7 +29,7 @@ sellerRouter.put("/details", requireSeller, asyncHandler(updateSellerProfile));
 sellerRouter.get("/listings", requireSeller, asyncHandler(getSellerListings));
 sellerRouter.get("/product/:listingId", requireSeller, asyncHandler(getSingleListingForEdit));
 sellerRouter.post("/list-item", requireSeller, uploadMultipleFiles, asyncHandler(createListing));
-sellerRouter.put("/edit-listing/:listingId", requireSeller, asyncHandler(editListing));
+sellerRouter.put("/edit-listing/:listingId", requireSeller, uploadMultipleFiles, asyncHandler(editListing));
 sellerRouter.post("/toggle-listing-status/:listingId", requireSeller, asyncHandler(toggleListingStatus));
 
 // * Dashboard Stats
