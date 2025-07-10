@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 // Types
 interface ChatRoom {
     id: string;
+    title: string;
     rfqId: string;
     type: "SELLER" | "BUYER" | "ADMIN";
     adminId: string;
@@ -258,7 +259,7 @@ export const useChat = () => {
     // Get unread message count for a room (admin messages only)
     const getUnreadCount = (roomId: string) => {
         return messages.filter(
-            (msg) => msg.chatRoomId === roomId && !msg.read && msg.senderRole === "ADMIN"
+            (msg) => msg.chatRoomId === roomId && !msg.read && msg.senderRole !== currentUserRole && !msg.deleted
         ).length;
     };
 

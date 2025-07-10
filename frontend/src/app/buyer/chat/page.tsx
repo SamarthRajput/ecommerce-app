@@ -57,7 +57,7 @@ const ChatDashboard: React.FC = () => {
         </div>
         <div>
           <h3 className="font-semibold text-gray-900 text-base lg:text-lg">
-            Admin Support Chat
+            Chat with {selectedRoom.title}
           </h3>
           <p className="text-xs lg:text-sm text-gray-600">
             RFQ: <span className="font-mono font-medium">{formatRfqId(selectedRoom.rfqId)}</span>
@@ -92,7 +92,7 @@ const ChatDashboard: React.FC = () => {
               <MessageSquare className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Support Chat</h1>
+              <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Chat with {selectedRoom?.title.slice(0, 50) || "Admin Support"}</h1>
               <p className="text-sm text-gray-600 hidden sm:block">
                 Connect with admin support for your RFQs
               </p>
@@ -207,7 +207,8 @@ const ChatDashboard: React.FC = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-sm text-gray-900 truncate">
-                                Admin Support
+                                {/* {room.title.slice(0, 25) + "..."} */}
+                                {room.title.length > 25 ? room.title.slice(0, 25) + "..." : room.title}
                               </p>
                               <p className="text-xs text-gray-600 font-mono">
                                 {formatRfqId(room.rfqId)}
