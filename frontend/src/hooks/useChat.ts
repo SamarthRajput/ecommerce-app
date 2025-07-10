@@ -425,10 +425,10 @@ export const useChat = () => {
         }
 
     }
-    const pinMessage = async (messageId: string): Promise<void> => {
+    const pinMessage = async (messageId: string, pin: boolean): Promise<void> => {
         setMessages((prevMessages: ChatMessage[]) =>
             prevMessages.map((msg: ChatMessage) =>
-                msg.id === messageId ? { ...msg, isPinned: true } : msg
+                msg.id === messageId ? { ...msg, isPinned: pin } : msg
             )
         );
 
@@ -442,12 +442,12 @@ export const useChat = () => {
         const data = await response.json();
 
         if (!response.ok) {
-            toast.error(data.error || "Failed to pin message");
+            toast.error(data.error || `Failed to ${pin ? "Pin" : "Unpin"} the message`);
             // If pinning fails, re-fetch messages or restore the unpinned state
             await fetchChatMessages(selectedRoom?.id || "");
             return;
         } else {
-            toast.success("Message pinned successfully");
+            toast.success(data.message);
         }
 
     }

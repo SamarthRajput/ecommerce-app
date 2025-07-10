@@ -62,8 +62,7 @@ interface ChatViewProps {
     onUploadFile: (file: File) => Promise<void>;
     onEditMessage?: (messageId: string, content: string) => Promise<void>;
     onDeleteMessage?: (messageId: string) => Promise<void>;
-    onPinMessage?: (messageId: string) => Promise<void>;
-    onUnpinMessage?: (messageId: string) => Promise<void>;
+    onPinMessage?: (messageId: string, pin: boolean) => Promise<void>;
     onReactToMessage?: (messageId: string, emoji: string) => Promise<void>;
     onMarkAsRead?: (messageId: string) => Promise<void>;
     headerContent?: React.ReactNode;
@@ -81,7 +80,6 @@ const ChatView: React.FC<ChatViewProps> = ({
     onEditMessage,
     onDeleteMessage,
     onPinMessage,
-    onUnpinMessage,
     onReactToMessage,
     onMarkAsRead,
     headerContent,
@@ -313,7 +311,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                     </DropdownMenuItem>
 
                     {onPinMessage && (
-                        <DropdownMenuItem onClick={() => onPinMessage(message.id)}>
+                        <DropdownMenuItem onClick={() => onPinMessage(message.id, !message.isPinned)}>
                             <Pin className="w-4 h-4 mr-2" />
                             {message.isPinned ? 'Unpin' : 'Pin'}
                         </DropdownMenuItem>
