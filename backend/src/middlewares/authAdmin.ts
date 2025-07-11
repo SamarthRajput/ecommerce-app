@@ -35,16 +35,16 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
         };
 
         // Check if user exists and is an admin
-        const adminUser = await prisma.user.findUnique({
+        const adminUser = await prisma.admin.findUnique({
             where: { id: decoded.userId },
             select: {
                 id: true,
-                role: true,
+                adminRole: true,
                 email: true
             }
         });
 
-        if (!adminUser || adminUser.role !== 'admin') {
+        if (!adminUser) {
             res.status(403).json({
                 success: false,
                 error: 'Forbidden. You must be an admin to access this resource.'
@@ -55,7 +55,7 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
         // Attach user to request
         req.user = {
             userId: adminUser.id,
-            role: adminUser.role,
+            role: adminUser.adminRole,
             email: adminUser.email
         };
 

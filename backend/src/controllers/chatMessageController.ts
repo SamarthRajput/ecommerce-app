@@ -1,3 +1,4 @@
+// File: backend/src/controllers/chatMessageController.ts
 import { AuthenticatedRequest } from "../middlewares/authBuyer";
 import { Response } from "express";
 import { prisma } from "../lib/prisma";
@@ -350,7 +351,6 @@ export const getUserChatRooms = async (req: AuthenticatedRequest, res: Response)
         const userRole = req.user?.role;
         const { take, skip } = parsePagination(req.query);
 
-        console.log("Fetching chat rooms for user:", { userId, userRole, take, skip });
         if (!userId) {
             res.status(400).json({ error: "Invalid User ID format" });
             return;

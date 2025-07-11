@@ -35,7 +35,7 @@ export const adminSignin = async (req: Request, res: Response) => {
         console.log(`Admin login attempt for email: ${normalizedEmail}`);
 
         // Fetch admin user from DB
-        const user = await prisma.user.findUnique({
+        const admin = await prisma.admin.findUnique({
             where: { email: normalizedEmail },
             select: {
                 id: true,
@@ -47,8 +47,8 @@ export const adminSignin = async (req: Request, res: Response) => {
             }
         });
 
-        // Check if user exists
-        if (!user) {
+        // Check if admin exists
+        if (!admin) {
             return res.status(401).json({
                 success: false,
                 error: 'Invalid email or password'
@@ -56,8 +56,8 @@ export const adminSignin = async (req: Request, res: Response) => {
         }
 
         // Check for admin role
-        if (user.role !== 'admin') {
-            console.warn(`Unauthorized login attempt by ${email} with role ${user.role}`);
+        if (admin.role !== 'ADMIN') {
+            console.warn(`Unauthorized login attempt by ${email} with role ${admin.role}`);
             return res.status(403).json({
                 success: false,
                 error: 'Access denied. Admin privileges required.'
@@ -65,7 +65,7 @@ export const adminSignin = async (req: Request, res: Response) => {
         }
 
         // Compare passwords
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        const isPasswordValid = await bcrypt.compare(password, admin.password);
         if (!isPasswordValid) {
             return res.status(401).json({
                 success: false,
@@ -75,10 +75,10 @@ export const adminSignin = async (req: Request, res: Response) => {
 
         // Generate JWT token
         const tokenPayload = {
-            userId: user.id,
-            email: user.email,
-            role: user.role,
-            name: user.name
+            userId: admin.id,
+            email: admin.email,
+            role: admin.role,
+            name: admin.name
         };
 
         const token = jwt.sign(tokenPayload, JWT_SECRET as jwt.Secret, {
@@ -95,11 +95,11 @@ export const adminSignin = async (req: Request, res: Response) => {
             message: 'Login successful',
             token,
             user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                createdAt: user.createdAt
+                id: admin.id,
+                name: admin.name,
+                email: admin.email,
+                role: admin.role,
+                createdAt: admin.createdAt
             }
         });
 
@@ -157,7 +157,7 @@ export const meRoute = async (req: Request, res: Response) => {
                 }
             });
         } else if (role === 'admin') {
-            user = await prisma.user.findUnique({
+            user = await prisma.admin.findUnique({
                 where: { id: userId },
                 select: {
                     id: true, email: true, name: true, role: true, createdAt: true
