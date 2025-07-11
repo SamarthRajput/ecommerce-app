@@ -139,8 +139,8 @@ async function main() {
             videoUrl: '',
             images: [
                 'https://m.media-amazon.com/images/I/71goZuIha-L._UF1000,1000_QL80_.jpg',
-                'https://images.samsung.com/is/image/samsung/p6pim/in/2302/gallery/in-galaxy-s23-s918-sm-s918bzkcins-534992340?$650_519_PNG$',
-                'https://images.samsung.com/is/image/samsung/p6pim/in/2302/gallery/in-galaxy-s23-ultra-s918-sm-s918bzkcins-534992341?$650_519_PNG$'
+                'https://m.media-amazon.com/images/I/71lZBf-7QeL._SX679_.jpg',
+                'https://m.media-amazon.com/images/I/81zz+FAZ9XL._SX679_.jpg'
             ],
             tags: ['samsung', 'android', 'smartphone', 'camera', 's-pen'],
             keywords: ['Galaxy S23 Ultra', 'Samsung flagship phone', '200MP camera', 'S Pen'],
@@ -171,9 +171,9 @@ async function main() {
             brochureUrl: '',
             videoUrl: '',
             images: [
-                'https://oasis.opstatics.com/content/dam/oasis/page/2023/global/products/11/pc/11-green-image.png',
-                'https://image01.oneplus.net/ebp/202302/07/1-m00-46-44-rb8bwmphxkqab8g9aae5v4h4tk8536.png',
-                'https://oasis.opstatics.com/content/dam/oasis/page/2023/global/products/11/pc/11-black-image.png'
+                'https://m.media-amazon.com/images/I/414+xRBltFL._SY300_SX300_.jpg',
+                'https://m.media-amazon.com/images/I/51tKzI3G0zL._SX679_.jpg',
+                'https://m.media-amazon.com/images/I/51QVJveu+-L._SX679_.jpg'
             ],
             tags: ['oneplus', 'fast charging', 'android', 'flagship', 'hasselblad'],
             keywords: ['OnePlus 11 5G', 'Flagship Android phone', 'Snapdragon 8 Gen 2', '100W charging'],
@@ -204,8 +204,8 @@ async function main() {
             brochureUrl: '',
             videoUrl: '',
             images: [
-                'https://lh3.googleusercontent.com/DW42JbEpk_0VFrAjA_rF_l9JZFKwL_zKc3JKmDWyV3qrY6xKhcK8k5p3p3p3p3p3p3p3p3p',
-                'https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Pixel_7_Pro_in_Snow.width-1000.format-webp.webp'
+                'https://m.media-amazon.com/images/I/61q+6n02zLL._SX679_.jpg',
+                'https://m.media-amazon.com/images/I/51nD339kAIL._SY879_.jpg'
             ],
             tags: ['google', 'pixel', 'smartphone', 'ai', 'camera'],
             keywords: ['Pixel 7 Pro', 'Google smartphone', 'Tensor G2', 'AI photography'],
@@ -236,9 +236,9 @@ async function main() {
             brochureUrl: '',
             videoUrl: '',
             images: [
-                'https://i01.appmifile.com/v1/MI_18455B3E4DA706226CF7535A58E875F0267/pms_1669282030.46516115.jpg',
-                'https://cdn.mos.cms.futurecdn.net/YpEHdNjqMxRb6rKHGK9KhL-1200-80.jpg',
-                'https://fdn2.gsmarena.com/vv/pics/xiaomi/xiaomi-13-pro-1.jpg'
+                'https://m.media-amazon.com/images/I/41eB+jXzGsL._SY300_SX300_.jpg',
+                'https://m.media-amazon.com/images/I/515dcOdKTgL._SX679_.jpg',
+                'https://m.media-amazon.com/images/I/61jnXvSPXDL._SX679_.jpg'
             ],
             tags: ['xiaomi', 'leica', 'smartphone', 'ceramic', 'camera'],
             keywords: ['Xiaomi 13 Pro', 'Android flagship', 'Leica camera', 'ceramic build'],
@@ -271,8 +271,8 @@ async function main() {
             brochureUrl: '',
             videoUrl: '',
             images: [
-                'https://www.lg.com/in/images/air-conditioners/md07537037/gallery/1100-V1.jpg',
-                'https://www.lg.com/in/images/air-conditioners/md07537037/gallery/1100-V2.jpg'
+                'https://m.media-amazon.com/images/I/314pWpZA15L._SY445_SX342_QL70_FMwebp_.jpg',
+                'https://m.media-amazon.com/images/I/51rNx8LmuSL.jpg'
             ],
             tags: ['AC', 'LG', 'cooling', 'smart', 'energy efficient'],
             keywords: ['LG AC', 'Inverter Air Conditioner', 'AI ThinQ', 'Dual Inverter'],
@@ -303,8 +303,8 @@ async function main() {
             brochureUrl: '',
             videoUrl: '',
             images: [
-                'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/89d0db28c9cf47da9ed0ad7b00e73104_9366/Ultraboost_22_Shoes_Black_GX3131_01_standard.jpg',
-                'https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/4e5bc98c2b8d4b518e37ad7b00e731c7_9366/Ultraboost_22_Shoes_Black_GX3131_02_standard_hover.jpg'
+                'https://m.media-amazon.com/images/I/616iE+srj0L._SY695_.jpg',
+                'https://m.media-amazon.com/images/I/51zPCDBCZ1L._SY695_.jpg'
             ],
             tags: ['shoes', 'adidas', 'running', 'boost', 'athletic'],
             keywords: ['Ultraboost 22', 'Adidas running shoes', 'BOOST technology', 'performance footwear'],
@@ -335,8 +335,8 @@ async function main() {
             brochureUrl: '',
             videoUrl: '',
             images: [
-                'https://www.yonex.com/media/catalog/product/cache/1/image/650x/040ec09b1e35df139433887a97daa66f/n/r/nrl18i_1.jpg',
-                'https://contents.mediadecathlon.com/p1428096/k$1a9b9c8c8a8c8c8c8c8c8c8c8c8c8c8c/badminton-racket-br-160-blue.jpg'
+                'https://m.media-amazon.com/images/I/51665XuwWQL._SX679_.jpg',
+                'https://m.media-amazon.com/images/I/61Gq02jTC0L._SY879_.jpg'
             ],
             tags: ['badminton', 'racket', 'yonex', 'lightweight', 'beginner'],
             keywords: ['Yonex racket', 'Nanoray 18i', 'badminton equipment', 'graphite racket'],
@@ -367,8 +367,8 @@ async function main() {
             brochureUrl: '',
             videoUrl: '',
             images: [
-                'https://www.nilkamal.com/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/n/i/nilkamal-leo-chair-brown_1.jpg',
-                'https://m.media-amazon.com/images/I/61LqGN8KGYL._SL1500_.jpg'
+                'https://m.media-amazon.com/images/I/31jsJBB4h3L.jpg',
+                'https://m.media-amazon.com/images/I/31S9n9cBLGL.jpg'
             ],
             tags: ['chair', 'nilkamal', 'furniture', 'plastic', 'stackable'],
             keywords: ['Plastic Chair', 'Nilkamal Leo', 'outdoor furniture', 'stackable chair'],
@@ -399,13 +399,14 @@ async function main() {
             brochureUrl: '',
             videoUrl: '',
             images: [
-                'https://www.prestigeonline.co.in/media/catalog/product/cache/1/image/1200x/9df78eab33525d08d6e5fb8d27136e95/i/r/iris_750w_mixer_grinder_1.jpg',
-                'https://m.media-amazon.com/images/I/81KhYL0RTNL._SL1500_.jpg'
+                'https://m.media-amazon.com/images/I/41H1Qnr0TbL._SX300_SY300_QL70_FMwebp_.jpg',
+                'https://m.media-amazon.com/images/I/71og8V9OaOL._SX679_.jpg'
             ],
             tags: ['mixer', 'grinder', 'kitchen', 'prestige', 'appliance'],
             keywords: ['Prestige Mixer', 'IRIS 750W', 'mixer grinder', 'kitchen appliance'],
         }
     ];
+
 
     // Insert products
     for (const productData of products) {

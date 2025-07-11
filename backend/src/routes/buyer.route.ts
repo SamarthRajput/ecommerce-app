@@ -19,8 +19,11 @@ export const buyerRouter = Router();
 // * Auth Routes
 buyerRouter.post("/signup", apiLimiter, asyncHandler(signupBuyer));
 buyerRouter.post("/signin", apiLimiter, asyncHandler(signinBuyer));
-buyerRouter.post("/logout", requireBuyer, (req: AuthenticatedRequest, res: Response) => {
+buyerRouter.post("/logout", requireBuyer, (req: Request, res: Response) => {
     clearAuthCookies(res);
+    res.status(200).json({
+        message: "Logged out successfully"
+    })
 });
 
 // * Password Management
