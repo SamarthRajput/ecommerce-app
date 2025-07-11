@@ -43,6 +43,7 @@ export function requireAuth(options: AuthOptions) {
                     userId?: string;
                     email?: string;
                     role?: Role;
+                    adminRole?: string;
                 };
 
                 // Choose the appropriate ID based on role
@@ -77,7 +78,8 @@ export function requireAuth(options: AuthOptions) {
                     req.user = {
                         userId: user.id,
                         email: user.email,
-                        role: role
+                        role: role,
+                        ...(role === "admin" ? { adminRole: decoded.adminRole } : {})
                     };
                     break;
                 }
