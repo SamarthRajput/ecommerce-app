@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { JWT_SECRET } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
+import { clearAuthCookies } from "../utils/clearAuthCookies";
 
 interface SigninBody {
     email: string;
@@ -43,6 +44,7 @@ export const adminSignin = async (req: Request, res: Response) => {
                 email: true,
                 password: true,
                 role: true,
+                adminRole: true,
                 createdAt: true
             }
         });
@@ -78,6 +80,7 @@ export const adminSignin = async (req: Request, res: Response) => {
             userId: admin.id,
             email: admin.email,
             role: admin.role,
+            adminRole: admin.adminRole,
             name: admin.name
         };
 
@@ -99,6 +102,7 @@ export const adminSignin = async (req: Request, res: Response) => {
                 name: admin.name,
                 email: admin.email,
                 role: admin.role,
+                adminRole: admin.adminRole,
                 createdAt: admin.createdAt
             }
         });
@@ -160,7 +164,7 @@ export const meRoute = async (req: Request, res: Response) => {
             user = await prisma.admin.findUnique({
                 where: { id: userId },
                 select: {
-                    id: true, email: true, name: true, role: true, createdAt: true
+                    id: true, email: true, name: true, role: true, createdAt: true, adminRole: true
                 }
             });
         }
@@ -168,13 +172,7 @@ export const meRoute = async (req: Request, res: Response) => {
         if (!user) {
             console.warn(`User not found for ID: ${userId}, Role: ${role}`);
             // Clear the cookie if user not found
-            if (role === 'seller') {
-                res.clearCookie('SellerToken');
-            } else if (role === 'buyer') {
-                res.clearCookie('BuyerToken');
-            } else if (role === 'admin') {
-                res.clearCookie('AdminToken');
-            }
+            clearAuthCookies(res);
             console.warn('Cleared cookie for invalid user session');
             return res.status(404).json({ authenticated: false, error: "User not found" });
         }
@@ -183,10 +181,10 @@ export const meRoute = async (req: Request, res: Response) => {
             id: user.id,
             email: user.email,
             role: role,
-            name:
-                role === 'admin'
-                    ? (user as { name: string }).name
-                    : `${(user as { firstName: string }).firstName} ${(user as { lastName: string }).lastName}`,
+            adminRole: role.toLowerCase() === 'admin' ? (user as { adminRole?: string }).adminRole : "N/A",
+            name: role === 'admin'
+                ? (user as { name: string }).name
+                : `${(user as { firstName: string }).firstName} ${(user as { lastName: string }).lastName}`,
             createdAt: (user as { createdAt?: Date }).createdAt || undefined,
             businessName: (user as { businessName?: string }).businessName || undefined
         };
