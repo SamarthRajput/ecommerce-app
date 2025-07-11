@@ -1001,7 +1001,7 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 price: data.price,
                 currency: data.currency,
                 deliveryTimeInDays: data.deliveryTimeInDays,
-                logisticsSupport: data.logisticsSupport,
+                logisticsSupport: data.logisticsSupport as any, // Cast to correct enum type
                 countryOfSource: data.countryOfSource,
                 validityPeriod: data.validityPeriod,
                 warrantyPeriod: data.warrantyPeriod,
@@ -1118,7 +1118,7 @@ export const editListing = async (req: AuthenticatedRequest, res: Response) => {
                 price: data.price,
                 currency: data.currency,
                 deliveryTimeInDays: data.deliveryTimeInDays,
-                logisticsSupport: data.logisticsSupport,
+                logisticsSupport: data.logisticsSupport as any, // Cast to correct enum type
                 countryOfSource: data.countryOfSource,
                 validityPeriod: data.validityPeriod,
                 warrantyPeriod: data.warrantyPeriod,

@@ -78,8 +78,8 @@ interface AdminUser {
 
 async function getOrCreateAdmin(): Promise<AdminUser> {
   // Try to find existing admin
-  const existingAdmin = await prisma.user.findFirst({
-    where: { role: 'admin' }
+  const existingAdmin = await prisma.admin.findFirst({
+    where: { role: 'ADMIN' }
   });
 
   if (existingAdmin) {
@@ -88,11 +88,11 @@ async function getOrCreateAdmin(): Promise<AdminUser> {
   const email = `1@1`;
   const password = `1`;
   const hashedPassword = await bcrypt.hash(password, 10);
-  const newAdmin = await prisma.user.create({
+  const newAdmin = await prisma.admin.create({
     data: {
       email,
       name: 'Admin',
-      role: 'admin',
+      role: 'ADMIN',
       password: hashedPassword
     }
   });

@@ -55,7 +55,7 @@ export function requireAuth(options: AuthOptions) {
 
                 let user: any = null;
                 if (role === "admin") {
-                    user = await prisma.user.findUnique({
+                    user = await prisma.admin.findUnique({
                         where: { id: userId },
                         select: { id: true, role: true, email: true }
                     });

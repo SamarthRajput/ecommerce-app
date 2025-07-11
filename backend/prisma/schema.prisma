@@ -41,13 +41,6 @@ enum LogisticsType {
   BOTH
 }
 
-enum RFQStatus {
-  PENDING         // Buyer submitted
-  FORWARDED       // Admin reviewed and forwarded to seller
-  REJECTED        // Admin rejected
-  APPROVED        // Seller accepted and RFQ is confirmed
-}
-
 enum TradeStatus {
   COMPLETED
   IN_PROGRESS
@@ -62,6 +55,12 @@ enum Role {
   ADMIN
   BUYER
   SELLER
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  INSPECTOR
 }
 
 enum ChatRoomStatus {
@@ -89,6 +88,13 @@ enum CertificationStatus {
   REJECTED
 }
 
+enum RFQStatus {
+  PENDING
+  APPROVED
+  FORWARDED
+  REJECTED
+}
+
 //
 // ========================
 // ===== MODELS ===========
@@ -96,8 +102,8 @@ enum CertificationStatus {
 //
 
 model Buyer {
-  id          String     @id @default(uuid())
-  email       String     @unique
+  id          String    @id @default(uuid())
+  email       String    @unique
   password    String
   firstName   String
   lastName    String
@@ -108,154 +114,162 @@ model Buyer {
   zipCode     String
   country     String
   otp         Int?
-  otpExpiry   DateTime?    
+  otpExpiry   DateTime?
 
-  rfq         RFQ[]
-  chatRooms   ChatRoom[]
-  trades      Trade[]    @relation("BuyerTrades")
-  reviews     Review[]
+  rfq       RFQ[]
+  chatRooms ChatRoom[]
+  trades    Trade[]    @relation("BuyerTrades")
+  reviews   Review[]
 }
 
 model Seller {
-  id              String       @id @default(cuid())
-  email           String       @unique
-  password        String
-  firstName       String
-  lastName        String
-  phone           String       @unique
-  countryCode     String
+  id          String @id @default(cuid())
+  email       String @unique
+  password    String
+  firstName   String
+  lastName    String
+  phone       String @unique
+  countryCode String
 
-  resetToken          String? 
-  resetTokenExpiry    DateTime?
+  resetToken       String?
+  resetTokenExpiry DateTime?
 
-  role            String       @default("seller")
-  isEmailVerified Boolean      @default(false)
-  isPhoneVerified Boolean      @default(false) // for OTP logic
-  isApproved      Boolean      @default(false)
+  role            String  @default("seller")
+  isEmailVerified Boolean @default(false)
+  isPhoneVerified Boolean @default(false) // for OTP logic
+  isApproved      Boolean @default(false)
   approvalNote    String?
   slug            String?
 
-  businessName    String
-  businessType    BusinessType
-  registrationNo  String?      // Company Registration Number
-  taxId           String?      // GSTIN, PAN, VAT, etc.
-  panOrTin        String?      // Optional PAN/TIN
-  website         String?
-  linkedIn        String?
+  businessName   String
+  businessType   BusinessType
+  registrationNo String? // Company Registration Number
+  taxId          String? // GSTIN, PAN, VAT, etc.
+  panOrTin       String? // Optional PAN/TIN
+  website        String?
+  linkedIn       String?
 
-  yearsInBusiness Int?         // Dropdown: e.g., 1–3 = 3
-  industryTags    String[]     // e.g., ["Agriculture", "IT"]
-  keyProducts     String[]     // e.g., ["Solar Panels", "Crude Oil"]
+  yearsInBusiness Int? // Dropdown: e.g., 1–3 = 3
+  industryTags    String[] // e.g., ["Agriculture", "IT"]
+  keyProducts     String[] // e.g., ["Solar Panels", "Crude Oil"]
 
-  companyBio      String?      // Description of business
+  companyBio String? // Description of business
 
   // Address
-  street          String
-  city            String
-  state           String
-  zipCode         String
-  country         String
+  street  String
+  city    String
+  state   String
+  zipCode String
+  country String
 
   // Compliance document uploads (stored as URL strings)
-  govIdUrl        String?      // Aadhaar, Passport, etc.
-  gstCertUrl      String?      // GST Certificate
-  businessDocUrl  String?      // Company registration
-  otherDocsUrl    String?      // Any other license or proof
+  govIdUrl       String? // Aadhaar, Passport, etc.
+  gstCertUrl     String? // GST Certificate
+  businessDocUrl String? // Company registration
+  otherDocsUrl   String? // Any other license or proof
 
-  agreedToTerms   Boolean      @default(false)
+  agreedToTerms Boolean @default(false)
 
-  product         Product[]
-  chatRooms       ChatRoom[]
-  rfqForwards     RFQForward[]
-  trades          Trade[]      @relation("SellerTrades")
-  certifications   Certification[]
+  product        Product[]
+  chatRooms      ChatRoom[]
+  rfqForwards    RFQForward[]
+  trades         Trade[]         @relation("SellerTrades")
+  certifications Certification[]
 
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 }
 
 model Product {
-  id                   String         @id @default(uuid())
-  slug                 String         @unique
+  id   String @id @default(uuid())
+  slug String @unique
 
   name                 String
   description          String
   price                Float
-  currency             String?        // e.g., "USD", "INR"
+  currency             String? // e.g., "USD", "INR"
   quantity             Int
   minimumOrderQuantity Int?
 
-  listingType          ListingType    // enum: SELL / LEASE
-  condition            ProductCondition
-  validityPeriod       Int            // in days
-  expiryDate           DateTime?
-  deliveryTimeInDays   Int?
+  listingType        ListingType // enum: SELL / LEASE
+  condition          ProductCondition
+  validityPeriod     Int // in days
+  expiryDate         DateTime?
+  deliveryTimeInDays Int?
 
-  logisticsSupport     LogisticsType? // enum: SELF / INTERLINK / BOTH
+  logisticsSupport LogisticsType? // enum: SELF / INTERLINK / BOTH
 
-  industry             String
-  category             String
-  productCode          String
-  model                String
-  specifications       String
-  countryOfSource      String
-  hsnCode              String
+  industry        String
+  category        String
+  productCode     String
+  model           String
+  specifications  String
+  countryOfSource String
+  hsnCode         String
 
-  certifications       String[]
-  licenses             String[]
-  warrantyPeriod       String?
+  certifications String[]
+  licenses       String[]
+  warrantyPeriod String?
 
-  brochureUrl          String?
-  videoUrl             String?
-  images               String[]
+  brochureUrl String?
+  videoUrl    String?
+  images      String[]
 
-  tags                 String[]
-  keywords             String[]
+  tags     String[]
+  keywords String[]
 
-  status               ProductStatus  @default(PENDING)
+  status ProductStatus @default(PENDING)
 
-  sellerId             String
-  seller               Seller         @relation(fields: [sellerId], references: [id])
+  sellerId String
+  seller   Seller @relation(fields: [sellerId], references: [id])
 
-  rfqs                 RFQ[]
-  trades               Trade[]
-  reviews              Review[]
+  rfqs    RFQ[]
+  trades  Trade[]
+  reviews Review[]
 
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 
   // certifications relation for Certification model
   certificationsRelation Certification[]
 }
 
 model RFQ {
-  id         String     @id @default(uuid())
-  productId  String
-  product    Product    @relation(fields: [productId], references: [id])
-  buyerId    String
-  buyer      Buyer      @relation(fields: [buyerId], references: [id])
-  quantity   Int
-  message    String?
-  status     RFQStatus
-  rejectionReason     String? 
-  reviewedAt  DateTime?
-  trade      Trade?
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  buyerId   String
+  buyer     Buyer   @relation(fields: [buyerId], references: [id])
+
+  quantity            Int
+  deliveryDate        DateTime?
+  budget              Float?
+  currency            String?
+  paymentTerms        String?
+  specialRequirements String?
+  additionalNotes     String?
+
+  message         String?
+  status          RFQStatus
+  rejectionReason String?
+  reviewedAt      DateTime?
 
   forwardedToSellers RFQForward[]
-  chatRooms  ChatRoom[]
+  trade              Trade?
+  chatRooms          ChatRoom[]
 
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 }
 
 model RFQForward {
-  id              String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  rfqId           String
-  rfq             RFQ      @relation(fields: [rfqId], references: [id])
+  rfqId String
+  rfq   RFQ    @relation(fields: [rfqId], references: [id])
 
-  sellerId        String
-  seller          Seller   @relation(fields: [sellerId], references: [id])
+  sellerId String
+  seller   Seller @relation(fields: [sellerId], references: [id])
 
   isUpdatedByAdmin Boolean  @default(false)
   forwardedAt      DateTime @default(now())
@@ -264,135 +278,136 @@ model RFQForward {
 }
 
 model Trade {
-  id           String     @id @default(uuid())
-  rfqId        String     @unique
-  rfq          RFQ        @relation(fields: [rfqId], references: [id])
+  id    String @id @default(uuid())
+  rfqId String @unique
+  rfq   RFQ    @relation(fields: [rfqId], references: [id])
 
-  productId    String
-  product      Product    @relation(fields: [productId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
 
-  buyerId      String
-  buyer        Buyer      @relation("BuyerTrades", fields: [buyerId], references: [id])
+  buyerId String
+  buyer   Buyer  @relation("BuyerTrades", fields: [buyerId], references: [id])
 
-  sellerId     String
-  seller       Seller     @relation("SellerTrades", fields: [sellerId], references: [id])
+  sellerId String
+  seller   Seller @relation("SellerTrades", fields: [sellerId], references: [id])
 
   quantity     Int
   price        Float
   deliveryDate DateTime
   status       TradeStatus
 
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 }
 
 model Review {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   productId String
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 
-  buyerId   String
-  buyer     Buyer    @relation(fields: [buyerId], references: [id])
+  buyerId String
+  buyer   Buyer  @relation(fields: [buyerId], references: [id])
 
-  rating    Int      // 1 to 5
-  comment   String
+  rating  Int // 1 to 5
+  comment String
 
   createdAt DateTime @default(now())
 }
 
-model User {
-  id        String     @id @default(uuid())
+model Admin {
+  id        String    @id @default(uuid())
   name      String
-  email     String     @unique
+  email     String    @unique
   password  String
-  role      String     @default("admin")
+  role      Role      @default(ADMIN)
+  adminRole AdminRole @default(ADMIN)
 
   chatRooms ChatRoom[]
 
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 }
 
 model ChatRoom {
-  id             String        @id @default(uuid())
-  rfqId          String
-  rfq            RFQ           @relation(fields: [rfqId], references: [id])
+  id    String @id @default(uuid())
+  rfqId String
+  rfq   RFQ    @relation(fields: [rfqId], references: [id])
 
-  buyerId        String?       // Admin <--> Buyer
-  buyer          Buyer?        @relation(fields: [buyerId], references: [id])
+  buyerId String? // Admin <--> Buyer
+  buyer   Buyer?  @relation(fields: [buyerId], references: [id])
 
-  sellerId       String?       // Admin <--> Seller
-  seller         Seller?       @relation(fields: [sellerId], references: [id])
+  sellerId String? // Admin <--> Seller
+  seller   Seller? @relation(fields: [sellerId], references: [id])
 
-  adminId        String
-  admin          User          @relation(fields: [adminId], references: [id])
+  adminId String
+  admin   Admin  @relation(fields: [adminId], references: [id])
 
-  type           ChatRoomType
+  type ChatRoomType
 
-  status         ChatRoomStatus @default(ACTIVE)
-  lastMessageAt  DateTime       @default(now())
+  status        ChatRoomStatus @default(ACTIVE)
+  lastMessageAt DateTime       @default(now())
 
-  messages       ChatMessage[]
+  messages ChatMessage[]
 
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 
   @@unique([rfqId, type])
 }
 
 model ChatMessage {
-  id              String        @id @default(uuid())
-  chatRoomId      String
-  chatRoom        ChatRoom      @relation(fields: [chatRoomId], references: [id])
+  id         String   @id @default(uuid())
+  chatRoomId String
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
 
-  senderRole      Role
-  senderId        String        // Can be admin/buyer/seller ID
-  content         String
+  senderRole Role
+  senderId   String // Can be admin/buyer/seller ID
+  content    String
 
-  edited          Boolean       @default(false)
-  deleted         Boolean       @default(false)
+  edited  Boolean @default(false)
+  deleted Boolean @default(false)
 
-  attachmentUrl   String?       // Optional file/image
-  attachmentType  String?       // "image", "pdf", etc.
+  attachmentUrl  String? // Optional file/image
+  attachmentType String? // "image", "pdf", etc.
 
-  replyToId       String?
-  replyTo         ChatMessage?   @relation("ReplyTo", fields: [replyToId], references: [id])
-  replies         ChatMessage[]  @relation("ReplyTo")
+  replyToId String?
+  replyTo   ChatMessage?  @relation("ReplyTo", fields: [replyToId], references: [id])
+  replies   ChatMessage[] @relation("ReplyTo")
 
-  isPinned        Boolean       @default(false)
-  isStarred       Boolean       @default(false)
+  isPinned  Boolean @default(false)
+  isStarred Boolean @default(false)
 
-  read            Boolean       @default(false)
-  sentAt          DateTime      @default(now())
+  read   Boolean  @default(false)
+  sentAt DateTime @default(now())
 
-  reactions       MessageReaction[]
+  reactions MessageReaction[]
 }
 
 model MessageReaction {
-  id          String     @id @default(uuid())
-  messageId   String
-  message     ChatMessage @relation(fields: [messageId], references: [id])
+  id        String      @id @default(uuid())
+  messageId String
+  message   ChatMessage @relation(fields: [messageId], references: [id])
 
-  reactorId   String     // User ID who reacted
-  reactorRole Role       // BUYER / SELLER / ADMIN
+  reactorId   String // User ID who reacted
+  reactorRole Role // BUYER / SELLER / ADMIN
 
-  emoji       String     // like "❤️", "👍", etc.
-  createdAt   DateTime   @default(now())
+  emoji     String // like "❤️", "👍", etc.
+  createdAt DateTime @default(now())
 }
 
 model Certification {
-  id            String   @id @default(uuid())
-  sellerId      String
-  seller        Seller   @relation(fields: [sellerId], references: [id])
-  productId     String
-  product       Product  @relation(fields: [productId], references: [id])
-  status        CertificationStatus @default(PENDING)
-  paymentId     String? // PayPal payment ID
-  amount        Float
-  issuedAt      DateTime?
+  id             String              @id @default(uuid())
+  sellerId       String
+  seller         Seller              @relation(fields: [sellerId], references: [id])
+  productId      String
+  product        Product             @relation(fields: [productId], references: [id])
+  status         CertificationStatus @default(PENDING)
+  paymentId      String? // PayPal payment ID
+  amount         Float
+  issuedAt       DateTime?
   certificateUrl String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now())
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @default(now())
 
   @@unique([sellerId, productId]) // One cert per seller-product
 }
