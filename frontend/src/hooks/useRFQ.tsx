@@ -4,18 +4,9 @@ import { RFQ, RFQStats } from '@/src/lib/types/rfq';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react'
 import { useCallback } from 'react';
+import { toast } from 'sonner';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1';
-
-interface Toast {
-    id: string;
-    message: string;
-    type: 'success' | 'error' | 'warning';
-}
-const generateToastId = () => {
-    return Math.random().toString(36).substring(2, 15);
-};
-
 interface ApiResponse {
     success: boolean;
     data: RFQ[];
@@ -33,9 +24,8 @@ const useRFQ = () => {
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
     const [processingAction, setProcessingAction] = useState<string | null>(null);
-    const [toasts, setToasts] = useState<Toast[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeTab, setActiveTab] = useState('pending');
+    const [activeTab, setActiveTab] = useState('all');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [stats, setStats] = useState<RFQStats>({ pending: 0, approved: 0, rejected: 0, total: 0 });
     const { authenticated, role, user: loggedInUser, authLoading: authStatusLoading, logout } = useAuth();
@@ -52,14 +42,6 @@ const useRFQ = () => {
             }));
         }
     }, [authenticated, role, router]);
-
-    const addToast = useCallback((message: string, type: 'success' | 'error' | 'warning') => {
-        const id = generateToastId();
-        setToasts(prev => [...prev, { id, message, type }]);
-        setTimeout(() => {
-            setToasts(prev => prev.filter(toast => toast.id !== id));
-        }, 5000);
-    }, []);
 
     const apiCall = async (url: string, options: RequestInit = {}) => {
         try {
@@ -90,12 +72,18 @@ const useRFQ = () => {
                 throw new Error(data.error || 'Failed to fetch pending RFQs');
             }
         } catch (error: any) {
+            if (error.message.includes('HTTP 401')) {
+                toast.error('Session expired. Please log in again.');
+                logout();
+                router.push('/admin/signin');
+            } else {
+                toast.error(`Error fetching pending RFQs: ${error.message}`);
+            }
             console.error('Error fetching pending RFQs:', error);
-            addToast(`${error}`, 'error');
         }
-    }, [addToast]);
+    }, []);
 
-    const fetchApprovedRFQs = useCallback(async (): Promise<void> => {
+    const fetchForwardedRFQs = useCallback(async (): Promise<void> => {
         try {
             const data: ApiResponse = await apiCall('/rfq/forwarded');
 
@@ -107,14 +95,18 @@ const useRFQ = () => {
             }
         } catch (error) {
             console.error('Error fetching approved RFQs:', error);
-            addToast(`${error}`, 'error');
+            if (error instanceof Error) {
+                toast.error(error.message);
+            } else {
+                toast.error('An unexpected error occurred');
+            }
         }
-    }, [addToast]);
+    }, []);
 
-    const approveRFQ = async (rfqId: string): Promise<void> => {
+    const forwardRFQ = async (rfqId: string): Promise<void> => {
         setProcessingAction(rfqId);
         try {
-            
+
             const data = await apiCall(`/rfq/forward/${rfqId}`, {
                 method: 'POST',
             });
@@ -127,19 +119,23 @@ const useRFQ = () => {
                     pending: prev.pending - 1,
                     approved: prev.approved + 1
                 }));
+                // Add to forwarded RFQs
+                setActiveRFQs(prev => [...prev, data.rfq]);
 
-                addToast('RFQ approved successfully!', 'success');
+                toast.success('RFQ approved successfully!');
 
-                // Refresh approved RFQs if on that tab
-                if (activeTab === 'approved') {
-                    await fetchApprovedRFQs();
+                // Refresh forwarded RFQs if on that tab
+                if (activeTab === 'forwarded') {
+                    await fetchForwardedRFQs();
                 }
             } else {
                 throw new Error(data.error || 'Failed to approve RFQ');
             }
         } catch (error) {
-            console.error('Error approving RFQ:', error);
-            addToast(`${error} aa gaya bhai`, 'error');
+            toast.error(error instanceof Error ? error.message : 'Failed to approve RFQ');
+            if (error instanceof Error) {
+                console.error('Error approving RFQ:', error);
+            }
         } finally {
             setProcessingAction(null);
         }
@@ -147,7 +143,7 @@ const useRFQ = () => {
 
     const rejectRFQ = async (rfqId: string): Promise<void> => {
         if (!rejectionReason.trim()) {
-            addToast('Please provide a rejection reason.', 'warning');
+            toast.warning('Please provide a rejection reason.');
             return;
         }
 
@@ -178,11 +174,11 @@ const useRFQ = () => {
                     rejected: prev.rejected + 1
                 }));
 
-                addToast('RFQ rejected successfully.', 'success');
+                toast.success('RFQ rejected successfully.');
                 setRejectionReason('');
                 setShowRejectModal(false);
                 setSelectedRFQ(null);
-                
+
                 // Refresh data if on rejected tab
                 if (activeTab === 'rejected') {
                     await fetchPendingRFQs();
@@ -192,11 +188,10 @@ const useRFQ = () => {
             }
         } catch (error) {
             console.error('Error rejecting RFQ:', error);
-            addToast(
-                error instanceof Error 
-                    ? error.message 
-                    : 'An unexpected error occurred while rejecting the RFQ',
-                'error'
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : 'An unexpected error occurred while rejecting the RFQ'
             );
         } finally {
             setProcessingAction(null);
@@ -216,7 +211,7 @@ const useRFQ = () => {
     const refreshData = async (): Promise<void> => {
         setLoading(true);
         try {
-            await Promise.all([fetchPendingRFQs(), fetchApprovedRFQs()]);
+            await Promise.all([fetchPendingRFQs(), fetchForwardedRFQs()]);
         } finally {
             setLoading(false);
         }
@@ -241,14 +236,14 @@ const useRFQ = () => {
 
             setLoading(true);
             try {
-                await Promise.all([fetchPendingRFQs(), fetchApprovedRFQs()]);
+                await Promise.all([fetchPendingRFQs(), fetchForwardedRFQs()]);
             } finally {
                 setLoading(false);
             }
         };
 
         initializeData();
-    }, [isAuthenticated, fetchPendingRFQs, fetchApprovedRFQs]);
+    }, [isAuthenticated, fetchPendingRFQs, fetchForwardedRFQs]);
 
     useEffect(() => {
         setStats(prev => ({
@@ -256,37 +251,6 @@ const useRFQ = () => {
             total: prev.approved + prev.rejected + prev.pending
         }));
     }, [stats.approved, stats.rejected, stats.pending]);
-
-    useEffect(() => {
-        checkAuthStatus();
-    }, []);
-
-    const checkAuthStatus = async () => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) return;
-
-        try {
-            const response = await fetch('http://localhost:3001/api/v1/auth/admin/verify', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    setIsAuthenticated(true);
-                }
-            } else {
-                localStorage.removeItem('adminToken');
-            }
-        } catch (error) {
-            console.error('Auth check failed:', error);
-            localStorage.removeItem('adminToken');
-        }
-    };
 
     return ({
         pendingRFQs,
@@ -297,7 +261,6 @@ const useRFQ = () => {
         showRejectModal,
         rejectionReason,
         processingAction,
-        toasts,
         searchTerm,
         activeTab,
         stats,
@@ -305,7 +268,7 @@ const useRFQ = () => {
         setShowViewModal,
         setShowRejectModal,
         setRejectionReason,
-        approveRFQ,
+        forwardRFQ,
         rejectRFQ,
         handleViewRFQ,
         handleRejectClick,

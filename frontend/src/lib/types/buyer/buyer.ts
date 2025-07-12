@@ -9,6 +9,14 @@ export interface Buyer {
     email: string;
     firstName: string;
     lastName: string;
+    phoneNumber: string;
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+    createdAt: Date;
+    
 }
 
 export interface LoginResponse {

@@ -170,12 +170,8 @@ export const getPendingRFQs = async (req: Request, res: Response) => {
     const pendingRFQs = await prisma.rFQ.findMany({
       where: { status: "PENDING" },
       include: {
-        product: {
-          include: {
-            seller: true
-          }
-        },
-        buyer: true,
+        product: true,
+        buyer: true
       },
       orderBy: {
         createdAt: 'desc'
@@ -202,6 +198,37 @@ export const getPendingRFQs = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * This interface defines the structure of a Request for Quotation (RFQ). in frontend so from backend
+ * data should match this interface.
+ * export interface RFQ {
+  id: string;
+  productId: string;
+  buyerId: string;
+  quantity: number;
+  message?: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'FORWARDED';
+  deliveryDate?: Date;
+  budget?: number;
+  currency?: string;
+  paymentTerms?: string;
+  specialRequirements?: string;
+  additionalNotes?: string;
+  forwardedToSellers?: string[];
+  trade?: string;
+  chatRooms?: string[]; // Array of chat room IDs associated with the RFQ
+  updatedAt: Date;
+  rejectionReason?: string; // Reason for rejection if applicable
+  forwardedAt?: Date; // Timestamp when the RFQ was forwarded to sellers
+  createdAt: Date;
+  reviewedAt?: Date;
+  product: Product;
+  buyer: Buyer;
+  _count?: {
+    messages?: number;
+  };
+}
+ */
 // GET /rfq/forwarded - Get all forwarded RFQs
 export const getForwardedRFQs = async (req: Request, res: Response) => {
   try {

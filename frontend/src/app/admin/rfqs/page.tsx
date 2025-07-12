@@ -1,21 +1,67 @@
-// src/app/admin/rfqs/page.tsx
 "use client";
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useCallback, useMemo } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Eye, Check, X, User, Calendar, DollarSign, Package, MessageSquare, Search, RefreshCw, AlertCircle, CheckCircle, TrendingUp, Clock } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Search,
+  Filter,
+  Eye,
+  Check,
+  X,
+  User,
+  Calendar,
+  DollarSign,
+  Package,
+  MessageSquare,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Loader2,
+  FileText,
+  Building,
+  Mail,
+  Phone,
+  MapPin,
+  CreditCard,
+  Truck,
+  ClipboardList,
+  Send,
+  Users,
+  TrendingUp
+} from 'lucide-react';
 import { formatPrice } from '@/src/lib/listing-formatter';
 import { RFQ } from '@/src/lib/types/rfq';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs } from '@radix-ui/react-tabs';
-import { TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import useRFQ from '../../../hooks/useRFQ';
 
-const RFQsManagement = () => {
+const RFQManagementDashboard = () => {
   const {
     pendingRFQs,
     activeRFQs,
@@ -25,7 +71,6 @@ const RFQsManagement = () => {
     showRejectModal,
     rejectionReason,
     processingAction,
-    toasts,
     searchTerm,
     activeTab,
     stats,
@@ -33,569 +78,847 @@ const RFQsManagement = () => {
     setShowViewModal,
     setShowRejectModal,
     setRejectionReason,
-    approveRFQ,
+    forwardRFQ,
     rejectRFQ,
     handleViewRFQ,
     handleRejectClick,
     refreshData,
     setSearchTerm,
     setActiveTab,
-    getFilteredRFQs } = useRFQ();
+    getFilteredRFQs
+  } = useRFQ();
 
-  const renderRFQCard = (rfq: RFQ) => (
-    <Card key={rfq.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-transparent hover:border-l-blue-500">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg font-semibold mb-1 line-clamp-2" title={rfq.product.name}>
-              {rfq.product.name}
-            </CardTitle>
-            <CardDescription className="flex items-center text-sm text-gray-600">
-              <User className="h-3 w-3 mr-1 flex-shrink-0" />
-              <span className="truncate">
-                {`${rfq.buyer.firstName || ''} ${rfq.buyer.lastName || ''}`.trim() || rfq.buyer.email}
-              </span>
-            </CardDescription>
-          </div>
-          <Badge
-            variant={rfq.status === 'PENDING' ? 'secondary' : rfq.status === 'APPROVED' ? 'default' : 'destructive'}
-            className={
-              rfq.status === 'PENDING' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                rfq.status === 'APPROVED' ? 'bg-green-100 text-green-800 border-green-200' :
-                  'bg-red-100 text-red-800 border-red-200'
-            }
-          >
-            {rfq.status}
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [showForwardModal, setShowForwardModal] = useState(false);
+
+  const formatDate = useCallback((dateString: string | Date) => {
+    if (typeof dateString === 'string') {
+      dateString = new Date(dateString);
+    }
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }, []);
+
+  const getStatusBadge = useCallback((status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return (
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+            <Clock className="w-3 h-3 mr-1" />
+            Pending Review
           </Badge>
+        );
+      case 'APPROVED':
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Forwarded to Sellers
+          </Badge>
+        );
+      case 'REJECTED':
+        return (
+          <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100">
+            <X className="w-3 h-3 mr-1" />
+            Rejected
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  }, []);
+
+  const StatCard = React.memo(({ title, value, subtitle, icon: Icon, color }: {
+    title: string;
+    value: number;
+    subtitle?: string;
+    icon: any;
+    color: string;
+  }) => (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <div className={`p-2 rounded-full ${color}`}>
+          <Icon className="h-4 w-4 text-white" />
         </div>
       </CardHeader>
-
-      <CardContent className="space-y-4">
-        {rfq.message && (
-          <p className="text-sm text-gray-600 line-clamp-3" title={rfq.message}>
-            {rfq.message}
-          </p>
-        )}
-
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="flex items-center">
-            <DollarSign className="h-4 w-4 text-green-600 mr-1 flex-shrink-0" />
-            <span className="font-semibold text-green-700">{formatPrice(rfq.product.price)}</span>
-          </div>
-          <div className="flex items-center">
-            <Package className="h-4 w-4 text-blue-600 mr-1 flex-shrink-0" />
-            <span className="text-blue-700">{rfq.quantity.toLocaleString()} units</span>
-          </div>
-          <div className="flex items-center col-span-2">
-            <User className="h-4 w-4 text-gray-500 mr-1 flex-shrink-0" />
-            <span className="truncate text-gray-600">{rfq.buyer.email}</span>
-          </div>
-          <div className="flex items-center">
-            <MessageSquare className="h-4 w-4 text-purple-600 mr-1 flex-shrink-0" />
-            <span className="text-purple-700">{rfq._count?.messages || 0} Messages</span>
-          </div>
-          {/* <div className="flex items-center">
-            <Clock className="h-4 w-4 text-gray-500 mr-1 flex-shrink-0" />
-            <span className="text-gray-600 text-xs">{formatDate(rfq.createdAt)}</span>
-          </div> */}
-        </div>
-
-        <div className="flex gap-2 pt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleViewRFQ(rfq)}
-            className="flex-1 hover:bg-blue-50 hover:border-blue-300"
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            View Details
-          </Button>
-
-          {rfq.status === 'PENDING' && (
-            <>
-              <Button
-                size="sm"
-                onClick={() => approveRFQ(rfq.id)}
-                disabled={processingAction === rfq.id}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                {processingAction === rfq.id ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <Check className="h-4 w-4 mr-1" />
-                    Approve
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => handleRejectClick(rfq)}
-                disabled={processingAction === rfq.id}
-                className="hover:bg-red-700"
-              >
-                <X className="h-4 w-4 mr-1" />
-                Reject
-              </Button>
-            </>
-          )}
-        </div>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
       </CardContent>
     </Card>
-  );
+  ));
 
-  return (
-    <>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-          {/* Header Section */}
-          <header className="mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  RFQs Management Dashboard
-                </h1>
-                <p className="text-gray-600 max-w-2xl">
-                  Review, approve, and manage RFQs from buyers. Monitor requests and maintain quality standards.
-                </p>
+  const RFQDetailModal = ({ rfq }: { rfq: RFQ }) => (
+    <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+            <Package className="w-5 h-5" />
+          </div>
+          {rfq.product.name}
+        </DialogTitle>
+        <DialogDescription>
+          Complete RFQ Request Details and Information
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="grid gap-6">
+        {/* RFQ Status and Basic Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Request Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Status</Label>
+              <div className="mt-1">
+                {getStatusBadge(rfq.status)}
               </div>
-              <Button
-                onClick={refreshData}
-                disabled={loading}
-                variant="outline"
-                className="flex items-center gap-2 self-start sm:self-center"
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh Data
-              </Button>
             </div>
-          </header>
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Requested Quantity</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <Package className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-semibold">{rfq.quantity.toLocaleString()} units</span>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Submitted</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                <span className="text-sm">{formatDate(rfq.createdAt)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Stats Dashboard */}
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8" aria-label="Statistics Overview">
-            <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-amber-800">Pending Review</p>
-                    <p className="text-3xl font-bold text-amber-600">{stats.pending}</p>
-                    <p className="text-xs text-amber-600 mt-1">Needs attention</p>
-                  </div>
-                  <div className="h-12 w-12 bg-amber-100 rounded-full flex items-center justify-center">
-                    <Clock className="h-6 w-6 text-amber-600" />
-                  </div>
+        {/* Commercial Terms */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <DollarSign className="w-5 h-5" />
+              Commercial Terms
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Product Unit Price</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <DollarSign className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-semibold text-green-600">{formatPrice(rfq.product.price)}</span>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Total Estimated Value</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <DollarSign className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-semibold text-blue-600">
+                  {formatPrice(rfq.product.price * rfq.quantity)}
+                </span>
+              </div>
+            </div>
+            {rfq.budget && (
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Buyer's Budget</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <CreditCard className="w-4 h-4 text-purple-600" />
+                  <span className="text-sm font-semibold text-purple-600">
+                    {formatPrice(rfq.budget)} {rfq.currency && `(${rfq.currency})`}
+                  </span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            )}
+            {rfq.paymentTerms && (
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Payment Terms</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <CreditCard className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm">{rfq.paymentTerms}</span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-            <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-green-800">Approved RFQs</p>
-                    <p className="text-3xl font-bold text-green-600">{stats.approved}</p>
-                    <p className="text-xs text-green-600 mt-1">Active requests</p>
-                  </div>
-                  <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircle className="h-6 w-6 text-green-600" />
-                  </div>
+        {/* Delivery Requirements */}
+        {rfq.deliveryDate && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Truck className="w-5 h-5" />
+                Delivery Requirements
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Required Delivery Date</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Calendar className="w-4 h-4 text-red-600" />
+                  <span className="text-sm font-semibold text-red-600">{formatDate(rfq.deliveryDate)}</span>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-r from-red-50 to-rose-50 border-red-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-red-800">Rejected</p>
-                    <p className="text-3xl font-bold text-red-600">{stats.rejected}</p>
-                    <p className="text-xs text-red-600 mt-1">Did not meet criteria</p>
-                  </div>
-                  <div className="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center">
-                    <X className="h-6 w-6 text-red-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-blue-800">Total Processed</p>
-                    <p className="text-3xl font-bold text-blue-600">{stats.total}</p>
-                    <p className="text-xs text-blue-600 mt-1">Lifetime reviews</p>
-                  </div>
-                  <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <TrendingUp className="h-6 w-6 text-blue-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* Search Section */}
-          <Card className="mb-6 shadow-sm">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input
-                      placeholder="Search by product name, buyer name, email, or message..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 h-11"
-                      aria-label="Search RFQs"
-                    />
-                  </div>
-                </div>
-                {searchTerm && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setSearchTerm('')}
-                    className="whitespace-nowrap"
-                  >
-                    Clear Search
-                  </Button>
-                )}
               </div>
             </CardContent>
           </Card>
+        )}
 
-          {/* Toast Notifications */}
-          <div className="fixed top-4 right-4 z-50 space-y-2">
-            {toasts.map((toast) => (
-              <Alert
-                key={toast.id}
-                className={`max-w-sm shadow-lg ${toast.type === 'success' ? 'border-green-200 bg-green-50' :
-                  toast.type === 'error' ? 'border-red-200 bg-red-50' :
-                    'border-yellow-200 bg-yellow-50'
-                  }`}
-                role="alert"
-              >
-                <AlertDescription className={
-                  toast.type === 'success' ? 'text-green-800' :
-                    toast.type === 'error' ? 'text-red-800' :
-                      'text-yellow-800'
-                }>
-                  {toast.message}
-                </AlertDescription>
-              </Alert>
-            ))}
-          </div>
-
-          {/* Main Content Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 h-12">
-              <TabsTrigger value="pending" className="flex items-center gap-2 h-10">
-                <Clock className="h-4 w-4" />
-                <span className="hidden sm:inline">Pending Review</span>
-                <span className="sm:hidden">Pending</span>
-                <Badge variant="secondary" className="bg-amber-100 text-amber-800 text-xs">
-                  {stats.pending}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="approved" className="flex items-center gap-2 h-10">
-                <CheckCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">Approved RFQs</span>
-                <span className="sm:hidden">Approved</span>
-                <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
-                  {stats.approved}
-                </Badge>
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Pending RFQs Tab */}
-            <TabsContent value="pending">
-              {loading ? (
-                <div className="flex items-center justify-center py-16" role="status" aria-live="polite">
-                  <div className="text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-gray-500 mx-auto mb-4" />
-                    <p className="text-gray-600">Loading pending RFQs...</p>
+        {/* Buyer's Messages and Requirements */}
+        {(rfq.message || rfq.specialRequirements || rfq.additionalNotes) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Buyer's Requirements & Notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {rfq.message && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Initial Message</Label>
+                  <div className="mt-2 p-4 bg-blue-50 rounded-lg">
+                    {(() => {
+                      try {
+                        const parsed = JSON.parse(rfq.message);
+                        return (
+                          <div className="space-y-2">
+                            {parsed.deliveryDate && (
+                              <div>
+                                <span className="font-medium">Delivery Date:</span>{" "}
+                                <span>{parsed.deliveryDate}</span>
+                              </div>
+                            )}
+                            {parsed.budget && (
+                              <div>
+                                <span className="font-medium">Budget:</span>{" "}
+                                <span>
+                                  {parsed.budget} {parsed.currency ? `(${parsed.currency})` : ""}
+                                </span>
+                              </div>
+                            )}
+                            {parsed.paymentTerms && (
+                              <div>
+                                <span className="font-medium">Payment Terms:</span>{" "}
+                                <span>{parsed.paymentTerms}</span>
+                              </div>
+                            )}
+                            {parsed.specialRequirements && (
+                              <div>
+                                <span className="font-medium">Special Requirements:</span>{" "}
+                                <span>{parsed.specialRequirements}</span>
+                              </div>
+                            )}
+                            {parsed.additionalNotes && (
+                              <div>
+                                <span className="font-medium">Additional Notes:</span>{" "}
+                                <span>{parsed.additionalNotes}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      } catch {
+                        return <p className="text-sm leading-relaxed">{rfq.message}</p>;
+                      }
+                    })()}
                   </div>
                 </div>
-              ) : getFilteredRFQs(pendingRFQs).length === 0 ? (
-                <Card className="shadow-sm">
-                  <CardContent className="p-12 text-center">
-                    <Clock className="h-16 w-16 text-gray-300 mx-auto mb-6" />
-                    <h3 className="text-xl font-medium text-gray-900 mb-3">
-                      {searchTerm ? 'No matching pending RFQs found' : 'No pending RFQs to review'}
-                    </h3>
-                    <p className="text-gray-500 max-w-md mx-auto">
-                      {searchTerm
-                        ? 'Try adjusting your search criteria or clear the search to see all pending RFQs.'
-                        : 'All requests have been reviewed. New RFQs will appear here when buyers submit them.'}
-                    </p>
-                    {searchTerm && (
-                      <Button
-                        variant="outline"
-                        onClick={() => setSearchTerm('')}
-                        className="mt-4"
-                      >
-                        Clear Search
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {getFilteredRFQs(pendingRFQs).map(renderRFQCard)}
-                </div>
               )}
-            </TabsContent>
-
-            {/* Approved RFQs Tab */}
-            <TabsContent value="approved">
-              {loading ? (
-                <div className="flex items-center justify-center py-16" role="status" aria-live="polite">
-                  <div className="text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-gray-500 mx-auto mb-4" />
-                    <p className="text-gray-600">Loading approved RFQs...</p>
+              {rfq.specialRequirements && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Special Requirements</Label>
+                  <div className="mt-2 p-4 bg-orange-50 rounded-lg">
+                    <p className="text-sm leading-relaxed">{rfq.specialRequirements}</p>
                   </div>
                 </div>
-              ) : getFilteredRFQs(activeRFQs).length === 0 ? (
-                <Card className="shadow-sm">
-                  <CardContent className="p-12 text-center">
-                    <CheckCircle className="h-16 w-16 text-gray-300 mx-auto mb-6" />
-                    <h3 className="text-xl font-medium text-gray-900 mb-3">
-                      {searchTerm ? 'No matching approved RFQs found' : 'No approved RFQs yet'}
-                    </h3>
-                    <p className="text-gray-500 max-w-md mx-auto">
-                      {searchTerm
-                        ? 'Try adjusting your search criteria or clear the search to see all approved RFQs.'
-                        : 'Approved RFQs will appear here once you approve pending requests.'}
-                    </p>
-                    {searchTerm && (
-                      <Button
-                        variant="outline"
-                        onClick={() => setSearchTerm('')}
-                        className="mt-4"
-                      >
-                        Clear Search
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {getFilteredRFQs(activeRFQs).map(renderRFQCard)}
+              )}
+              {rfq.additionalNotes && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Additional Notes</Label>
+                  <div className="mt-2 p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm leading-relaxed">{rfq.additionalNotes}</p>
+                  </div>
                 </div>
               )}
-            </TabsContent>
-          </Tabs>
+            </CardContent>
+          </Card>
+        )}
 
-          {/* View Details Modal */}
-          <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
-            <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-              {selectedRFQ && (
-                <>
-                  <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold text-gray-900 pr-8">
-                      {selectedRFQ.product.name}
-                    </DialogTitle>
-                    <DialogDescription className="text-gray-600">
-                      Complete RFQ details and buyer information
-                    </DialogDescription>
-                  </DialogHeader>
+        {/* Product Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Package className="w-5 h-5" />
+              Product Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Product Name</Label>
+              <p className="text-sm mt-1 font-medium">{rfq.product.name}</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Description</Label>
+              <p className="text-sm mt-1 leading-relaxed">{rfq.product.description}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Unit Price</Label>
+                <p className="text-sm mt-1 font-semibold text-green-600">{formatPrice(rfq.product.price)}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Category</Label>
+                <p className="text-sm mt-1">{rfq.product.category || 'N/A'}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-                  <div className="space-y-6 py-4">
-                    {/* RFQ Overview */}
-                    <div className="bg-gray-50 p-6 rounded-lg">
-                      <h3 className="font-semibold text-lg mb-4 flex items-center">
-                        <Package className="h-5 w-5 mr-2 text-blue-600" />
-                        RFQ Details
-                      </h3>
-                      <div className="space-y-3">
-                        {selectedRFQ.message && (
-                          <div>
-                            <span className="font-medium text-gray-700">Buyer's Message:</span>
-                            <p className="mt-1 text-gray-600 leading-relaxed">{selectedRFQ.message}</p>
-                          </div>
-                        )}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                          <div className="flex justify-between p-3 bg-white rounded border">
-                            <span className="font-medium text-gray-700">Product Price:</span>
-                            <span className="font-semibold text-green-600">{formatPrice(selectedRFQ.product.price)}</span>
-                          </div>
-                          <div className="flex justify-between p-3 bg-white rounded border">
-                            <span className="font-medium text-gray-700">Requested Quantity:</span>
-                            <span className="font-semibold text-blue-600">{selectedRFQ.quantity.toLocaleString()} units</span>
-                          </div>
-                          <div className="flex justify-between p-3 bg-white rounded border">
-                            <span className="font-medium text-gray-700">Status:</span>
-                            <Badge className={selectedRFQ.status === 'PENDING' ? 'bg-amber-100 text-amber-800' : selectedRFQ.status === 'APPROVED' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                              {selectedRFQ.status}
-                            </Badge>
-                          </div>
-                          <div className="flex justify-between p-3 bg-white rounded border">
-                            <span className="font-medium text-gray-700">Messages:</span>
-                            <span className="font-semibold text-purple-600">{selectedRFQ._count?.messages || 0}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Product Information */}
-                    <div className="bg-blue-50 p-6 rounded-lg">
-                      <h3 className="font-semibold text-lg mb-4 flex items-center">
-                        <Package className="h-5 w-5 mr-2 text-blue-600" />
-                        Product Information
-                      </h3>
-                      <div className="space-y-3">
-                        <div>
-                          <span className="font-medium text-gray-700">Description:</span>
-                          <p className="mt-1 text-gray-600 leading-relaxed">{selectedRFQ.product.description}</p>
-                        </div>
-                        {/* <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                          <div className="flex justify-between p-3 bg-white rounded border">
-                            <span className="font-medium text-gray-700">Available Quantity:</span>
-                            <span className="font-semibold">{(selectedRFQ.product.quantity ?? 0).toLocaleString()} units</span>
-                          </div>
-                          <div className="flex justify-between p-3 bg-white rounded border">
-                            <span className="font-medium text-gray-700">Seller:</span>
-                            <span className="font-semibold">
-                              {selectedRFQ.product.seller.businessName || 
-                               `${selectedRFQ.product.seller.firstName || ''} ${selectedRFQ.product.seller.lastName || ''}`.trim()}
-                            </span>
-                          </div>
-                        </div> */}
-                      </div>
-                    </div>
-
-                    {/* Buyer Information */}
-                    <div className="bg-green-50 p-6 rounded-lg">
-                      <h3 className="font-semibold text-lg mb-4 flex items-center">
-                        <User className="h-5 w-5 mr-2 text-green-600" />
-                        Buyer Information
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="flex justify-between p-3 bg-white rounded border">
-                          <span className="font-medium text-gray-700">Name:</span>
-                          <span className="font-semibold">
-                            {selectedRFQ.buyer.firstName} {selectedRFQ.buyer.lastName}
-                          </span>
-                        </div>
-                        <div className="flex justify-between p-3 bg-white rounded border">
-                          <span className="font-medium text-gray-700">Email:</span>
-                          <span className="font-semibold text-blue-600">{selectedRFQ.buyer.email}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Submission Details */}
-                    <div className="bg-purple-50 p-6 rounded-lg">
-                      <h3 className="font-semibold text-lg mb-4 flex items-center">
-                        <Calendar className="h-5 w-5 mr-2 text-purple-600" />
-                        Submission Details
-                      </h3>
-                      {/* <div className="flex justify-between p-3 bg-white rounded border">
-                        <span className="font-medium text-gray-700">Submitted On:</span>
-                        <span className="font-semibold">{formatDate(selectedRFQ.createdAt)}</span>
-                      </div> */}
-                    </div>
-                  </div>
-
-                  <DialogFooter className="gap-3 pt-4">
-                    <Button variant="outline" onClick={() => setShowViewModal(false)}>
-                      Close
-                    </Button>
-                    {selectedRFQ.status === 'PENDING' && (
-                      <>
-                        <Button
-                          onClick={() => {
-                            setShowViewModal(false);
-                            handleRejectClick(selectedRFQ);
-                          }}
-                          variant="destructive"
-                          className="hover:bg-red-700"
-                        >
-                          <X className="h-4 w-4 mr-2" />
-                          Reject RFQ
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            setShowViewModal(false);
-                            approveRFQ(selectedRFQ.id);
-                          }}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <Check className="h-4 w-4 mr-2" />
-                          Approve RFQ
-                        </Button>
-                      </>
-                    )}
-                  </DialogFooter>
-                </>
-              )}
-            </DialogContent>
-          </Dialog>
-
-          {/* Reject Modal */}
-          <Dialog open={showRejectModal} onOpenChange={(open) => {
-            setShowRejectModal(open);
-            if (!open) {
-              setRejectionReason('');
-              setSelectedRFQ(null);
-            }
-          }}>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold text-red-600">
-                  Reject RFQ
-                </DialogTitle>
-                <DialogDescription className="text-gray-600">
-                  Please provide a clear reason for rejecting this request for "{selectedRFQ?.product.name}". This feedback will help the buyer understand your decision.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4 py-4">
-                <Textarea
-                  placeholder="Enter detailed rejection reason (required)..."
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  className="min-h-[120px] resize-none"
-                  maxLength={500}
-                  required
-                />
-                <div className="flex justify-between items-center text-sm text-gray-500">
-                  <span>Be specific to help the buyer understand the issues</span>
-                  <span>{rejectionReason.length}/500</span>
+        {/* Buyer Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Buyer Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Name</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <User className="w-4 h-4 text-gray-400" />
+                <span className="text-sm">
+                  {`${rfq.buyer.firstName || ''} ${rfq.buyer.lastName || ''}`.trim() || 'N/A'}
+                </span>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Email</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <Mail className="w-4 h-4 text-gray-400" />
+                <span className="text-sm">{rfq.buyer.email}</span>
+              </div>
+            </div>
+            {rfq.buyer.phoneNumber && (
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Phone</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Phone className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm">{rfq.buyer.phoneNumber}</span>
                 </div>
               </div>
+            )}
+            {(rfq.buyer.city || rfq.buyer.country) && (
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Location</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <MapPin className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm">
+                    {[rfq.buyer.city, rfq.buyer.state, rfq.buyer.country].filter(Boolean).join(', ')}
+                  </span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-              <DialogFooter className="gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowRejectModal(false);
-                    setRejectionReason('');
-                    setSelectedRFQ(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => selectedRFQ && rejectRFQ(selectedRFQ.id)}
-                  disabled={!rejectionReason.trim() || processingAction === selectedRFQ?.id}
-                  className="hover:bg-red-700"
-                >
-                  {processingAction === selectedRFQ?.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : (
-                    <X className="h-4 w-4 mr-2" />
-                  )}
-                  Reject RFQ
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+        {/* Activity Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ClipboardList className="w-5 h-5" />
+              Activity & Communication
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Messages Count</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <MessageSquare className="w-4 h-4 text-purple-600" />
+                <span className="text-sm">{rfq._count?.messages || 0} messages</span>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Chat Rooms</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <Users className="w-4 h-4 text-blue-600" />
+                <span className="text-sm">{rfq.chatRooms?.length || 0} active chats</span>
+              </div>
+            </div>
+            {rfq.reviewedAt && (
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Last Reviewed</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Calendar className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm">{formatDate(rfq.reviewedAt)}</span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Rejection Reason (if applicable) */}
+        {rfq.status === 'REJECTED' && rfq.rejectionReason && (
+          <Card className="border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2 text-red-700">
+                <X className="w-5 h-5" />
+                Rejection Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div>
+                <Label className="text-sm font-medium text-red-700">Reason for Rejection</Label>
+                <div className="mt-2 p-4 bg-red-100 rounded-lg">
+                  <p className="text-sm leading-relaxed text-red-800">{rfq.rejectionReason}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <DialogFooter className="gap-3 pt-6">
+        <Button variant="outline" onClick={() => setShowViewModal(false)}>
+          Close
+        </Button>
+        {rfq.status === 'PENDING' && (
+          <>
+            <Button
+              onClick={() => {
+                setShowViewModal(false);
+                handleRejectClick(rfq);
+              }}
+              variant="destructive"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Reject RFQ
+            </Button>
+            <Button
+              onClick={() => {
+                setShowViewModal(false);
+                setSelectedRFQ(rfq);
+                setShowForwardModal(true);
+              }}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              Forward to Sellers
+            </Button>
+          </>
+        )}
+      </DialogFooter>
+    </DialogContent>
+  );
+
+  const ForwardConfirmModal = () => (
+    <DialogContent className="max-w-md">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2 text-green-600">
+          <Send className="w-5 h-5" />
+          Forward RFQ to Sellers
+        </DialogTitle>
+        <DialogDescription>
+          Are you sure you want to forward this RFQ to relevant sellers? This action will make the RFQ visible to sellers who can then submit quotes.
+        </DialogDescription>
+      </DialogHeader>
+
+      {selectedRFQ && (
+        <div className="py-4">
+          <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+            <div className="flex justify-between">
+              <span className="text-sm font-medium">Product:</span>
+              <span className="text-sm">{selectedRFQ.product.name}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm font-medium">Quantity:</span>
+              <span className="text-sm">{selectedRFQ.quantity.toLocaleString()} units</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm font-medium">Buyer:</span>
+              <span className="text-sm">{selectedRFQ.buyer.email}</span>
+            </div>
+            {selectedRFQ.budget && (
+              <div className="flex justify-between">
+                <span className="text-sm font-medium">Budget:</span>
+                <span className="text-sm font-semibold text-purple-600">{formatPrice(selectedRFQ.budget)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <DialogFooter>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setShowForwardModal(false);
+            setSelectedRFQ(null);
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={() => {
+            if (selectedRFQ) {
+              forwardRFQ(selectedRFQ.id);
+              setShowForwardModal(false);
+              setSelectedRFQ(null);
+            }
+          }}
+          disabled={processingAction === selectedRFQ?.id}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          {processingAction === selectedRFQ?.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Send className="w-4 h-4 mr-2" />
+          Forward RFQ
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+
+  const RejectModal = () => (
+    <DialogContent className="max-w-md">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2 text-red-600">
+          <X className="w-5 h-5" />
+          Reject RFQ
+        </DialogTitle>
+        <DialogDescription>
+          Please provide a clear reason for rejecting this RFQ request. This feedback will help the buyer understand your decision.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="grid gap-4 py-4">
+        <div className="grid gap-2">
+          <Label htmlFor="rejection-reason">Rejection Reason</Label>
+          <Textarea
+            id="rejection-reason"
+            placeholder="Enter detailed rejection reason..."
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            rows={4}
+            maxLength={500}
+          />
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Be specific to help the buyer understand</span>
+            <span>{rejectionReason.length}/500</span>
+          </div>
         </div>
       </div>
-    </>
+      <DialogFooter>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setShowRejectModal(false);
+            setRejectionReason('');
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="destructive"
+          onClick={() => selectedRFQ && rejectRFQ(selectedRFQ.id)}
+          disabled={!rejectionReason.trim() || processingAction === selectedRFQ?.id}
+        >
+          {processingAction === selectedRFQ?.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Reject RFQ
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+
+  const RFQRow = React.memo(({ rfq }: { rfq: RFQ }) => (
+    <div className="flex items-center p-4 border-b border-border hover:bg-muted/50 transition-colors">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+            <Package className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-medium truncate">{rfq.product.name}</div>
+            <div className="text-sm text-muted-foreground truncate">
+              {`${rfq.buyer.firstName || ''} ${rfq.buyer.lastName || ''}`.trim() || rfq.buyer.email}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 px-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-1 text-sm">
+            <DollarSign className="w-3 h-3 text-green-600" />
+            <span className="font-medium text-green-600">{formatPrice(rfq.product.price)}</span>
+          </div>
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Package className="w-3 h-3" />
+            {rfq.quantity.toLocaleString()} units
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 px-4">
+        {getStatusBadge(rfq.status)}
+      </div>
+
+      <div className="flex-1 px-4">
+        <div className="space-y-1">
+          {rfq.budget && (
+            <div className="flex items-center gap-1 text-sm">
+              <CreditCard className="w-3 h-3 text-purple-600" />
+              <span className="font-medium text-purple-600">{formatPrice(rfq.budget)}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Calendar className="w-3 h-3" />
+            {formatDate(typeof rfq.createdAt === 'string' ? rfq.createdAt : rfq.createdAt.toISOString())}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleViewRFQ(rfq)}
+        >
+          <Eye className="w-4 h-4" />
+        </Button>
+
+        {rfq.status === 'PENDING' && (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSelectedRFQ(rfq);
+                setShowForwardModal(true);
+              }}
+              disabled={processingAction === rfq.id}
+              className="text-green-600 hover:text-green-700"
+            >
+              {processingAction === rfq.id ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleRejectClick(rfq)}
+              disabled={processingAction === rfq.id}
+              className="text-red-600 hover:text-red-700"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+  ));
+
+  const TabContent = React.memo(({ data, type }: { data: RFQ[], type: string }) => {
+    const filteredData = useMemo(() => getFilteredRFQs(data), [data, getFilteredRFQs]);
+
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="capitalize">{type} RFQs</CardTitle>
+              <CardDescription>Manage {type} RFQ requests</CardDescription>
+            </div>
+            <Button onClick={refreshData} variant="outline" disabled={loading}>
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-4 pt-4">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search RFQs..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[180px]">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Forwarded</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          <div className="border border-border rounded-lg overflow-hidden">
+            {/* Table Header */}
+            <div className="bg-muted/50 border-b border-border">
+              <div className="flex items-center p-4 font-medium text-sm">
+                <div className="flex-1">Product & Buyer</div>
+                <div className="flex-1 px-4">Price & Quantity</div>
+                <div className="flex-1 px-4">Status</div>
+                <div className="flex-1 px-4">Budget & Date</div>
+                <div className="w-32 text-center">Actions</div>
+              </div>
+            </div>
+
+            {/* Table Body */}
+            <div>
+              {filteredData.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <Package className="w-12 h-12" />
+                    <p>No {type} RFQs found</p>
+                    {searchTerm && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSearchTerm('')}
+                        className="mt-2"
+                      >
+                        Clear Search
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                filteredData.map((rfq) => (
+                  <RFQRow key={rfq.id} rfq={rfq} />
+                ))
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading RFQ data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Breadcrumbs */}
+        <nav className="text-sm text-muted-foreground">
+          <a href="/admin" className="hover:text-foreground">Admin Dashboard</a>
+          <span className="mx-2">/</span>
+          <span className="text-foreground">RFQ Management</span>
+        </nav>
+
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold">RFQ Management</h1>
+          <p className="text-muted-foreground mt-2">
+            Review, approve, and manage Request for Quote (RFQ) submissions from buyers
+          </p>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            title="Pending Review"
+            value={stats.pending}
+            subtitle="Awaiting approval"
+            icon={Clock}
+            color="bg-yellow-500"
+          />
+          <StatCard
+            title="Forwarded RFQs"
+            value={stats.approved}
+            subtitle="Active with sellers"
+            icon={CheckCircle}
+            color="bg-green-500"
+          />
+          <StatCard
+            title="Rejected"
+            value={stats.rejected}
+            subtitle="Did not meet criteria"
+            icon={X}
+            color="bg-red-500"
+          />
+          <StatCard
+            title="Total Processed"
+            value={stats.total}
+            subtitle="All time reviews"
+            icon={TrendingUp}
+            color="bg-blue-500"
+          />
+        </div>
+
+        {/* Main Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList>
+            {/* all rfq  */}
+            <TabsTrigger value="all" className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              All RFQs
+              <Badge variant="secondary" className="ml-1">{stats.total}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="pending" className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Pending Review
+              <Badge variant="secondary" className="ml-1">{stats.pending}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="approved" className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              Forwarded RFQs
+              <Badge variant="secondary" className="ml-1">{stats.approved}</Badge>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all">
+            <TabContent data={[...pendingRFQs, ...activeRFQs]} type="all" />
+          </TabsContent>
+
+          <TabsContent value="pending">
+            <TabContent data={pendingRFQs} type="pending" />
+          </TabsContent>
+
+          <TabsContent value="approved">
+            <TabContent data={activeRFQs} type="forwarded" />
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Modals */}
+      <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
+        {selectedRFQ && <RFQDetailModal rfq={selectedRFQ} />}
+      </Dialog>
+
+      <Dialog open={showForwardModal} onOpenChange={setShowForwardModal}>
+        <ForwardConfirmModal />
+      </Dialog>
+
+      <Dialog open={showRejectModal} onOpenChange={setShowRejectModal}>
+        <RejectModal />
+      </Dialog>
+    </div>
   );
 };
 
-export default RFQsManagement;
+export default RFQManagementDashboard;
