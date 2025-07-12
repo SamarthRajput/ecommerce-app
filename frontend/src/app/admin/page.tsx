@@ -1,10 +1,19 @@
 "use client";
 import React, { useEffect } from 'react';
-import { BarChart3, Settings, Users, Package, FileText, LogOut, Bell, Search, Menu, Home, Loader2, HomeIcon, MessageSquare, BookCheck } from 'lucide-react';
+import { BarChart3, Settings, Users, Package, FileText, LogOut, Bell, Search, Menu, Home, Loader2, HomeIcon, MessageSquare, BookCheck, FileBadge } from 'lucide-react';
 import { useAuth } from '@/src/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
-const quickLinks = [
+// const quickLinks = [
+//     { href: '/admin/listings', label: 'Manage Listings', icon: Package, description: 'Add, edit, and manage property listings' },
+//     { href: '/admin/users', label: 'Manage Users', icon: Users, description: 'View and manage user accounts' },
+//     { href: '/admin/rfqs', label: 'Manage RFQs', icon: FileText, description: 'Accept, Reject and manage RFQs' },
+//     { href: '/admin/reports', label: 'View Reports', icon: BarChart3, description: 'Analytics and performance reports' },
+//     { href: '/admin/chat', label: 'Chat Dashboard', icon: MessageSquare, description: 'Communicate with buyers and sellers' },
+//     { href: '/admin/certifications', label: 'Certifications', icon: BookCheck, description: 'Seller Certification approval' },
+// ];
+
+const superAdminLinks = [
     { href: '/admin/listings', label: 'Manage Listings', icon: Package, description: 'Add, edit, and manage property listings' },
     { href: '/admin/users', label: 'Manage Users', icon: Users, description: 'View and manage user accounts' },
     { href: '/admin/rfqs', label: 'Manage RFQs', icon: FileText, description: 'Accept, Reject and manage RFQs' },
@@ -12,6 +21,18 @@ const quickLinks = [
     { href: '/admin/chat', label: 'Chat Dashboard', icon: MessageSquare, description: 'Communicate with buyers and sellers' },
     { href: '/admin/certifications', label: 'Certifications', icon: BookCheck, description: 'Seller Certification approval' },
 ];
+
+const adminLinks = [
+    { href: '/admin/rfqs', label: 'Manage RFQs', icon: FileText, description: 'Accept, Reject and manage RFQs' },
+    { href: '/admin/chat', label: 'Chat Dashboard', icon: MessageSquare, description: 'Communicate with buyers and sellers' },
+];
+
+const inspectorLinks = [
+    { href: '/admin/listings', label: 'Manage Listings', icon: Package, description: 'Add, edit, and manage property listings' },
+    { href: '/admin/certifications', label: 'Certifications', icon: BookCheck, description: 'Seller Certification approval' },
+    { href: '/admin/analytics', label: 'Reports', icon: BarChart3, description: 'Submit reports for analysis' },
+];
+
 
 interface AdminUser {
     name: string;
@@ -38,7 +59,7 @@ const AdminDashboard = () => {
     const [success, setSuccess] = React.useState('');
     const [error, setError] = React.useState('');
     const [adminSummary, setAdminSummary] = React.useState<AdminSummary | null>(null);
-    const { authenticated, role, user: loggedInUser, isSeller, authLoading, isBuyer, logout } = useAuth();
+    const { authenticated, role, adminRole, user: loggedInUser, isSeller, authLoading, isBuyer, logout } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
@@ -96,6 +117,19 @@ const AdminDashboard = () => {
 
         fetchAdminSummary();
     }, []);
+
+    const getLinks = () => {
+        if(adminRole === 'SUPER_ADMIN'){
+            return superAdminLinks;
+        }
+        // manager -> admin
+        if(adminRole === 'ADMIN'){
+            return adminLinks;
+        }
+        if(adminRole === 'INSPECTOR'){
+            return inspectorLinks;
+        }
+    }
 
     if (authLoading) {
         return (
@@ -158,27 +192,17 @@ const AdminDashboard = () => {
                 <div className="mb-8">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {quickLinks.map((link) => {
-                            const IconComponent = link.icon;
+                        {getLinks()?.map(link => {
+                            const Icon = link.icon;
                             return (
-                                <a
-                                    key={link.href}
-                                    href={link.href}
-                                    className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md hover:border-gray-300 transition duration-200 group"
-                                >
+                                <a key={link.href} href={link.href} className="p-6 border rounded-lg bg-white hover:shadow-md">
                                     <div className="flex items-start">
-                                        <div className="flex-shrink-0">
-                                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200 transition duration-200">
-                                                <IconComponent className="w-5 h-5 text-gray-600" />
-                                            </div>
+                                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
+                                            <Icon className="w-5 h-5 text-gray-600" />
                                         </div>
-                                        <div className="ml-4">
-                                            <h4 className="text-sm font-semibold text-gray-900 group-hover:text-gray-700">
-                                                {link.label}
-                                            </h4>
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                {link.description}
-                                            </p>
+                                         <div>
+                                            <h4 className="text-sm font-semibold text-gray-900">{link.label}</h4>
+                                            <p className="text-xs text-gray-500 mt-1">{link.description}</p>
                                         </div>
                                     </div>
                                 </a>

@@ -11,23 +11,55 @@ async function main() {
 
     console.log('Insert admin');
 
-    const email = '1@1';
-    const password = '1';
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const superAdminEmail = '1@1';
+    const superAdminPassword = '1';
+    const superAdminHashedPassword = await bcrypt.hash(superAdminPassword, 10);
 
     await prisma.admin.upsert({
-        where: { email },
+        where: { email: superAdminEmail },
         update: {},
         create: {
-            name: 'Rohit Kumar Yadav',
-            email,
-            password: hashedPassword,
+            name: 'Super Admin',
+            email: superAdminEmail ,
+            password: superAdminHashedPassword,
+            role: 'ADMIN', // Ensure the role is set to ADMIN
+            adminRole: 'SUPER_ADMIN',
+        },
+    });
+
+    const adminEmail = '2@2';
+    const adminpassword = '2';
+    const adminhashedPassword = await bcrypt.hash(adminpassword, 10);
+
+    await prisma.admin.upsert({
+        where: { email: adminEmail },
+        update: {},
+        create: {
+            name: 'Admin',
+            email: adminEmail,
+            password: adminhashedPassword,
             role: 'ADMIN', // Ensure the role is set to ADMIN
             adminRole: 'ADMIN',
         },
     });
 
-    console.log(`Admin user ensured`);
+    const inspectorEmail = '3@3';
+    const inspectorPassword = '3';
+    const inspectorHashedPassword = await bcrypt.hash(inspectorPassword, 10);
+
+    await prisma.admin.upsert({
+        where: { email: inspectorEmail },
+        update: {},
+        create: {
+            name: 'Inspector',
+            email: inspectorEmail,
+            password: inspectorHashedPassword,
+            role: 'ADMIN', // Ensure the role is set to ADMIN
+            adminRole: 'INSPECTOR',
+        },
+    });
+
+    console.log(`SuperAdmin, Admin, Inspector ensured `);
 
     const sellerEmail = 'rohitkuyada@gmail.com';
     const sellerPassword = '123456789';
