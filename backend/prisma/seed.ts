@@ -99,6 +99,36 @@ async function main() {
             },
         });
     }
+    // test@gmail.com
+    // 12345
+    // Upsert Buyer to ensure it exists
+    const buyerEmail = 'test@gmail.com';
+    const buyerPassword = '123456789';
+    const buyerHashedPassword = await bcrypt.hash(buyerPassword, 10);
+
+    // first delete existing buyer if any
+    await prisma.buyer.deleteMany({
+        where: { email: buyerEmail },
+    });
+    console.log('Creating buyer... After deleting existing buyer if any');
+    await prisma.buyer.upsert({
+        where: { email: buyerEmail },
+        update: {},
+        create: {
+            firstName: 'Promptly',
+            lastName: 'Buyer',
+            country: 'India',
+            email: buyerEmail,
+            password: buyerHashedPassword,
+            phoneNumber: '9876543210',
+            street: '456 Market St',
+            state: 'Uttar Pradesh',
+            city: 'Lucknow',
+            zipCode: '226001',
+        },
+    });
+    console.log(`Buyer ensured with email: ${buyerEmail} and password: ${buyerPassword} are used for testing purposes.`);
+
 
     console.log('Inserting products for seller with ID:', seller.id);
 
@@ -443,20 +473,20 @@ async function main() {
     // Insert products
     for (const productData of products) {
         try {
-            const slug = productData.name
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/(^-|-$)+/g, '')
-                .substring(0, 100); // Ensure slug isn't too long
+            // const slug = productData.name
+            //     .toLowerCase()
+            //     .replace(/[^a-z0-9]+/g, '-')
+            //     .replace(/(^-|-$)+/g, '')
+            //     .substring(0, 100); // Ensure slug isn't too long
 
-            await prisma.product.create({
-                data: {
-                    ...productData,
-                    sellerId: seller.id,
-                    status: 'APPROVED',
-                    slug: slug,
-                },
-            });
+            // await prisma.product.create({
+            //     data: {
+            //         ...productData,
+            //         sellerId: seller.id,
+            //         status: 'APPROVED',
+            //         slug: slug,
+            //     },
+            // });
 
             console.log(`✅ Successfully inserted product: ${productData.name}`);
         } catch (error) {

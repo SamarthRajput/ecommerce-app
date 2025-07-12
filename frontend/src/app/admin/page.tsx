@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
-import { BarChart3, Settings, Users, Package, FileText, LogOut, Bell, Search, Menu, Home, Loader2, HomeIcon, MessageSquare, BookCheck, FileBadge } from 'lucide-react';
+import { BarChart3, Users, Package, FileText, LogOut, Loader2, MessageSquare, BookCheck } from 'lucide-react';
 import { useAuth } from '@/src/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -24,6 +24,7 @@ const superAdminLinks = [
 
 const adminLinks = [
     { href: '/admin/rfqs', label: 'Manage RFQs', icon: FileText, description: 'Accept, Reject and manage RFQs' },
+    { href: '/admin/users', label: 'Manage Users', icon: Users, description: 'View and manage user accounts' },
     { href: '/admin/chat', label: 'Chat Dashboard', icon: MessageSquare, description: 'Communicate with buyers and sellers' },
 ];
 
@@ -32,8 +33,6 @@ const inspectorLinks = [
     { href: '/admin/certifications', label: 'Certifications', icon: BookCheck, description: 'Seller Certification approval' },
     { href: '/admin/analytics', label: 'Reports', icon: BarChart3, description: 'Submit reports for analysis' },
 ];
-
-
 interface AdminUser {
     name: string;
     role: string;
