@@ -38,7 +38,7 @@ interface AdminUser {
     name: string;
     role: string;
     email: string;
-    // add other properties as needed
+    adminRole?: string;
 };
 interface AdminSummary {
     totalSellers: number;
@@ -76,8 +76,8 @@ const AdminDashboard = () => {
             setUser({
                 name: loggedInUser.name ?? '',
                 email: loggedInUser.email ?? '',
-                role: role || '', // fallback to empty string if role is undefined
-                // add other properties as needed
+                role: role || '',
+                adminRole: adminRole || '',
             });
         } else {
             setUser(null);
@@ -119,14 +119,14 @@ const AdminDashboard = () => {
     }, []);
 
     const getLinks = () => {
-        if(adminRole === 'SUPER_ADMIN'){
+        if (adminRole === 'SUPER_ADMIN') {
             return superAdminLinks;
         }
         // manager -> admin
-        if(adminRole === 'ADMIN'){
+        if (adminRole === 'ADMIN') {
             return adminLinks;
         }
-        if(adminRole === 'INSPECTOR'){
+        if (adminRole === 'INSPECTOR') {
             return inspectorLinks;
         }
     }
@@ -179,8 +179,11 @@ const AdminDashboard = () => {
 
                 <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                        Welcome back{user?.name ? `, ${user.name}` : ''}!
+                        Welcome, {user?.name || 'Admin'}!
                     </h2>
+                    {user?.adminRole && (
+                        <p className="text-sm text-gray-600 mb-2">{user.adminRole}</p>
+                    )}
                     <p className="text-gray-600">
                         Manage your application from this central dashboard.
                         <span className="block text-sm text-gray-500 mt-1">
@@ -200,7 +203,7 @@ const AdminDashboard = () => {
                                         <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
                                             <Icon className="w-5 h-5 text-gray-600" />
                                         </div>
-                                         <div>
+                                        <div>
                                             <h4 className="text-sm font-semibold text-gray-900">{link.label}</h4>
                                             <p className="text-xs text-gray-500 mt-1">{link.description}</p>
                                         </div>

@@ -9,13 +9,18 @@ declare global {
             user?: {
                 userId: string;
                 role: string;
+                adminRole?: string;
                 email?: string;
             };
         }
     }
 }
+// Define allowed admin roles
+const allowedAdminRoles: string[] = ['SUPER_ADMIN', 'ADMIN', 'INSPECTOR'];
 
-export async function requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function requireAdmin(req: Request, res: Response, next: NextFunction, roles: string[] = allowedAdminRoles) {
+    // Check if the request has a valid admin token
+    // if roles are given it must be one of the adminRoles else the role should
     try {
         const token = req.cookies?.AdminToken;
 
@@ -39,6 +44,7 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
             where: { id: decoded.userId },
             select: {
                 id: true,
+                role: true,
                 adminRole: true,
                 email: true
             }
@@ -51,11 +57,20 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
             });
             return;
         }
+        // if the adminrole is from given roles
+        if (!roles.includes(adminUser.adminRole)) {
+            res.status(403).json({
+                success: false,
+                error: 'Forbidden. You do not have permission to access this resource.'
+            });
+            return;
+        }
 
         // Attach user to request
         req.user = {
             userId: adminUser.id,
-            role: adminUser.adminRole,
+            role: adminUser.role,
+            adminRole: adminUser.adminRole,
             email: adminUser.email
         };
 
