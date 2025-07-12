@@ -203,23 +203,42 @@ export const meRoute = async (req: Request, res: Response) => {
 
 // get all sellers
 export const getAllSellers = async (req: Request, res: Response) => {
+    // Fetch all sellers from the database to show on admin dashboard so that admin can manage them
     try {
         const sellers = await prisma.seller.findMany({
             select: {
                 id: true,
                 email: true,
+                role: true,
+                slug: true,
                 firstName: true,
                 lastName: true,
-                role: true,
+                businessDocUrl: true,
+                govIdUrl: true,
+                gstCertUrl: true,
+                otherDocsUrl: true,
+                approvalNote: true,
+                isApproved: true,
+                isEmailVerified: true,
+                isPhoneVerified: true,
+                phone: true,
+                countryCode: true,
                 businessName: true,
                 businessType: true,
-                phone: true,
+                registrationNo: true,
+                taxId: true,
+                panOrTin: true,
+                website: true,
+                linkedIn: true,
+                yearsInBusiness: true,
+                industryTags: true,
+                keyProducts: true,
+                companyBio: true,
                 street: true,
                 city: true,
                 state: true,
                 zipCode: true,
                 country: true,
-                taxId: true,
                 createdAt: true,
                 updatedAt: true
             }
@@ -263,6 +282,33 @@ export const getAllBuyers = async (req: Request, res: Response) => {
         res.status(500).json({
             success: false,
             error: 'Failed to fetch buyers'
+        });
+    }
+};
+
+// get all admins
+export const getAllAdmins = async (req: Request, res: Response) => {
+    try {
+        const admins = await prisma.admin.findMany({
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                adminRole: true,
+                createdAt: true
+            }
+        });
+        console.log(`Fetched ${admins.length} admins`);
+        res.json({
+            success: true,
+            data: admins
+        });
+    } catch (error) {
+        console.error('Error fetching admins:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch admins'
         });
     }
 };
