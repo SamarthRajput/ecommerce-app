@@ -76,5 +76,6 @@ export interface RFQStats {
   pending: number;
   approved: number;
   rejected: number;
+  forwarded: number;
   total: number;
 }

@@ -151,7 +151,6 @@ export const updateAdmin = async (req: Request, res: Response) => {
         });
     }
 }
-
 // Delete an admin user
 export const deleteAdmin = async (req: Request, res: Response) => {
     try {
@@ -185,7 +184,6 @@ export const deleteAdmin = async (req: Request, res: Response) => {
         });
     }
 };
-
 // Delete a buyer user
 export const deleteBuyer = async (req: Request, res: Response) => {
     try {
@@ -219,7 +217,6 @@ export const deleteBuyer = async (req: Request, res: Response) => {
         });
     }
 }
-
 // Approve Seller
 export const approveSeller = async (req: Request, res: Response) => {
     try {
