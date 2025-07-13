@@ -8,6 +8,8 @@ import {
   getAllCertifications
 } from '../controllers/certification.controller';
 import { requireSeller } from '../middlewares/authSeller';
+import { uploadSingleFile } from '../middlewares/multer';
+import { viewCertificate } from '../controllers/certification.controller';
 
 const router = Router();
 
@@ -22,11 +24,14 @@ router.post('/paypal/create', createPaypalPayment);
 // * PayPal: Payment success callback/webhook
 router.post('/paypal/success', handlePaypalSuccess);
 
-// * Admin: Issue certificate
-router.post('/issue', issueCertificate);
+// * Admin: Issue certificate (PDF upload)
+router.post('/issue', uploadSingleFile, issueCertificate);
 
 // * Seller: Get own certifications
 router.get('/seller/:sellerId', getSellerCertifications);
+
+// * Seller: View certificate PDF
+router.get('/view/:certificateId', requireSeller, viewCertificate);
 
 // * Admin: Get all certification records
 router.get('/all', getAllCertifications);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ExternalLink, Award, Clock, CheckCircle } from "lucide-react";
+import { ExternalLink, Award, Clock, CheckCircle, Download, Eye } from "lucide-react";
 
 interface Certification {
   id: string;
@@ -53,6 +53,40 @@ export default function SellerCertifications({ sellerId }: { sellerId: string })
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const getFileType = (url: string) => {
+    if (!url) return 'unknown';
+    const extension = url.split('.').pop()?.toLowerCase();
+    return extension || 'unknown';
+  };
+
+  const handleViewCertificate = (url: string, productName: string) => {
+    const fileType = getFileType(url);
+    
+    if (fileType === 'pdf') {
+      // For PDFs, open in new tab with PDF viewer
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      // For images, open in new tab
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleDownloadCertificate = (url: string, productName: string) => {
+    const fileType = getFileType(url);
+    const fileName = `${productName.replace(/[^a-zA-Z0-9]/g, '_')}_certificate.${fileType}`;
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    
+    // Append to body, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (loading) {
@@ -122,20 +156,32 @@ export default function SellerCertifications({ sellerId }: { sellerId: string })
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(cert.status)}`}>
                       {cert.status.toUpperCase()}
                     </span>
+                    {cert.certificateUrl && (
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                        {getFileType(cert.certificateUrl).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
               
               {cert.certificateUrl && (
-                <a
-                  href={cert.certificateUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                >
-                  View Certificate
-                  <ExternalLink className="w-4 h-4" />
-                </a>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleViewCertificate(cert.certificateUrl!, cert.product.name)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View
+                  </button>
+                  <button
+                    onClick={() => handleDownloadCertificate(cert.certificateUrl!, cert.product.name)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download
+                  </button>
+                </div>
               )}
             </div>
           </div>
