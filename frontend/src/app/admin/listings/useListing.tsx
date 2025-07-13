@@ -3,15 +3,39 @@ import { useAuth } from '@/src/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react'
 import { useCallback } from 'react';
-
+import { toast } from 'sonner';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1';
 
 interface Listing {
     id: string;
+    slug: string;
     name: string;
     description: string;
     price: number;
+    currency?: string;
     quantity: number;
+    minimumOrderQuantity?: number;
+    listingType: 'SELL' | 'LEASE' | 'RENT';
+    condition: string;
+    validityPeriod: number;
+    expiryDate?: string;
+    deliveryTimeInDays?: number;
+    logisticsSupport?: 'SELF' | 'INTERLINK' | 'BOTH';
+    industry: string;
+    category: string;
+    productCode: string;
+    model: string;
+    specifications: string;
+    countryOfSource: string;
+    hsnCode: string;
+    certifications: string[];
+    licenses: string[];
+    warrantyPeriod?: string;
+    brochureUrl?: string;
+    videoUrl?: string;
+    images: string[];
+    tags: string[];
+    keywords: string[];
     status: 'PENDING' | 'ACTIVE' | 'REJECTED';
     seller: {
         id: string;
@@ -20,6 +44,19 @@ interface Listing {
         lastName: string;
         businessName: string;
     };
+    rfqs: Array<{
+        id: string;
+        buyer: {
+            id: string;
+            email: string;
+            firstName: string;
+            lastName: string;
+        };
+        quantity: number;
+        message?: string;
+        status: string;
+        createdAt: string;
+    }>;
     _count: {
         rfqs: number;
     };
@@ -33,15 +70,6 @@ interface Stats {
     rejected: number;
     total: number;
 }
-  
-interface Toast {
-    id: string;
-    message: string;
-    type: 'success' | 'error' | 'warning';
-}
-const generateToastId = () => {
-    return Math.random().toString(36).substring(2, 15);
-};
 // API Configuration
 interface ApiResponse {
     success: boolean;
@@ -49,20 +77,24 @@ interface ApiResponse {
     count: number;
     error?: string;
     message?: string;
+    pagination?: {
+        total: number;
+        page: number;
+        pageSize: number;
+        hasNextPage: boolean;
+    };
 }
 
 const useListing = () => {
-    const [pendingListings, setPendingListings] = useState<Listing[]>([]);
-    const [activeListings, setActiveListings] = useState<Listing[]>([]);
+    const [Listings, setListings] = useState<Listing[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
     const [showViewModal, setShowViewModal] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
     const [processingAction, setProcessingAction] = useState<string | null>(null);
-    const [toasts, setToasts] = useState<Toast[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [activeTab, setActiveTab] = useState('pending');
+    const [activeTab, setActiveTab] = useState('all');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [stats, setStats] = useState<Stats>({ pending: 0, active: 0, rejected: 0, total: 0 });
     const { authenticated, role, user: loggedInUser, isSeller, authLoading: authStatusLoading, isBuyer, logout } = useAuth();
@@ -79,14 +111,6 @@ const useListing = () => {
             }));
         }
     }, [authenticated, role, router]);
-
-    const addToast = useCallback((message: string, type: 'success' | 'error' | 'warning') => {
-        const id = generateToastId();
-        setToasts(prev => [...prev, { id, message, type }]);
-        setTimeout(() => {
-            setToasts(prev => prev.filter(toast => toast.id !== id));
-        }, 5000);
-    }, []);
 
     // API Functions with better error handling
     const apiCall = async (url: string, options: RequestInit = {}) => {
@@ -107,38 +131,21 @@ const useListing = () => {
         }
     };
 
-    const fetchPendingListings = useCallback(async (): Promise<void> => {
+    const fetchListings = useCallback(async (): Promise<void> => {
         try {
-            const data: ApiResponse = await apiCall('/listing/pending');
+            const data: ApiResponse = await apiCall('/listing/all?page=1&limit=10');
 
             if (data.success) {
-                setPendingListings(data.data);
-                setStats(prev => ({ ...prev, pending: data.count }));
+                setListings(data.data);
+                setStats(prev => ({ ...prev, total: data.count }));
             } else {
-                throw new Error(data.error || 'Failed to fetch pending listings');
+                throw new Error(data.error || 'Failed to fetch listings');
             }
         } catch (error: any) {
-            console.error('Error fetching pending listings:', error);
-            addToast(`${error}`, 'error');
+            console.error('Error fetching listings:', error);
+            toast.error(`${error}`);
         }
-    }, [addToast]);
-
-    // usecallback is used to memoize the function to prevent unnecessary re-creations
-    const fetchActiveListings = useCallback(async (): Promise<void> => {
-        try {
-            const data: ApiResponse = await apiCall('/listing/active');
-
-            if (data.success) {
-                setActiveListings(data.data);
-                setStats(prev => ({ ...prev, active: data.count }));
-            } else {
-                throw new Error(data.error || 'Failed to fetch active listings');
-            }
-        } catch (error) {
-            console.error('Error fetching active listings:', error);
-            addToast(`${error}`, 'error');
-        }
-    }, [addToast]);
+    }, [toast]);
 
     const approveListing = async (listingId: string): Promise<void> => {
         setProcessingAction(listingId);
@@ -148,26 +155,24 @@ const useListing = () => {
             });
 
             if (data.success) {
-                // Remove from pending list and update stats
-                setPendingListings(prev => prev.filter(listing => listing.id !== listingId));
+                // Remove from listings and update stats
+                setListings(prev => prev.filter(listing => listing.id !== listingId));
                 setStats(prev => ({
                     ...prev,
                     pending: prev.pending - 1,
                     active: prev.active + 1
                 }));
+                // Update the listing data
+                setListings(prev => prev.map(listing => listing.id === listingId ? { ...listing, status: 'ACTIVE' } : listing));
 
-                addToast('Listing approved successfully!', 'success');
-
-                // Refresh active listings if on that tab
-                if (activeTab === 'active') {
-                    await fetchActiveListings();
-                }
+                toast.success('Listing approved successfully!');
+                setSelectedListing(null);
+                setShowViewModal(false);
             } else {
                 throw new Error(data.error || 'Failed to approve listing');
             }
         } catch (error) {
             console.error('Error approving listing:', error);
-            addToast(`${error}`, 'error');
         } finally {
             setProcessingAction(null);
         }
@@ -175,7 +180,7 @@ const useListing = () => {
 
     const rejectListing = async (listingId: string): Promise<void> => {
         if (!rejectionReason.trim()) {
-            addToast('Please provide a rejection reason.', 'warning');
+            toast.warning('Please provide a rejection reason.');
             return;
         }
 
@@ -187,15 +192,15 @@ const useListing = () => {
             });
 
             if (data.success) {
-                // Remove from pending list and update stats
-                setPendingListings(prev => prev.filter(listing => listing.id !== listingId));
+                // Remove from listings and update stats
+                setListings(prev => prev.filter(listing => listing.id !== listingId));
                 setStats(prev => ({
                     ...prev,
                     pending: prev.pending - 1,
                     rejected: prev.rejected + 1
                 }));
 
-                addToast('Listing rejected successfully.', 'success');
+                toast.success('Listing rejected successfully.');
                 setRejectionReason('');
                 setShowRejectModal(false);
                 setSelectedListing(null);
@@ -204,7 +209,7 @@ const useListing = () => {
             }
         } catch (error) {
             console.error('Error rejecting listing:', error);
-            addToast(`${error}`, 'error');
+            toast.error(`${error}`);
         } finally {
             setProcessingAction(null);
         }
@@ -225,7 +230,7 @@ const useListing = () => {
     const refreshData = async (): Promise<void> => {
         setLoading(true);
         try {
-            await Promise.all([fetchPendingListings(), fetchActiveListings()]);
+            await fetchListings();
         } finally {
             setLoading(false);
         }
@@ -250,14 +255,14 @@ const useListing = () => {
 
             setLoading(true);
             try {
-                await Promise.all([fetchPendingListings(), fetchActiveListings()]);
+                await fetchListings();
             } finally {
                 setLoading(false);
             }
         };
 
         initializeData();
-    }, [isAuthenticated, fetchPendingListings, fetchActiveListings]);
+    }, [isAuthenticated]);
 
     // Update total stats
     useEffect(() => {
@@ -267,47 +272,14 @@ const useListing = () => {
         }));
     }, [stats.active, stats.rejected]);
 
-    useEffect(() => {
-        checkAuthStatus();
-    }, []);
-
-    const checkAuthStatus = async () => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) return;
-
-        try {
-            const response = await fetch('http://localhost:3001/api/v1/auth/admin/verify', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    setIsAuthenticated(true);
-                }
-            } else {
-                localStorage.removeItem('adminToken');
-            }
-        } catch (error) {
-            console.error('Auth check failed:', error);
-            localStorage.removeItem('adminToken');
-        }
-    };
-
     return ({
-        pendingListings,
-        activeListings,
+        Listings,
         loading,
         selectedListing,
         showViewModal,
         showRejectModal,
         rejectionReason,
         processingAction,
-        toasts,
         searchTerm,
         activeTab,
         stats,

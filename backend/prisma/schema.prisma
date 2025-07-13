@@ -191,7 +191,7 @@ model Product {
   quantity             Int
   minimumOrderQuantity Int?
 
-  listingType        ListingType // enum: SELL / LEASE
+  listingType        ListingType // enum: SELL / LEASE / RENT
   condition          ProductCondition
   validityPeriod     Int // in days
   expiryDate         DateTime?

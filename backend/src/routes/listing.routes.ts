@@ -6,6 +6,9 @@ enum ProductStatus {
 }
 import { requireAdmin } from "../middlewares/authAdmin";
 import { prisma } from "../lib/prisma";
+import { requireAuth } from "../middlewares/requireAuth";
+import asyncHandler from "../utils/asyncHandler";
+import { getAllListings } from "../controllers/listing.controller";
 
 // Base url: http://localhost:3001/api/v1/listing
 
@@ -16,86 +19,8 @@ console.log('Listing router called');
 listingRouter.use(requireAdmin);
 
 // GET /api/v1/listing/pending - Get all pending listings
-listingRouter.get('/pending', async (req: Request, res: Response) => {
-    try {
-        console.log('Fetching pending listings...');
+listingRouter.get('/all', requireAuth({ allowedRoles: ['admin'], allowedAdminRoles: ["SUPER_ADMIN", "ADMIN"] }), asyncHandler(getAllListings));
 
-        const pendingListings = await prisma.product.findMany({
-            where: {
-                status: ProductStatus.PENDING
-            },
-            include: {
-                seller: {
-                    select: {
-                        id: true,
-                        email: true
-                    }
-                },
-                _count: {
-                    select: {
-                        rfqs: true
-                    }
-                }
-            },
-            orderBy: {
-                id: 'desc'
-            }
-        });
-
-        console.log(`Found ${pendingListings.length} pending listings`);
-        res.json({
-            success: true,
-            data: pendingListings,
-            count: pendingListings.length
-        });
-    } catch (error) {
-        console.error('Error fetching pending listings:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to fetch pending listings'
-        });
-    }
-});
-
-// GET /api/v1/listing/active - Get all active listings
-listingRouter.get('/active', async (req: Request, res: Response) => {
-    try {
-        const activeListings = await prisma.product.findMany({
-            where: {
-                status: ProductStatus.APPROVED
-            },
-            include: {
-                seller: {
-                    select: {
-                        id: true,
-                        email: true
-                    }
-                },
-                _count: {
-                    select: {
-                        rfqs: true
-                    }
-                }
-            },
-            orderBy: {
-                id: 'desc'
-            }
-        });
-
-        console.log(`Found ${activeListings.length} active listings`);
-        res.json({
-            success: true,
-            data: activeListings,
-            count: activeListings.length
-        });
-    } catch (error) {
-        console.error('Error fetching active listings:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to fetch active listings'
-        });
-    }
-});
 
 // POST /api/v1/listing/approve/:id - Approve a listing
 listingRouter.post('/approve/:id', async (req: Request, res: Response) => {

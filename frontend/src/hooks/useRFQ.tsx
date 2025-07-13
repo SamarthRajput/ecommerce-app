@@ -27,7 +27,7 @@ const useRFQ = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('all');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [stats, setStats] = useState<RFQStats>({ pending: 0, approved: 0, rejected: 0, total: 0 });
+    const [stats, setStats] = useState<RFQStats>({ pending: 0, forwarded: 0, approved: 0, rejected: 0, total: 0 });
     const { authenticated, role, user: loggedInUser, authLoading: authStatusLoading, logout } = useAuth();
     const router = useRouter();
 
@@ -38,7 +38,7 @@ const useRFQ = () => {
             setIsAuthenticated(authenticated);
             setStats(prev => ({
                 ...prev,
-                total: prev.pending + prev.approved + prev.rejected
+                total: prev.pending + prev.approved + prev.rejected + prev.forwarded
             }));
         }
     }, [authenticated, role, router]);

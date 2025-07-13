@@ -640,8 +640,8 @@ const RFQManagementDashboard = () => {
             <Package className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-medium truncate">{rfq.product.name}</div>
-            <div className="text-sm text-muted-foreground truncate">
+            <div className="font-medium truncate" title={`${rfq.product.name}`}>{rfq.product.name}</div>
+            <div className="text-sm text-muted-foreground truncate" title={`${rfq.buyer.firstName || ''} ${rfq.buyer.lastName || ''}`.trim() || rfq.buyer.email}>
               {`${rfq.buyer.firstName || ''} ${rfq.buyer.lastName || ''}`.trim() || rfq.buyer.email}
             </div>
           </div>
@@ -652,21 +652,21 @@ const RFQManagementDashboard = () => {
         <div className="space-y-1">
           <div className="flex items-center gap-1 text-sm">
             <DollarSign className="w-3 h-3 text-green-600" />
-            <span className="font-medium text-green-600">{formatPrice(rfq.product.price)}</span>
+            <span className="font-medium text-green-600" title={`${formatPrice(rfq.product.price)}`}>{formatPrice(rfq.product.price)}</span>
           </div>
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1 text-sm text-muted-foreground" title={`Total Quantity: ${rfq.quantity.toLocaleString()} units`}>
             <Package className="w-3 h-3" />
             {rfq.quantity.toLocaleString()} units
           </div>
         </div>
       </div>
 
-      <div className="flex-1 px-4">
+      <div className="flex-1 px-4" title={`Status: ${rfq.status}`}>
         {getStatusBadge(rfq.status)}
       </div>
 
       <div className="flex-1 px-4">
-        <div className="space-y-1">
+        <div className="space-y-1" title={`Budget: ${rfq.budget ? formatPrice(rfq.budget) : 'N/A'}`}>
           {rfq.budget && (
             <div className="flex items-center gap-1 text-sm">
               <CreditCard className="w-3 h-3 text-purple-600" />
@@ -685,6 +685,7 @@ const RFQManagementDashboard = () => {
           variant="ghost"
           size="sm"
           onClick={() => handleViewRFQ(rfq)}
+          title='View RFQ Details'
         >
           <Eye className="w-4 h-4" />
         </Button>
@@ -700,6 +701,7 @@ const RFQManagementDashboard = () => {
               }}
               disabled={processingAction === rfq.id}
               className="text-green-600 hover:text-green-700"
+              title='Forward RFQ'
             >
               {processingAction === rfq.id ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -713,6 +715,7 @@ const RFQManagementDashboard = () => {
               onClick={() => handleRejectClick(rfq)}
               disabled={processingAction === rfq.id}
               className="text-red-600 hover:text-red-700"
+              title='Reject RFQ'
             >
               <X className="w-4 h-4" />
             </Button>
