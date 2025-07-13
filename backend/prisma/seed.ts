@@ -473,20 +473,20 @@ async function main() {
     // Insert products
     for (const productData of products) {
         try {
-            // const slug = productData.name
-            //     .toLowerCase()
-            //     .replace(/[^a-z0-9]+/g, '-')
-            //     .replace(/(^-|-$)+/g, '')
-            //     .substring(0, 100); // Ensure slug isn't too long
+            const slug = productData.name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)+/g, '')
+                .substring(0, 100); // Ensure slug isn't too long
 
-            // await prisma.product.create({
-            //     data: {
-            //         ...productData,
-            //         sellerId: seller.id,
-            //         status: 'APPROVED',
-            //         slug: slug,
-            //     },
-            // });
+            await prisma.product.create({
+                data: {
+                    ...productData,
+                    sellerId: seller.id,
+                    status: 'APPROVED',
+                    slug: slug,
+                },
+            });
 
             console.log(`✅ Successfully inserted product: ${productData.name}`);
         } catch (error) {
