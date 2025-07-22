@@ -251,7 +251,10 @@ const CategoryWiseProducts = () => {
     // Product Card Components
     const ProductCard = ({ product }: { product: Product }) => (
         <Link href={`/products/${product.category}/${product.id}`} className="block h-full">
-            <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-200 h-full group">
+            <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-200 h-full group"
+            onClick={() => {
+                router.push(`/products/${product.category}/${product.id}`);
+            }}>
                 <CardContent className="p-3 md:p-4 h-full flex flex-col">
                     {/* Product Image */}
                     <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden relative">
