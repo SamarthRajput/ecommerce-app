@@ -1,69 +1,6 @@
-/*
-interface Listing {
-  id: string;
-  slug: string;
-  name: string;
-  description: string;
-  price: number;
-  currency?: string;
-  quantity: number;
-  minimumOrderQuantity?: number;
-  listingType: 'SELL' | 'LEASE' | 'RENT';
-  condition: string;
-  validityPeriod: number;
-  expiryDate?: string;
-  deliveryTimeInDays?: number;
-  logisticsSupport?: 'SELF' | 'INTERLINK' | 'BOTH';
-  industry: string;
-  category: string;
-  productCode: string;
-  model: string;
-  specifications: string;
-  countryOfSource: string;
-  hsnCode: string;
-  certifications: string[];
-  licenses: string[];
-  warrantyPeriod?: string;
-  brochureUrl?: string;
-  videoUrl?: string;
-  images: string[];
-  tags: string[];
-  keywords: string[];
-  status: 'PENDING' | 'ACTIVE' | 'REJECTED';
-  seller: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    businessName: string;
-  };
-  rfqs: Array<{
-    id: string;
-    buyer: {
-      id: string;
-      email: string;
-      firstName: string;
-      lastName: string;
-    };
-    quantity: number;
-    message?: string;
-    status: string;
-    createdAt: string;
-  }>;
-  _count: {
-    rfqs: number;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
-The data that needs in frontend
-*/
-
-import { ProductStatus } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { Request, Response } from "express";
 import { parsePagination } from "../utils/parsePagination";
-import { count } from "console";
 
 // Get all listings
 export const getAllListings = async (req: Request, res: Response) => {
