@@ -3,7 +3,7 @@ import { AuthenticatedRequest, requireSeller } from "../middlewares/authSeller";
 import { createListing, editListing, forgotSellerPassword, getDashboardStats, getSellerListings, getSellerProfile, getSellerPublicProfile, getSellerRFQRequests, getSingleListingForEdit, resetSellerPassword, signinSeller, signupSeller, toggleListingStatus, updateSellerProfile, upload, uploadDocuments } from "../controllers/sellerController";
 import { apiLimiter } from "../utils/rateLimit";
 import asyncHandler from "../utils/asyncHandler";
-import { uploadMultipleFiles } from "../middlewares/multer";
+import { uploadMultipleFiles, uploadMultipleFilesCreateListing } from "../middlewares/multer";
 import { clearAuthCookies } from "../utils/clearAuthCookies";
 export const sellerRouter = Router();
 
@@ -28,7 +28,7 @@ sellerRouter.put("/details", requireSeller, asyncHandler(updateSellerProfile));
 // * Listing Routes
 sellerRouter.get("/listings", requireSeller, asyncHandler(getSellerListings));
 sellerRouter.get("/product/:listingId", requireSeller, asyncHandler(getSingleListingForEdit));
-sellerRouter.post("/list-item", requireSeller, uploadMultipleFiles, asyncHandler(createListing));
+sellerRouter.post("/list-item", requireSeller, uploadMultipleFilesCreateListing, asyncHandler(createListing));
 sellerRouter.put("/edit-listing/:listingId", requireSeller, uploadMultipleFiles, asyncHandler(editListing));
 sellerRouter.post("/toggle-listing-status/:listingId", requireSeller, asyncHandler(toggleListingStatus));
 
