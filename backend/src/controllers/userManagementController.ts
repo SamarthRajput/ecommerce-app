@@ -17,7 +17,7 @@ export const createAdmin = async (req: Request, res: Response) => {
         if (adminRole === 'SUPER_ADMIN') {
             return res.status(400).json({
                 success: false,
-                error: 'Cannot create SUPER_ADMIN from this endpoint'
+                error: 'Cannot create SUPER ADMIN from this endpoint'
             });
         }
 
@@ -224,7 +224,7 @@ export const deleteBuyer = async (req: Request, res: Response) => {
                     },
                 },
             }),
-            
+
             prisma.chatRoom.deleteMany({
                 where: {
                     rfq: {
