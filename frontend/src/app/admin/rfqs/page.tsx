@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -90,6 +90,13 @@ const RFQManagementDashboard = () => {
 
   const [filterStatus, setFilterStatus] = useState('all');
   const [showForwardModal, setShowForwardModal] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchInputRef.current ) {
+      searchInputRef.current.focus();
+    }
+  }, [searchTerm]);
 
   const formatDate = useCallback((dateString: string | Date) => {
     if (typeof dateString === 'string') {
@@ -153,7 +160,7 @@ const RFQManagementDashboard = () => {
     </Card>
   ));
 
-  const RFQDetailModal = ({ rfq }: { rfq: RFQ }) => (
+  const RFQDetailModal = React.memo(({ rfq }: { rfq: RFQ }) => (
     <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
@@ -514,9 +521,9 @@ const RFQManagementDashboard = () => {
         )}
       </DialogFooter>
     </DialogContent>
-  );
+  ));
 
-  const ForwardConfirmModal = () => (
+  const ForwardConfirmModal = React.memo(() => (
     <DialogContent className="max-w-md">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-green-600">
@@ -580,9 +587,9 @@ const RFQManagementDashboard = () => {
         </Button>
       </DialogFooter>
     </DialogContent>
-  );
+  ));
 
-  const RejectModal = () => (
+  const RejectModal = React.memo(() => (
     <DialogContent className="max-w-md">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-red-600">
@@ -630,7 +637,7 @@ const RFQManagementDashboard = () => {
         </Button>
       </DialogFooter>
     </DialogContent>
-  );
+  ));
 
   const RFQRow = React.memo(({ rfq }: { rfq: RFQ }) => (
     <div className="flex items-center p-4 border-b border-border hover:bg-muted/50 transition-colors">
@@ -746,6 +753,7 @@ const RFQManagementDashboard = () => {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
+                ref={searchInputRef}
                 placeholder="Search RFQs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}

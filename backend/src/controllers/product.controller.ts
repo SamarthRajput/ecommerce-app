@@ -114,6 +114,7 @@ export const getProductsBySellerId = async (req: Request, res: Response) => {
     const { skip, take } = parsePagination(req.query);
 
     // Find Seller ID from Product ID
+    // fix this route
     try {
         const product = await prisma.product.findUnique({
             where: { id },
@@ -127,7 +128,7 @@ export const getProductsBySellerId = async (req: Request, res: Response) => {
 
         const products = await prisma.product.findMany({
             where: {
-                sellerId,
+                id,
                 status: "APPROVED",
             },
             skip,

@@ -326,7 +326,7 @@ const EnhancedProductsPage = () => {
                         )}
 
                         {/* Quick action buttons */}
-                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -338,7 +338,7 @@ const EnhancedProductsPage = () => {
                             >
                                 <Heart className="w-3 h-3" />
                             </Button>
-                        </div>
+                        </div> */}
 
                         {/* Badges */}
                         <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -396,7 +396,7 @@ const EnhancedProductsPage = () => {
                             </Badge>
                         </div>
 
-                        {/* Seller Info */}
+                        {/* Seller Info
                         <div className="mt-auto">
                             <div className="flex items-center space-x-1 mb-2">
                                 <Building className="w-3 h-3 text-gray-400" />
@@ -410,7 +410,7 @@ const EnhancedProductsPage = () => {
                                     {product.seller?.city}, {product.seller?.country}
                                 </span>
                             </div>
-                        </div>
+                        </div> */}
 
                         {/* Quick Actions */}
                         <div className="mt-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

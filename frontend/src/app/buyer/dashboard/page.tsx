@@ -18,7 +18,8 @@ import {
     ShoppingCart,
     Heart,
     List,
-    FileSearch
+    FileSearch,
+    MessageSquare
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,8 +29,6 @@ import { Badge } from '@/components/ui/badge';
 import { renderProfile } from './Profile';
 import { useAuth } from '@/src/context/AuthContext';
 import { OverviewTab } from '@/src/app/buyer/dashboard/OverviewTab';
-import OrdersDashboard from './Orders';
-
 
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
 const API_BASE_URL = `${API_BACKEND_URL}/buyer`;
@@ -57,9 +56,8 @@ interface RFQ {
     quantity: number;
     targetPrice: number;
     message: string;
-    status: 'pending' | 'responded' | 'accepted' | 'rejected';
+    status: string;
     createdAt: string;
-    urgency: 'low' | 'medium' | 'high' | 'urgent';
 }
 
 interface Order {
@@ -99,7 +97,7 @@ const NAVIGATION_ITEMS = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
     { id: 'rfqs', label: 'My RFQs', icon: FileSearch },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
-    { id: 'saved', label: 'Saved Items', icon: Heart },
+    { id: 'chat', label: 'Chat', icon: MessageSquare },
     { id: 'history', label: 'Purchase History', icon: List },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'settings', label: 'Settings', icon: Settings },
@@ -112,6 +110,7 @@ const EnhancedBuyerDashboard = () => {
     const [buyer, setBuyer] = useState<Buyer | null>(null);
     const [loading, setLoading] = useState(false);
     const [dashboardLoading, setDashboardLoading] = useState(true);
+    const [rfqsLoading, setRfqsLoading] = useState(false);
     const [currentView, setCurrentView] = useState<ViewType>('overview');
     const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
     const [rfqs, setRfqs] = useState<RFQ[]>([]);
@@ -145,6 +144,13 @@ const EnhancedBuyerDashboard = () => {
 
         initializeDashboard();
     }, [user, isBuyer]);
+
+    // Fetch RFQs once buyer data is available
+    useEffect(() => {
+        if (buyer?.id) {
+            fetchRFQs(buyer.id);
+        }
+    }, [buyer?.id]);
 
     // Fetch buyer profile
     const fetchProfile = async () => {
@@ -229,13 +235,10 @@ const EnhancedBuyerDashboard = () => {
         try {
             setDashboardLoading(true);
 
-            await Promise.all([
-                fetchProfile(),
-                // fetchDashboardStats(),
-                fetchRFQs(),
-                // fetchOrders(),
-                // fetchSavedListings()
-            ]);
+            // First fetch the profile
+            await fetchProfile();
+            
+            // RFQs will be fetched automatically once buyer data is available via useEffect
         } catch (error) {
             console.error('Dashboard initialization error:', error);
             toast.error('Failed to load dashboard data');
@@ -245,140 +248,47 @@ const EnhancedBuyerDashboard = () => {
     };
 
     // Fetch Buyer rfqs 
-    const fetchRFQs = async () => {
-        const buyerId = buyer?.id;
+    const fetchRFQs = async (buyerId: string) => {
+        if (!buyerId) {
+            console.log('No buyer ID provided');
+            return;
+        }
+        
         try {
-            const token = localStorage.getItem('buyerToken');
-            if (!token) {
-                throw new Error('Authentication token not found');
-            }
-
+            setRfqsLoading(true);
             const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
             const response = await fetch(`${BASE_URL}/rfq/buyer/${buyerId}`, {
+                method: "GET",
+                credentials: "include",
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include', // Include cookies in the request
+                    "Content-Type": "application/json"
+                }
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to fetch RFQs');
+                throw new Error(errorData.error || "Failed to fetch RFQs");
             }
 
             const data = await response.json();
             setRfqs(data);
+            console.log('RFQs fetched successfully:', data);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred');
+            setError(err instanceof Error ? err.message : "An unknown error occurred");
+            console.error('Error fetching RFQs:', err);
         } finally {
-            setLoading(false);
+            setRfqsLoading(false);
         }
     };
 
-
-    // const fetchDashboardStats = async () => {
-    //     try {
-    //         const response = await fetch(`${API_BASE_URL}/dashboard-stats`, {
-    //             credentials: 'include'
-    //         });
-
-    //         if (response.ok) {
-    //             const data = await response.json();
-    //             setDashboardStats(data.stats);
-    //         } else {
-    //             // Mock data for development
-    //             setDashboardStats({
-    //                 totalRFQs: 15,
-    //                 pendingRFQs: 3,
-    //                 activeOrders: 5,
-    //                 completedOrders: 12,
-    //                 totalSpend: 28750,
-    //                 monthlySpend: 6250,
-    //                 favoriteCategories: ['Industrial Equipment', 'Raw Materials', 'Electronics'],
-    //                 recentActivity: 8
-    //             });
-    //         }
-    //     } catch (error) {
-    //         console.error('Error fetching dashboard stats:', error);
-    //     }
-    // };
-
-
-    // const fetchOrders = async () => {
-    //     try {
-    //         const response = await fetch(`${API_BASE_URL}/orders`, {
-    //             credentials: 'include'
-    //         });
-
-    //         if (response.ok) {
-    //             const data = await response.json();
-    //             setOrders(data.orders || []);
-    //         } else {
-    //             // Mock data for development
-    //             setOrders([
-    //                 {
-    //                     id: '1',
-    //                     productName: 'Industrial Pump Model X1',
-    //                     sellerName: 'Global Pumps Inc.',
-    //                     quantity: 5,
-    //                     price: 1250,
-    //                     status: 'shipped',
-    //                     orderDate: '2024-01-10T09:15:00Z',
-    //                     expectedDelivery: '2024-01-25',
-    //                     trackingNumber: 'TRK123456789'
-    //                 },
-    //                 {
-    //                     id: '2',
-    //                     productName: 'Steel Pipes 2 inch',
-    //                     sellerName: 'Metal Works Ltd.',
-    //                     quantity: 100,
-    //                     price: 82.5,
-    //                     status: 'processing',
-    //                     orderDate: '2024-01-12T14:30:00Z',
-    //                     expectedDelivery: '2024-01-28'
-    //                 }
-    //             ]);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error fetching orders:', error);
-    //     }
-    // };
-
-    // const fetchSavedListings = async () => {
-    //     try {
-    //         const response = await fetch(`${API_BASE_URL}/saved-listings`, {
-    //             credentials: 'include'
-    //         });
-
-    //         if (response.ok) {
-    //             const data = await response.json();
-    //             setSavedListings(data.listings || []);
-    //         } else {
-    //             // Mock data for development
-    //             setSavedListings([
-    //                 {
-    //                     id: '1',
-    //                     productName: 'Industrial Pump Model X2',
-    //                     price: 1350,
-    //                     sellerName: 'Global Pumps Inc.',
-    //                     rating: 4.7,
-    //                     savedDate: '2024-01-05'
-    //                 },
-    //                 {
-    //                     id: '2',
-    //                     productName: 'Stainless Steel Valves',
-    //                     price: 245,
-    //                     sellerName: 'Metal Works Ltd.',
-    //                     rating: 4.5,
-    //                     savedDate: '2024-01-08'
-    //                 }
-    //             ]);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error fetching saved listings:', error);
-    //     }
-    // };
+    // Handle navigation item clicks
+    const handleNavigation = (viewId: ViewType) => {
+        if (viewId === 'chat') {
+            router.push('/buyer/chat');
+        } else {
+            setCurrentView(viewId);
+        }
+    };
 
     const handleLogout = async () => {
         try {
@@ -452,7 +362,7 @@ const EnhancedBuyerDashboard = () => {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Card className="hover:shadow-md transition-shadow">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
@@ -460,10 +370,6 @@ const EnhancedBuyerDashboard = () => {
                                 <p className="text-sm font-medium text-gray-600">Active Orders</p>
                                 <p className="text-2xl font-bold text-gray-900">
                                     {dashboardStats?.activeOrders || 0}
-                                </p>
-                                <p className="text-xs text-blue-600 flex items-center mt-1">
-                                    <ArrowUpRight className="w-3 h-3 mr-1" />
-                                    +2 this month
                                 </p>
                             </div>
                             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -479,10 +385,14 @@ const EnhancedBuyerDashboard = () => {
                             <div>
                                 <p className="text-sm font-medium text-gray-600">Pending RFQs</p>
                                 <p className="text-2xl font-bold text-gray-900">
-                                    {dashboardStats?.pendingRFQs || 0}
+                                    {rfqsLoading ? (
+                                        <span className="animate-pulse">...</span>
+                                    ) : (
+                                        rfqs.filter((rfq) => rfq.status === "PENDING" ).length
+                                    )}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-1">
-                                    of {dashboardStats?.totalRFQs || 0} total
+                                    {rfqsLoading ? 'Loading...' : `of ${rfqs.length} total`}
                                 </p>
                             </div>
                             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -500,33 +410,9 @@ const EnhancedBuyerDashboard = () => {
                                 <p className="text-2xl font-bold text-gray-900">
                                     {formatCurrency(dashboardStats?.monthlySpend || 0)}
                                 </p>
-                                <p className="text-xs text-green-600 flex items-center mt-1">
-                                    <ArrowUpRight className="w-3 h-3 mr-1" />
-                                    +5.8% from last month
-                                </p>
                             </div>
                             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                                 <DollarSign className="w-6 h-6 text-green-600" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">Saved Items</p>
-                                <p className="text-2xl font-bold text-gray-900">
-                                    {savedListings.length || 0}
-                                </p>
-                                <p className="text-xs text-purple-600 flex items-center mt-1">
-                                    <Heart className="w-3 h-3 mr-1" />
-                                    {dashboardStats?.favoriteCategories?.[0] || 'No favorites'}
-                                </p>
-                            </div>
-                            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                                <Heart className="w-6 h-6 text-purple-600" />
                             </div>
                         </div>
                     </CardContent>
@@ -549,28 +435,35 @@ const EnhancedBuyerDashboard = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {orders.slice(0, 3).map((order) => (
-                                <div key={order.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50">
-                                    <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                                        <Package className="w-6 h-6 text-gray-400" />
+                            {orders.length > 0 ? (
+                                orders.slice(0, 3).map((order) => (
+                                    <div key={order.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50">
+                                        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                            <Package className="w-6 h-6 text-gray-400" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-medium text-sm">{order.productName}</p>
+                                            <p className="text-xs text-gray-500">{order.sellerName}</p>
+                                            <p className="text-xs text-gray-500">
+                                                Qty: {order.quantity} • {formatCurrency(order.price)}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <Badge className={getStatusColor(order.status)}>
+                                                {order.status}
+                                            </Badge>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                {formatDate(order.orderDate)}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="font-medium text-sm">{order.productName}</p>
-                                        <p className="text-xs text-gray-500">{order.sellerName}</p>
-                                        <p className="text-xs text-gray-500">
-                                            Qty: {order.quantity} • {formatCurrency(order.price)}
-                                        </p>
-                                    </div>
-                                    <div className="text-right">
-                                        <Badge className={getStatusColor(order.status)}>
-                                            {order.status}
-                                        </Badge>
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            {formatDate(order.orderDate)}
-                                        </p>
-                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">
+                                    <Package className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                                    <p>No orders yet</p>
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -589,25 +482,44 @@ const EnhancedBuyerDashboard = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {rfqs.slice(0, 3).map((rfq) => (
-                                <div key={rfq.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50">
-                                    <div className="flex-1">
-                                        <p className="font-medium text-sm">{rfq.productName}</p>
-                                        <p className="text-xs text-gray-500">{rfq.sellerName}</p>
-                                        <p className="text-xs text-gray-500">
-                                            Qty: {rfq.quantity} • Target: {formatCurrency(rfq.targetPrice)}
-                                        </p>
-                                    </div>
-                                    <div className="text-right">
-                                        <Badge className={getStatusColor(rfq.status)}>
-                                            {rfq.status}
-                                        </Badge>
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            {formatDate(rfq.createdAt)}
-                                        </p>
-                                    </div>
+                            {rfqsLoading ? (
+                                <div className="text-center py-8 text-gray-500">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                                    <p>Loading RFQs...</p>
                                 </div>
-                            ))}
+                            ) : rfqs.length > 0 ? (
+                                rfqs.slice(0, 3).map((rfq) => (
+                                    <div key={rfq.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-gray-50">
+                                        <div className="flex-1">
+                                            <p className="font-medium text-sm">{rfq.productName}</p>
+                                            <p className="text-xs text-gray-500">{rfq.sellerName}</p>
+                                            <p className="text-xs text-gray-500">
+                                                Qty: {rfq.quantity} • Target: {formatCurrency(rfq.targetPrice || 0)}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <Badge className={getStatusColor(rfq.status)}>
+                                                {rfq.status}
+                                            </Badge>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                {formatDate(rfq.createdAt)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">
+                                    <FileSearch className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                                    <p>No RFQs yet</p>
+                                    <Button 
+                                        className="mt-2" 
+                                        size="sm" 
+                                        onClick={() => router.push('/products')}
+                                    >
+                                        Create Your First RFQ
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -619,7 +531,7 @@ const EnhancedBuyerDashboard = () => {
                     <CardTitle className="text-lg font-medium">Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <Button
                             className="h-auto p-4 flex flex-col items-center space-y-2 bg-blue-600 hover:bg-blue-700"
                             onClick={() => router.push('/products')}
@@ -638,10 +550,18 @@ const EnhancedBuyerDashboard = () => {
                         <Button
                             variant="outline"
                             className="h-auto p-4 flex flex-col items-center space-y-2"
-                            onClick={() => setCurrentView('saved')}
+                            onClick={() => router.push('/buyer/chat')}
                         >
-                            <Heart className="w-6 h-6" />
-                            <span>View Saved Items</span>
+                            <MessageSquare className="w-6 h-6" />
+                            <span>Open Chat</span>
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="h-auto p-4 flex flex-col items-center space-y-2"
+                            onClick={() => setCurrentView('rfqs')}
+                        >
+                            <FileSearch className="w-6 h-6" />
+                            <span>View All RFQs</span>
                         </Button>
                     </div>
                 </CardContent>
@@ -657,8 +577,6 @@ const EnhancedBuyerDashboard = () => {
                 return <OverviewTab buyerId={buyer?.id} />
             case 'orders':
                 return <div className="p-4 text-center text-gray-500">All Orders history - Coming soon</div>;
-            case 'saved':
-                return <div className="p-4 text-center text-gray-500">Saved items - Coming soon</div>;
             case 'history':
                 return <div className="p-4 text-center text-gray-500">Purchase history - Coming soon</div>;
             case 'profile':
@@ -757,12 +675,12 @@ const EnhancedBuyerDashboard = () => {
                     <div className="space-y-2">
                         {NAVIGATION_ITEMS.map((item) => {
                             const Icon = item.icon;
-                            const isActive = currentView === item.id;
+                            const isActive = currentView === item.id && item.id !== 'chat';
 
                             return (
                                 <button
                                     key={item.id}
-                                    onClick={() => setCurrentView(item.id)}
+                                    onClick={() => handleNavigation(item.id)}
                                     className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${isActive
                                         ? 'bg-blue-100 text-blue-700 font-medium'
                                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
@@ -770,9 +688,9 @@ const EnhancedBuyerDashboard = () => {
                                 >
                                     <Icon className="w-5 h-5" />
                                     <span>{item.label}</span>
-                                    {item.id === 'rfqs' && rfqs.filter(r => r.status === 'pending').length > 0 && (
+                                    {item.id === 'rfqs' && !rfqsLoading && rfqs.filter(r => r.status === 'pending' || r.status === 'PENDING').length > 0 && (
                                         <Badge className="ml-auto bg-red-100 text-red-600 text-xs">
-                                            {rfqs.filter(r => r.status === 'pending').length}
+                                            {rfqs.filter(r => r.status === 'pending' || r.status === 'PENDING').length}
                                         </Badge>
                                     )}
                                 </button>

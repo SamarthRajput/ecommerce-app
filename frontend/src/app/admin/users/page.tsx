@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useUserManagement } from './useUserManagement';
 import {
     Card,
@@ -62,6 +62,38 @@ interface DeleteTarget {
     id: string;
     name: string;
 }
+
+const SearchInput = React.memo(({ 
+    type, 
+    searchTerm, 
+    setSearchTerm 
+}: { 
+    type: string; 
+    searchTerm: string; 
+    setSearchTerm: (term: string) => void 
+}) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [searchTerm]);
+
+    return (
+        <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+                ref={inputRef}
+                placeholder={`Search ${type}...`}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+            />
+        </div>
+    );
+});
+SearchInput.displayName = 'SearchInput';
 
 const UserManagementDashboard = () => {
     const {
@@ -350,15 +382,11 @@ const UserManagementDashboard = () => {
                     </div>
 
                     <div className="flex items-center gap-4 pt-4">
-                        <div className="relative flex-1 max-w-sm">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                            <Input
-                                placeholder={`Search ${type}...`}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10"
-                            />
-                        </div>
+                        <SearchInput 
+                            type={type} 
+                            searchTerm={searchTerm} 
+                            setSearchTerm={setSearchTerm} 
+                        />
 
                         {type === 'sellers' && (
                             <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -447,7 +475,47 @@ const UserManagementDashboard = () => {
         setDeleteTarget(null);
     }, []);
 
-    // Authentication checks
+    // Show loader during authentication loading
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="text-center space-y-4">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto" />
+                </div>
+            </div>
+        );
+    }
+
+    // Authentication checks after auth loading is complete
+    if (!authenticated) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center p-4">
+                <Card className="w-full max-w-md">
+                    <CardContent className="pt-6">
+                        <div className="text-center space-y-4">
+                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                                <AlertCircle className="w-8 h-8 text-red-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-semibold text-red-600">Access Denied</h2>
+                                <p className="text-sm text-muted-foreground mt-2">
+                                    You must be authenticated to view this page.
+                                </p>
+                            </div>
+                            <Button
+                                className="w-full"
+                                onClick={() => window.location.href = '/admin/signin'}
+                            >
+                                Go to Admin Sign In
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    // Permission checks after authentication is confirmed
     if (!isAdminAdmin && !isSuperAdmin) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -479,35 +547,8 @@ const UserManagementDashboard = () => {
         );
     }
 
-    if (!authLoading && !authenticated) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center p-4">
-                <Card className="w-full max-w-md">
-                    <CardContent className="pt-6">
-                        <div className="text-center space-y-4">
-                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                                <AlertCircle className="w-8 h-8 text-red-600" />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-semibold text-red-600">Access Denied</h2>
-                                <p className="text-sm text-muted-foreground mt-2">
-                                    You must be authenticated to view this page.
-                                </p>
-                            </div>
-                            <Button
-                                className="w-full"
-                                onClick={() => window.location.href = '/admin/signin'}
-                            >
-                                Go to Admin Sign In
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-
-    if (loading || authLoading) {
+    // Show loader during data loading (after authentication is complete)
+    if (loading) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
                 <div className="text-center space-y-4">
