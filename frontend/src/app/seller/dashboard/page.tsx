@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import useSellerDashboard from '@/src/hooks/useSellerDashboard';
+import useSellerDashboard from '@/hooks/useSellerDashboard';
 
 const EnhancedSellerDashboard = () => {
     const {

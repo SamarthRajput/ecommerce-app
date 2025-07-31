@@ -4,7 +4,7 @@ import { Controller, Control, FieldErrors, useWatch } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ProductFormData, CURRENCIES } from '@/src/lib/types/listing'
+import { ProductFormData, CURRENCIES } from '@/lib/types/listing'
 
 interface PricingQuantityStepProps {
     control: Control<ProductFormData>;

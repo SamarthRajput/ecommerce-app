@@ -3,17 +3,17 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { User, Package, BarChart3, MessageSquare, Settings, MessageCircle } from 'lucide-react';
 
-import { renderProfile } from '../components/Seller/Dashboard/ProfileDashboard';
-import RenderOverview from '../components/Seller/Dashboard/Overview';
-import RFQComponent from '../app/seller/dashboard/RFQ';
-import SettingsDashboard from '../components/Seller/Dashboard/SettingsDashboard';
+import { renderProfile } from '../src/components/Seller/Dashboard/ProfileDashboard';
+import RenderOverview from '../src/components/Seller/Dashboard/Overview';
+import RFQComponent from '../src/app/seller/dashboard/RFQ';
+import SettingsDashboard from '../src/components/Seller/Dashboard/SettingsDashboard';
 import { useAuth } from '@/src/context/AuthContext';
 
-import { Seller, Listing, DashboardStats, RFQ } from '@/src/lib/types/seller/sellerDashboard';
-import ListingDashboard from '../components/Seller/Dashboard/ManageListing';
-import ChatDashboard from '../components/Seller/Dashboard/ChatDashboard';
-import Certifications from '../components/Seller/Dashboard/Certifications';
-import SellerCertifications from '../components/SellerCertifications';
+import { Seller, Listing, DashboardStats, RFQ } from '@/lib/types/seller/sellerDashboard';
+import ListingDashboard from '../src/components/Seller/Dashboard/ManageListing';
+import ChatDashboard from '../src/components/Seller/Dashboard/ChatDashboard';
+import Certifications from '../src/components/Seller/Dashboard/Certifications';
+import SellerCertifications from '../src/components/SellerCertifications';
 
 // Constants
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
@@ -251,9 +251,9 @@ const useSellerDashboard = () => {
                 });
 
             case 'certifications':
-                {/* Seller Certificates */}
+                {/* Seller Certificates */ }
                 const sellerId = seller?.id;
-                if(sellerId){
+                if (sellerId) {
                     return <SellerCertifications sellerId={sellerId} />;
                 }
             case 'chats':

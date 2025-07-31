@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import { ProductFormData } from '@/src/lib/types/listing'
+import { ProductFormData } from '@/lib/types/listing'
 
 interface ReviewSubmitStepProps {
     control: Control<ProductFormData>;

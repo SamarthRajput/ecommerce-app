@@ -1,5 +1,5 @@
 "use client";
-import { useChat } from '@/src/hooks/useChat';
+import { useChat } from '@/hooks/useChat';
 import React, { useState } from 'react';
 import { useAdminChat } from './useAdminChat';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -46,7 +46,7 @@ const AdminChat = () => {
         // Actions
         createChatRoom,
         refreshData,
-        
+
         // Computed values
         filteredRfqs,
 

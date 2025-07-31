@@ -8,7 +8,7 @@ import { requireAdmin } from "../middlewares/authAdmin";
 import { prisma } from "../lib/prisma";
 import { requireAuth } from "../middlewares/requireAuth";
 import asyncHandler from "../utils/asyncHandler";
-import { getAllListings } from "../controllers/listing.controller";
+import { getAllListings, getStatsForAdminListing } from "../controllers/listing.controller";
 
 // Base url: http://localhost:3001/api/v1/listing
 
@@ -20,6 +20,7 @@ listingRouter.use(requireAdmin);
 
 // GET /api/v1/listing/pending - Get all pending listings
 listingRouter.get('/all', requireAuth({ allowedRoles: ['admin'], allowedAdminRoles: ["SUPER_ADMIN", "ADMIN"] }), asyncHandler(getAllListings));
+listingRouter.get('/stats', requireAuth({ allowedRoles: ['admin'], allowedAdminRoles: ["SUPER_ADMIN", "ADMIN"] }), asyncHandler(getStatsForAdminListing));
 
 
 // POST /api/v1/listing/approve/:id - Approve a listing
@@ -104,12 +105,12 @@ listingRouter.post('/reject/:id', async (req: Request, res: Response) => {
             return;
         }
 
-        // get message from request body
-        const { message } = req.body;
-        if (!message) {
+        // get reason from request body
+        const { reason } = req.body;
+        if (!reason || reason.trim() === "") {
             res.status(400).json({
                 success: false,
-                error: 'Message is required to reject a listing'
+                error: 'Reason is required to reject a listing'
             });
             return;
         }
@@ -126,7 +127,7 @@ listingRouter.post('/reject/:id', async (req: Request, res: Response) => {
             where: { id },
             data: {
                 status: ProductStatus.REJECTED,
-                // rejectionMessage: message // Store rejection message
+                rejectionReason: reason
             }
         });
 

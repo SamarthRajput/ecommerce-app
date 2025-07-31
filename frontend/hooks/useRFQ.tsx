@@ -1,6 +1,6 @@
 // src/app/admin/rfqs/useRFQ.tsx
 import { useAuth } from '@/src/context/AuthContext';
-import { RFQ, RFQStats } from '@/src/lib/types/rfq';
+import { RFQ, RFQStats } from '@/lib/types/rfq';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react'
 import { useCallback } from 'react';

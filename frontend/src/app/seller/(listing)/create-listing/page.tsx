@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { ProductFormData } from '@/src/lib/types/listing';
+import { ProductFormData } from '@/lib/types/listing';
 import ProductForm from '@/src/components/CreateListingForm/ProductForm';
 import { toast } from "sonner"
 
@@ -69,6 +69,6 @@ export default function CreateListingPage() {
             mode="create"
             onSubmit={handleSubmit}
             onCancel={handleCancel}
-        />  
+        />
     );
 }

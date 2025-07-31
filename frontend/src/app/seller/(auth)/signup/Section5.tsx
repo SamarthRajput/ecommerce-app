@@ -1,6 +1,6 @@
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
-import { Section5Props } from '@/src/lib/types/seller/signup';
+import { Section5Props } from '@/lib/types/seller/signup';
 
 const Section5 = ({ formData, errors, handleInputChange, businessTypeOptions }: Section5Props) => (
     <div className="space-y-6">

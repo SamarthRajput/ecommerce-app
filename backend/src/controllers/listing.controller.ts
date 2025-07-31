@@ -38,7 +38,7 @@ export const getAllListings = async (req: Request, res: Response) => {
                     select: { rfqs: true }
                 }
             },
-            orderBy: { id: 'desc' },
+            orderBy: { createdAt: 'desc' }, // 
             take,
             skip
         });
@@ -63,5 +63,31 @@ export const getAllListings = async (req: Request, res: Response) => {
             error: 'Failed to fetch pending listings'
         });
         return;
+    }
+}
+
+// Get stats for admin listing
+export const getStatsForAdminListing = async (req: Request, res: Response) => {
+    try {
+        const pendingCount = await prisma.product.count({ where: { status: 'PENDING' } });
+        const activeCount = await prisma.product.count({ where: { status: 'APPROVED' } });
+        const rejectedCount = await prisma.product.count({ where: { status: 'REJECTED' } });
+        const totalCount = pendingCount + activeCount + rejectedCount;
+
+        res.status(200).json({
+            success: true,
+            data: {
+                pending: pendingCount,
+                active: activeCount,
+                rejected: rejectedCount,
+                total: totalCount
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching stats for admin listing:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to fetch stats for admin listing'
+        });
     }
 }

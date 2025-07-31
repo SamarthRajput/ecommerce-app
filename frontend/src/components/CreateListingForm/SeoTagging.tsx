@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
-import { ProductFormData } from '@/src/lib/types/listing'
+import { ProductFormData } from '@/lib/types/listing'
 
 interface SeoTaggingStepProps {
     control: Control<ProductFormData>;

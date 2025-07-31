@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Import the separated components and hooks
-import { useListingData, useListingFilters } from '@/src/hooks/useSDListing';
+import { useListingData, useListingFilters } from '@/hooks/useSDListing';
 import {
     ListingStatsCards,
     ListingFiltersSection,
@@ -15,7 +15,7 @@ import {
     ListingLoadingState,
     ListingErrorAlert
 } from './ListingComponent';
-import { Listing } from '@/src/lib/types/seller/sellerDashboardListing';
+import { Listing } from '@/lib/types/seller/sellerDashboardListing';
 import { ListingDetailModal } from '@/src/components/Seller/Dashboard/ListingDetailModel';
 
 const ListingDashboard: React.FC = () => {

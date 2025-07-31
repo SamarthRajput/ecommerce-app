@@ -5,7 +5,7 @@ import { Controller, Control, FieldErrors } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ProductFormData } from '@/src/lib/types/listing'
+import { ProductFormData } from '@/lib/types/listing'
 
 interface ProductDetailsStepProps {
     control: Control<ProductFormData>;

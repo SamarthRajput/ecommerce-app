@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Seller, ProfileFormData } from '@/src/lib/types/profile';
+import { Seller, ProfileFormData } from '@/lib/types/profile';
 
 // Profile Info Item Component
 interface ProfileInfoItemProps {

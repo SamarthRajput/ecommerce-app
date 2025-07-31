@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Package, DollarSign, Truck, FileText, Image as ImageIcon, Tag, Check, ChevronRight, ChevronLeft, Save, Send, AlertCircle, Edit } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui/alert-dialog"
-import { ProductFormData, ProductFormProps, productSchema, createProductSchema, FORM_STEPS } from '@/src/lib/types/listing'
+import { ProductFormData, ProductFormProps, productSchema, createProductSchema, FORM_STEPS } from '@/lib/types/listing'
 import { ProductBasicsStep, PricingQuantityStep, LogisticsValidityStep, ProductDetailsStep, MediaAttachmentsStep, SeoTaggingStep, ReviewSubmitStep } from './index'
 import { useRouter } from 'next/navigation';
 

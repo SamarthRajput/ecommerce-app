@@ -1,6 +1,6 @@
 import React from 'react'
 import { Building, MapPin } from 'lucide-react';
-import { Section2Props } from '@/src/lib/types/seller/signup';
+import { Section2Props } from '@/lib/types/seller/signup';
 
 const Section2 = ({ formData, errors, handleInputChange, businessTypeOptions, industryOptions, yearsInBusinessOptions }: Section2Props) => (
     <div className="space-y-6">

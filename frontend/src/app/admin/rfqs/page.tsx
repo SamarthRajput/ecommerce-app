@@ -57,9 +57,9 @@ import {
   Users,
   TrendingUp
 } from 'lucide-react';
-import { formatPrice } from '@/src/lib/listing-formatter';
-import { RFQ } from '@/src/lib/types/rfq';
-import useRFQ from '../../../hooks/useRFQ';
+import { formatPrice } from '@/lib/listing-formatter';
+import { RFQ } from '@/lib/types/rfq';
+import useRFQ from '../../../../hooks/useRFQ';
 
 const RFQManagementDashboard = () => {
   const {

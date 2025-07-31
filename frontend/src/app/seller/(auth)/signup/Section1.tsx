@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Section1Props } from '@/src/lib/types/seller/signup';
+import { Section1Props } from '@/lib/types/seller/signup';
 
 // Email validation
 const validateEmail = (email: string): boolean => {

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Listing, STATUS_CONFIG } from '@/src/lib/types/seller/sellerDashboardListing';
+import { Listing, STATUS_CONFIG } from '@/lib/types/seller/sellerDashboardListing';
 import { useRouter } from 'next/navigation';
 
 interface ListingDetailModalProps {
@@ -162,7 +162,7 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
                                             <Package className="w-4 h-4 mr-2" />
                                             View on Marketplace
                                         </Button>
-                                        <Button onClick={() => 
+                                        <Button onClick={() =>
                                             router.push(`/seller/edit-listing/${form.id}`)
                                         }>
                                             <Edit className="w-4 h-4 mr-2" />

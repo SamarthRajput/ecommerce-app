@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { FileText, Upload, CheckCircle, X, Loader2 } from 'lucide-react';
-import { Section3Props } from '@/src/lib/types/seller/signup';
+import { Section3Props } from '@/lib/types/seller/signup';
 
 const Section3 = ({ formData, errors, handleInputChange, handleFileUpload }: Section3Props) => {
-    const [uploadingFiles, setUploadingFiles] = useState<{[key: string]: boolean}>({});
+    const [uploadingFiles, setUploadingFiles] = useState<{ [key: string]: boolean }>({});
 
     const handleFileUploadWithLoader = async (field: string, file: File | null) => {
         if (!file) return;
-        
+
         // Set loading state
         setUploadingFiles(prev => ({ ...prev, [field]: true }));
-        
+
         try {
             // Call the original handleFileUpload function
             await handleFileUpload(field, file);

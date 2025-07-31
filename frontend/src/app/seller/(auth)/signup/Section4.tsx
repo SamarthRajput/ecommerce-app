@@ -1,6 +1,6 @@
 import React from 'react'
 import { User } from 'lucide-react';
-import { Section4Props } from '@/src/lib/types/seller/signup';
+import { Section4Props } from '@/lib/types/seller/signup';
 
 const Section4 = ({ formData, errors, handleInputChange, industryOptions, yearsInBusinessOptions }: Section4Props) => (
     <div className="space-y-6">

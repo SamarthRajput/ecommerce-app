@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ChatView from "@/src/components/Chat/ChatView";
-import { useChat } from "@/src/hooks/useChat";
+import { useChat } from "@/hooks/useChat";
 
 const ChatDashboard: React.FC = () => {
   const [showSidebar, setShowSidebar] = useState(false);

@@ -6,7 +6,7 @@ import { Controller, Control, FieldErrors, UseFormSetValue, UseFormWatch } from 
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ProductFormData, CATEGORIES, INDUSTRIES } from '../../lib/types/listing'
+import { ProductFormData, CATEGORIES, INDUSTRIES } from '../../../lib/types/listing'
 
 interface ProductBasicsStepProps {
     control: Control<ProductFormData>;

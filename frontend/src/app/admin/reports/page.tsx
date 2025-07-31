@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { SummaryData } from '@/src/lib/types/summary';
+import { SummaryData } from '@/lib/types/summary';
 import BarChart from '@/src/components/BarChart';
 import { FileDown, FileText, SlidersHorizontal, X, Download, Calendar, Filter } from 'lucide-react';
 
@@ -136,7 +136,7 @@ export default function ReportsPage() {
     `;
 
     const printWindow = window.open('', '_blank');
-    if(printWindow){
+    if (printWindow) {
       printWindow.document.open();
       printWindow.document.write(printContent);
       printWindow.document.close();
@@ -148,10 +148,10 @@ export default function ReportsPage() {
     if (!summaryData) return;
 
     const { dateRange, reportType, format } = customReportConfig;
-    
+
     // Filter data based on report type
     let filteredData = [];
-    
+
     if (reportType === 'all' || reportType === 'rfqs') {
       filteredData.push(
         ['Pending RFQs', summaryData.pendingRFQsCount || 0],
@@ -160,14 +160,14 @@ export default function ReportsPage() {
         ['Forwarded RFQs', summaryData.forwardedRFQsCount || 0]
       );
     }
-    
+
     if (reportType === 'all' || reportType === 'trades') {
       filteredData.push(
         ['Completed Trades', summaryData.completedTradesCount || 0],
         ['In Progress Trades', summaryData.inprogressTradesCount || 0]
       );
     }
-    
+
     if (reportType === 'all' || reportType === 'listings') {
       filteredData.push(
         ['Active Listings', summaryData.activeListingCount || 0],
@@ -261,7 +261,7 @@ export default function ReportsPage() {
       `;
 
       const printWindow = window.open('', '_blank');
-      if(printWindow){
+      if (printWindow) {
         printWindow.document.open();
         printWindow.document.write(printContent);
         printWindow.document.close();
@@ -368,16 +368,16 @@ export default function ReportsPage() {
         <section className="bg-white rounded-2xl shadow p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">Export Reports</h2>
           <div className="flex flex-wrap gap-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-green-500 text-green-600 hover:bg-green-50"
               onClick={downloadPDF}
             >
               <FileText className="w-4 h-4 mr-2" />
               Download as PDF
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="border-purple-500 text-purple-600 hover:bg-purple-50"
               onClick={() => setShowCustomReportModal(true)}
             >
@@ -412,7 +412,7 @@ export default function ReportsPage() {
                 </label>
                 <select
                   value={customReportConfig.dateRange}
-                  onChange={(e) => setCustomReportConfig({...customReportConfig, dateRange: e.target.value})}
+                  onChange={(e) => setCustomReportConfig({ ...customReportConfig, dateRange: e.target.value })}
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="last7days">Last 7 Days</option>
@@ -429,7 +429,7 @@ export default function ReportsPage() {
                 </label>
                 <select
                   value={customReportConfig.reportType}
-                  onChange={(e) => setCustomReportConfig({...customReportConfig, reportType: e.target.value})}
+                  onChange={(e) => setCustomReportConfig({ ...customReportConfig, reportType: e.target.value })}
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="all">All Data</option>
@@ -446,7 +446,7 @@ export default function ReportsPage() {
                 </label>
                 <select
                   value={customReportConfig.format}
-                  onChange={(e) => setCustomReportConfig({...customReportConfig, format: e.target.value})}
+                  onChange={(e) => setCustomReportConfig({ ...customReportConfig, format: e.target.value })}
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="pdf">PDF</option>

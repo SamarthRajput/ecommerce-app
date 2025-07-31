@@ -4,7 +4,7 @@ import { Controller, Control, FieldErrors } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ProductFormData, COUNTRIES } from '@/src/lib/types/listing'
+import { ProductFormData, COUNTRIES } from '@/lib/types/listing'
 
 interface LogisticsValidityStepProps {
     control: Control<ProductFormData>;

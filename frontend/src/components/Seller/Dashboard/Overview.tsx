@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 import {
     Card,
     CardContent,
@@ -29,7 +29,7 @@ import {
     XCircle,
     Calendar,
 } from 'lucide-react';
-import { formatDate, formatPrice } from '@/src/lib/listing-formatter';
+import { formatDate, formatPrice } from '@/lib/listing-formatter';
 
 // Types
 interface Seller {

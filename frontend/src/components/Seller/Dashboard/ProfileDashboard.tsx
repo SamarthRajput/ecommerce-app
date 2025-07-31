@@ -14,7 +14,7 @@ import {
     AccountInfoSection
 } from './ProfileComponent';
 import { ProfileEditForm } from './ProfileEditForm';
-import { ProfileProps } from '@/src/lib/types/profile';
+import { ProfileProps } from '@/lib/types/profile';
 
 const ProfileDashboard: React.FC<ProfileProps> = ({
     seller,

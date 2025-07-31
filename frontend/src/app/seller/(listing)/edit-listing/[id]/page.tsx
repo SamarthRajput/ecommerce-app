@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useParams } from 'next/navigation';
-import { ProductFormData } from '@/src/lib/types/listing';
+import { ProductFormData } from '@/lib/types/listing';
 import ProductForm from '@/src/components/CreateListingForm/ProductForm';
 import { useAuth } from '@/src/context/AuthContext';
 import RequestCertificationButton from '@/src/components/RequestCertificationButton';

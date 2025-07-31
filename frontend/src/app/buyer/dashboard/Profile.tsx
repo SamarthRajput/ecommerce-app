@@ -1,6 +1,6 @@
 import React from 'react';
 import { Edit3, User, Phone, MapPin } from 'lucide-react';
-import { BuyerDetails } from '@/src/lib/types/buyer/buyer';
+import { BuyerDetails } from '@/lib/types/buyer/buyer';
 
 const renderProfile = ({ buyer, isEditing, setIsEditing, profileForm, setProfileForm, handleUpdateProfile, loading, error }: {
     buyer: BuyerDetails | null;
@@ -27,11 +27,10 @@ const renderProfile = ({ buyer, isEditing, setIsEditing, profileForm, setProfile
         </div>
 
         {error && (
-            <div className={`mx-6 mt-4 px-4 py-3 rounded-lg ${
-                error.includes('successfully')
+            <div className={`mx-6 mt-4 px-4 py-3 rounded-lg ${error.includes('successfully')
                     ? 'bg-green-50 border border-green-200 text-green-700'
                     : 'bg-red-50 border border-red-200 text-red-700'
-            }`}>
+                }`}>
                 {error}
             </div>
         )}

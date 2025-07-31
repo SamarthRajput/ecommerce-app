@@ -4,7 +4,7 @@ import { Controller, Control, FieldErrors } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Upload, X, Loader2 } from 'lucide-react';
-import { ProductFormData } from '@/src/lib/types/listing'
+import { ProductFormData } from '@/lib/types/listing'
 
 interface MediaAttachmentsStepProps {
     control: Control<ProductFormData>;
@@ -27,9 +27,9 @@ export default function MediaAttachmentsStep({
 
     const handleFileUploadWithLoader = async (files: FileList | null) => {
         if (!files || files.length === 0) return;
-        
+
         setIsUploading(true);
-        
+
         try {
             await onFileUpload(files);
         } catch (error) {
@@ -47,7 +47,7 @@ export default function MediaAttachmentsStep({
                     <input
                         type="file"
                         multiple
-                        name="files" 
+                        name="files"
                         accept="image/*"
                         onChange={(e) => handleFileUploadWithLoader(e.target.files)}
                         className="hidden"
@@ -56,9 +56,8 @@ export default function MediaAttachmentsStep({
                     />
                     <label
                         htmlFor="image-upload"
-                        className={`cursor-pointer flex flex-col items-center space-y-2 ${
-                            isUploading ? 'pointer-events-none' : ''
-                        }`}
+                        className={`cursor-pointer flex flex-col items-center space-y-2 ${isUploading ? 'pointer-events-none' : ''
+                            }`}
                     >
                         {isUploading ? (
                             <>
