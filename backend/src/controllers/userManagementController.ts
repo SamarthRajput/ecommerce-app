@@ -201,9 +201,44 @@ export const deleteBuyer = async (req: Request, res: Response) => {
             });
         }
 
-        await prisma.buyer.delete({
-            where: { id }
-        });
+        await prisma.$transaction([
+            prisma.messageReaction.deleteMany({
+                where: {
+                    message: {
+                        chatRoom: {
+                            rfq: {
+                                buyerId: id,
+                            },
+                        },
+                    },
+                },
+            }),
+
+            // 2. Delete chat messages related to buyer's RFQ chatRooms
+            prisma.chatMessage.deleteMany({
+                where: {
+                    chatRoom: {
+                        rfq: {
+                            buyerId: id,
+                        },
+                    },
+                },
+            }),
+            
+            prisma.chatRoom.deleteMany({
+                where: {
+                    rfq: {
+                        buyerId: id,
+                    },
+                },
+            }),
+            prisma.rFQ.deleteMany({
+                where: { buyerId: id },
+            }),
+            prisma.buyer.delete({
+                where: { id },
+            }),
+        ]);
 
         res.status(200).json({
             success: true,
