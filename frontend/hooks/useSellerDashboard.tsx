@@ -13,7 +13,6 @@ import { Seller, Listing, DashboardStats, RFQ } from '@/lib/types/seller/sellerD
 import ListingDashboard from '../src/components/Seller/Dashboard/ManageListing';
 import ChatDashboard from '../src/components/Seller/Dashboard/ChatDashboard';
 import Certifications from '../src/components/Seller/Dashboard/Certifications';
-import SellerCertifications from '../src/components/SellerCertifications';
 
 // Constants
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
@@ -254,7 +253,7 @@ const useSellerDashboard = () => {
                 {/* Seller Certificates */ }
                 const sellerId = seller?.id;
                 if (sellerId) {
-                    return <SellerCertifications sellerId={sellerId} />;
+                    return <Certifications sellerId={sellerId} />;
                 }
             case 'chats':
                 return <ChatDashboard />;

@@ -25,7 +25,6 @@ export function Header() {
     if (isBuyer) {
       return [
         { href: "/buyer/dashboard", label: "Dashboard", icon: BarChart3 },
-        { href: "/buyer/orders", label: "My Orders", icon: Package },
         { href: "/buyer/requests", label: "My Requests", icon: FileText },
         { href: "/buyer/chat", label: "Messages", icon: MessageSquare },
       ];
@@ -46,14 +45,6 @@ export function Header() {
 
   const navigationItems = getNavigationItems();
 
-  // // Public navigation - always visible
-  // const publicNavigation = [
-  //   { href: "/#features", label: "Features" },
-  //   { href: "/#how-it-works", label: "How It Works" },
-  //   { href: "/about", label: "About" },
-  //   { href: "/contact", label: "Contact" },
-  // ];
-
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 py-4">
@@ -68,19 +59,6 @@ export function Header() {
             </div>
           </div>
 
-          {/* Desktop Navigation - Always show public navigation */}
-          {/* <nav className="hidden lg:flex items-center space-x-6">
-            {publicNavigation.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="text-gray-600 hover:text-orange-600 transition-colors text-sm font-medium"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav> */}
-
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2 sm:space-x-3">
             {authenticated ? (
@@ -90,16 +68,6 @@ export function Header() {
                   <Bell className="h-5 w-5" />
                   <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
                 </Button>
-
-                {/* Shopping Cart (Buyer only) */}
-                {isBuyer && (
-                  <Button variant="ghost" size="icon" className="relative hidden sm:flex">
-                    <ShoppingCart className="h-5 w-5" />
-                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      0
-                    </span>
-                  </Button>
-                )}
 
                 {/* User Menu */}
                 <DropdownMenu>
@@ -207,24 +175,6 @@ export function Header() {
             </Button>
           </div>
         </div>
-
-        {/* Mobile Navigation Menu - Always show public navigation */}
-        {/* {mobileMenuOpen && (
-          <div className="lg:hidden mt-4 pb-4 border-t border-gray-200">
-            <nav className="flex flex-col space-y-2 pt-4">
-              {publicNavigation.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="text-gray-600 hover:text-orange-600 transition-colors py-2 px-3 rounded-md hover:bg-gray-50"
-                  onClick={closeMobileMenu}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-        )} */}
       </div>
     </header>
   );

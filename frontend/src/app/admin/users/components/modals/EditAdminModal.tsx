@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
-import { UpdateAdminData } from '../../useUserManagement';
+import { UpdateAdminData } from '@/src/lib/types/admin/userManagementInterface';
 
 interface EditAdminModalProps {
     user: any;

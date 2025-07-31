@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
-import { ApprovalData } from '../../useUserManagement';
+import { ApprovalData } from '@/src/lib/types/admin/userManagementInterface';
 
 interface ApprovalModalProps {
     user: any;
