@@ -73,7 +73,7 @@ export const RFQDetailModal = ({ rfq, rfqState }: RFQDetailModalProps) => {
         }
     }
 
-    const parsedMessage = parseBuyerMessage(rfq.message)
+    const parsedMessage = parseBuyerMessage(rfq.message?.additionalNotes)
 
     return (
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
@@ -278,7 +278,7 @@ export const RFQDetailModal = ({ rfq, rfqState }: RFQDetailModalProps) => {
                                                 )}
                                             </div>
                                         ) : (
-                                            <p className="text-sm leading-relaxed break-words">{rfq.message}</p>
+                                            <p className="text-sm leading-relaxed break-words">{rfq.message?.additionalNotes}</p>
                                         )}
                                     </div>
                                 </div>
