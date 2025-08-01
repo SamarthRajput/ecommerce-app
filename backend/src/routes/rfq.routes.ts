@@ -1,6 +1,6 @@
 import express from 'express';
 import { requireBuyer } from '../middlewares/authBuyer';
-import { createRFQ, forwardRFQ, getForwardedRFQs, getPendingRFQs, getRFQsByBuyer, getRFQStats, getSellerForwardedRFQs, rejectRFQ } from '../controllers/rfq.controller';
+import { createRFQ, forwardRFQ, getAllRFQs, getForwardedRFQs, getRFQsByBuyer, getRFQStats, getSellerForwardedRFQs, rejectRFQ } from '../controllers/rfq.controller';
 import { requireAdmin } from '../middlewares/authAdmin';
 import { requireAuth } from '../middlewares/requireAuth';
 
@@ -13,7 +13,7 @@ rfqRouter.post('/create', requireAuth({ allowedRoles: ["buyer"] }), createRFQ);
 rfqRouter.get('/buyer/:buyerId', requireBuyer, getRFQsByBuyer);
 
 // * Admin Routes
-rfqRouter.get('/pending', requireAdmin, getPendingRFQs);
+rfqRouter.get('/all', requireAdmin, getAllRFQs);
 rfqRouter.get('/forwarded', requireAdmin, getForwardedRFQs);
 rfqRouter.post('/forward/:id', requireAdmin, forwardRFQ);
 rfqRouter.post('/reject/:id', requireAdmin, rejectRFQ);

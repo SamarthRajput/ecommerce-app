@@ -49,7 +49,12 @@ export const createRFQ = async (req: Request, res: Response) => {
         productId,
         buyerId,
         quantity,
-        message,
+        budget: message?.budget || 0,
+        currency: message?.currency || 'USD',
+        deliveryDate: message?.deliveryDate ? new Date(message.deliveryDate) : undefined,
+        paymentTerms: message?.paymentTerms || '',
+        specialRequirements: message?.specialRequirements || '',
+        additionalNotes: message?.additionalNotes || '',
         status: 'PENDING',
       }
     });
@@ -161,14 +166,14 @@ interface RFQStats {
   pending: number;
   approved: number;
   rejected: number;
+  forwarded: number;
   total: number;
 }
 
 // GET /rfq/pending - Get all pending RFQs
-export const getPendingRFQs = async (req: Request, res: Response) => {
+export const getAllRFQs = async (req: Request, res: Response) => {
   try {
-    const pendingRFQs = await prisma.rFQ.findMany({
-      where: { status: "PENDING" },
+    const allRFQs = await prisma.rFQ.findMany({
       include: {
         product: true,
         buyer: true
@@ -177,20 +182,15 @@ export const getPendingRFQs = async (req: Request, res: Response) => {
         createdAt: 'desc'
       }
     });
-
-    const count = await prisma.rFQ.count({
-      where: { status: "PENDING" }
-    });
-    console.log("Pending RFQs count:", count);
-    // console.log("Pending RFQs data:", pendingRFQs);
-
+console.log("\n\n\n\nAll RFQs:", allRFQs);
+    const count = await prisma.rFQ.count();
+    console.log("All RFQs count:", count);
     res.status(200).json({
       success: true,
-      data: pendingRFQs,
-      count
+      data: allRFQs,
     });
   } catch (error) {
-    console.error("Error fetching pending RFQs:", error);
+    console.error("Error fetching all RFQs:", error);
     res.status(500).json({
       success: false,
       error: "Internal Server Error"
@@ -424,17 +424,21 @@ export const rejectRFQ = async (req: Request, res: Response) => {
 // GET /rfq/stats - Get RFQ statistics
 export const getRFQStats = async (req: Request, res: Response) => {
   try {
-    const [pending, approved, rejected] = await Promise.all([
+    const [pending, approved, rejected, forwarded, total] = await Promise.all([
       prisma.rFQ.count({ where: { status: "PENDING" } }),
       prisma.rFQ.count({ where: { status: "APPROVED" } }),
-      prisma.rFQ.count({ where: { status: "REJECTED" } })
+      prisma.rFQ.count({ where: { status: "REJECTED" } }),
+      prisma.rFQ.count({ where: { status: "FORWARDED" } }),
+      prisma.rFQ.count({}),
     ]);
-
+    // const allRFQs = await prisma.rFQ.findMany();
+    // console.log("\n\n\n\nAll RFQs:", allRFQs);
     const stats: RFQStats = {
       pending,
       approved,
       rejected,
-      total: pending + approved + rejected
+      forwarded,
+      total,
     };
 
     res.status(200).json({

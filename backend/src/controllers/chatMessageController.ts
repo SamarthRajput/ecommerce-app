@@ -12,7 +12,6 @@ import generateChatTitle from "../utils/generateChatTitle";
 // Create a new chat room between admin and seller
 export const createChatRoomBetweenAdminAndSeller = async (req: AuthenticatedRequest, res: Response) => {
     const { rfqId } = req.body;
-    const adminId = DEFAULT_ADMIN_ID;
     if (!rfqId) {
         res.status(400).json({ error: "RFQ ID is required" });
         return;
@@ -56,6 +55,19 @@ export const createChatRoomBetweenAdminAndSeller = async (req: AuthenticatedRequ
 
         if (existingChatRoom) {
             res.status(200).json({ message: "Chat room already exists", chatRoom: existingChatRoom });
+            return;
+        }
+        // Get adminId from logged in admin as only admin can create chat rooms
+        const adminId = req.user?.userId;
+        if (!adminId) {
+            res.status(401).json({ error: "Admin not authenticated" });
+            return;
+        }
+        const admin = await prisma.admin.findUnique({
+            where: { id: adminId }
+        });
+        if (!admin) {
+            res.status(404).json({ error: "Admin not found" });
             return;
         }
 
@@ -754,7 +766,7 @@ export const uploadMediaToChatRoom = async (req: AuthenticatedRequest, res: Resp
                 chatRoomId: roomId,
                 senderId: senderId,
                 senderRole: userRole.toUpperCase() as any,
-                content: content || "",
+                content: "",
                 attachmentType: resourceType,
                 attachmentUrl: uploadedUrl,
             },

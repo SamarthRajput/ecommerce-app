@@ -113,6 +113,7 @@ export const useChat = () => {
                 } else {
                     setChatRooms(data.chatRooms || []);
                 }
+                toast.success("Chat rooms fetched successfully");
             } else {
                 setError(data.error || "Failed to fetch chat rooms");
             }
@@ -142,6 +143,15 @@ export const useChat = () => {
 
             const data: ChatMessagesResponse = await response.json();
             setMessages(data.messages || []);
+            setError(null);
+            setSelectedRoom((prev) => {
+                if (prev?.id === chatRoomId) {
+                    return { ...prev, updatedAt: new Date() }; // Update timestamp if same room
+                }
+                return prev;
+            });
+            setLoadingRooms(false);
+            toast.success("Chat messages fetched successfully");
 
             // Mark admin messages as read when viewing
             await markMessagesAsRead(chatRoomId);
@@ -197,8 +207,10 @@ export const useChat = () => {
             setNewMessage("");
             setError(null);
 
+            toast.success("Message sent successfully");
             await fetchChatMessages(selectedRoom.id);
         } catch (err) {
+            toast.error((err as Error).message || "An error occurred while sending the message");
             setError((err as Error).message);
         } finally {
             setSending(false);
@@ -243,9 +255,12 @@ export const useChat = () => {
                 const errorData = await response.json();
                 throw new Error(errorData.error || "Failed to send file");
             }
+            setError(null);
+            toast.success("File uploaded successfully");
 
             await fetchChatMessages(selectedRoom.id);
         } catch (err) {
+            toast.error((err as Error).message);    
             setError((err as Error).message);
         } finally {
             setSending(false);
