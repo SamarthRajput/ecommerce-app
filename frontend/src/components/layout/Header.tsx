@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "next/navigation";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
-import { Search, ShoppingCart, User, Bell, Menu, X, LogOut, Settings, Package, MessageSquare, FileText, Plus, BarChart3 } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, LogOut, Settings, Package, MessageSquare, FileText, Plus, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/src/context/AuthContext";
 import { useState } from "react";
@@ -64,10 +64,10 @@ export function Header() {
             {authenticated ? (
               <>
                 {/* Notifications */}
-                <Button variant="ghost" size="icon" className="relative hidden sm:flex">
+                {/* <Button variant="ghost" size="icon" className="relative hidden sm:flex">
                   <Bell className="h-5 w-5" />
                   <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-                </Button>
+                </Button> */}
 
                 {/* User Menu */}
                 <DropdownMenu>
