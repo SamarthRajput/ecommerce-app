@@ -1,18 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { User, Package, BarChart3, MessageSquare, Settings, MessageCircle } from 'lucide-react';
 
-import { renderProfile } from '../src/components/Seller/Dashboard/ProfileDashboard';
-import RenderOverview from '../src/components/Seller/Dashboard/Overview';
+import { renderProfile } from '../src/components/seller/dashboard/ProfileDashboard';
+import RenderOverview from '../src/components/seller/dashboard/Overview';
 import RFQComponent from '../src/app/seller/dashboard/RFQ';
-import SettingsDashboard from '../src/components/Seller/Dashboard/SettingsDashboard';
+import SettingsDashboard from '../src/components/seller/dashboard/SettingsDashboard';
 import { useAuth } from '@/src/context/AuthContext';
 
 import { Seller, Listing, DashboardStats, RFQ } from '@/lib/types/seller/sellerDashboard';
-import ListingDashboard from '../src/components/Seller/Dashboard/ManageListing';
-import ChatDashboard from '../src/components/Seller/Dashboard/ChatDashboard';
-import Certifications from '../src/components/Seller/Dashboard/Certifications';
+import ListingDashboard from '../src/components/seller/dashboard/ManageListing';
+import ChatDashboard from '../src/components/seller/dashboard/ChatDashboard';
+import Certifications from '../src/components/seller/dashboard/Certifications';
+import SellerProfileDashboard from '@/src/components/seller/dashboard/profile/SellerProfileDashboard';
 
 // Constants
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
@@ -118,11 +119,13 @@ const useSellerDashboard = () => {
                 await fetchProfile();
                 setIsEditing(false);
             } else {
-                setProfileError('Failed to update profile');
-                toast.error('Failed to update profile');
+                const errorData = await response.json();
+                const errorMessage = errorData.error || errorData.message || 'Failed to update profile';
+                setProfileError(errorMessage);
+                toast.error(errorMessage);
             }
-        } catch (error) {
-            const errorMessage = 'Failed to update profile';
+        } catch (error: any) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to update profile';
             setProfileError(errorMessage);
             toast.error(errorMessage);
             console.error('Profile update error:', error);
@@ -219,7 +222,7 @@ const useSellerDashboard = () => {
     };
 
     // View rendering logic
-    const renderCurrentView = () => {
+    const renderCurrentView = useCallback(() => {
         switch (currentView) {
             case 'overview':
                 return (
@@ -238,16 +241,17 @@ const useSellerDashboard = () => {
                 return <RFQComponent rfqRequests={rfqRequests} />;
 
             case 'profile':
-                return renderProfile({
-                    seller,
-                    isEditing,
-                    setIsEditing,
-                    profileForm,
-                    setProfileForm,
-                    handleUpdateProfile,
-                    loading: profileLoading,
-                    error: profileError
-                });
+                // return renderProfile({
+                //     seller,
+                //     isEditing,
+                //     setIsEditing,
+                //     profileForm,
+                //     setProfileForm,
+                //     handleUpdateProfile,
+                //     loading: profileLoading,
+                //     error: profileError
+                // });
+                return <SellerProfileDashboard {...{ seller, isEditing, setIsEditing, profileForm, setProfileForm, handleUpdateProfile, loading: profileLoading, error: profileError }} />;
 
             case 'certifications':
                 {/* Seller Certificates */ }
@@ -270,7 +274,7 @@ const useSellerDashboard = () => {
                     </div>
                 );
         }
-    };
+    }, [currentView]);
 
     // Return hook interface
     return {

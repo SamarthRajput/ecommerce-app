@@ -10,11 +10,7 @@ import {
     Check,
     X,
     RefreshCw,
-    Eye,
-    CheckCircle,
-    XCircle,
-    Filter,
-    SortAsc
+    Eye
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -142,18 +138,6 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: RFQ[] }) => {
                                 className="pl-10"
                             />
                         </div>
-
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="w-40">
-                                <SelectValue placeholder="Status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Status</SelectItem>
-                                <SelectItem value="PENDING">Pending</SelectItem>
-                                <SelectItem value="ACCEPTED">Accepted</SelectItem>
-                                <SelectItem value="REJECTED">Rejected</SelectItem>
-                            </SelectContent>
-                        </Select>
 
                         <Select value={sortBy} onValueChange={setSortBy}>
                             <SelectTrigger className="w-44">

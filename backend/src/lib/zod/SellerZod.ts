@@ -70,6 +70,12 @@ export const registerSellerSchema = z.object({
 
 export type RegisterSellerFormData = z.infer<typeof registerSellerSchema>;
 
+// edit user profile , Partially registerSellerSchema
+export const editSellerProfileSchema = registerSellerSchema.partial().extend({
+
+})
+export type EditSellerProfileFormData = z.infer<typeof editSellerProfileSchema>;
+
 export const loginSellerSchema = z.object({
     email: z.string().email('Valid email is required'),
     password: z.string().min(1, 'Password is required')

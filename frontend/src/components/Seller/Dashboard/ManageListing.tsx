@@ -16,7 +16,7 @@ import {
     ListingErrorAlert
 } from './ListingComponent';
 import { Listing } from '@/lib/types/seller/sellerDashboardListing';
-import { ListingDetailModal } from '@/src/components/Seller/Dashboard/ListingDetailModel';
+import { ListingDetailModal } from '@/src/components/seller/dashboard/ListingDetailModel';
 
 const ListingDashboard: React.FC = () => {
     const router = useRouter();

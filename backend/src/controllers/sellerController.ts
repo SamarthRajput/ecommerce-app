@@ -4,7 +4,7 @@ import { prisma } from "../lib/prisma";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { AuthenticatedRequest } from "../middlewares/authSeller";
-import { loginSellerSchema, productSchema, registerSellerSchema } from "../lib/zod/SellerZod";
+import { editSellerProfileSchema, loginSellerSchema, productSchema, registerSellerSchema } from "../lib/zod/SellerZod";
 import { JWT_SECRET } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
 import cloudinary from '../config/cloudinary';
@@ -92,7 +92,7 @@ export const signupSeller = async (req: Request, res: Response) => {
                 lastName: data.lastName,
                 businessName: data.businessName,
                 slug: slug,
-                businessType: mapBusinessType(data.businessType) as any,
+                businessType: mapBusinessType(data.businessType ?? "") as any,
                 registrationNo: data.registrationNo,
                 taxId: data.taxId,
                 panOrTin: data.panOrTin,
@@ -380,17 +380,18 @@ export const resetSellerPassword = async (req: Request, res: Response) => {
 // Update seller profile
 export const updateSellerProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        console.log('Updating seller profile:', req.body);
+        // console.log('Updating seller profile:', req.body);
         const sellerId = req.seller?.sellerId;
         if (!sellerId) {
-            return res.status(401).json({ error: 'Unauthorized' });
+            return res.status(401).json({ error: 'Unauthorized, please log in' });
         }
 
         // Validate request body with Zod
-        const parsed = registerSellerSchema.safeParse(req.body);
+        const parsed = editSellerProfileSchema.safeParse(req.body);
 
         // 2. If validation fails, return error
         if (!parsed.success) {
+            console.error('\n\nValidation failed:', JSON.stringify(parsed, null, 2));
             return res.status(400).json({
                 message: 'Validation failed',
                 errors: parsed.error.flatten().fieldErrors,
@@ -406,6 +407,7 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
         });
 
         if (!existingSeller) {
+            console.error('Seller not found:', sellerId);
             res.status(404).json({ error: 'Seller not found' });
             return;
         }
@@ -421,7 +423,7 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
                 firstName: data.firstName,
                 lastName: data.lastName,
                 businessName: data.businessName,
-                businessType: mapBusinessType(data.businessType) as any,
+                businessType: mapBusinessType(data.businessType ?? "") as any,
                 phone: data.phone,
                 street: data.street,
                 city: data.city,
@@ -448,6 +450,8 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
                 updatedAt: true
             }
         });
+
+        console.log('Seller profile updated successfully:', updatedSeller.id);
 
         res.json({
             message: 'Profile updated successfully',
