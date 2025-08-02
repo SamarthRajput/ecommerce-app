@@ -5,8 +5,8 @@ import { Save, X, Building, User, MapPin } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { FormInput, FormTextarea } from "./ProfileComponent"
 import { ProfileFormData } from "@/lib/types/profile"
+import { FormInput, FormTextarea } from "./ProfileComponent"
 
 interface ProfileEditFormProps {
     initialData: ProfileFormData
