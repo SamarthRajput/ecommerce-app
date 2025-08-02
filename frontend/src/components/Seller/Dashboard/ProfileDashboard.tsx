@@ -1,45 +1,43 @@
-// components/dashboard/ProfileDashboard.tsx
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Edit3, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
-// Import the separated components
-import {
-    ProfileHeader,
-    BasicInfoSection,
-    BusinessInfoSection,
-    AddressSection,
-    AccountInfoSection
-} from './ProfileComponent';
-import { ProfileEditForm } from './ProfileEditForm';
 import { ProfileProps } from '@/lib/types/profile';
+import { AccountInfoSection, AddressSection, BasicInfoSection, BusinessInfoSection, ProfileHeader } from './ProfileComponent';
+import ProfileEditForm from './ProfileEditForm';
 
-const ProfileDashboard: React.FC<ProfileProps> = ({
+// Updated interface to remove form state management from parent
+interface OptimizedProfileProps {
+    seller: any;
+    isEditing: boolean;
+    setIsEditing: (editing: boolean) => void;
+    handleUpdateProfile: (updatedProfile: any) => Promise<void>;
+    loading: boolean;
+    error: string;
+}
+
+const ProfileDashboard: React.FC<OptimizedProfileProps> = ({
     seller,
     isEditing,
     setIsEditing,
-    profileForm,
-    setProfileForm,
     handleUpdateProfile,
     loading,
     error
 }) => {
-    const handleCancelEdit = () => {
+    const handleCancelEdit = useCallback(() => {
         setIsEditing(false);
-        // Reset form to original seller data
-        if (seller) {
-            setProfileForm(seller);
-        }
-    };
+    }, [setIsEditing]);
+
+    const handleStartEdit = useCallback(() => {
+        setIsEditing(true);
+    }, [setIsEditing]);
 
     return (
         <div className="max-w-5xl mx-auto space-y-6">
             {/* Profile Header */}
             <Card className="overflow-hidden">
                 <ProfileHeader seller={seller} />
-
                 {/* Edit Toggle Section */}
                 <CardContent className="p-6">
                     <div className="flex items-center justify-between">
@@ -52,10 +50,9 @@ const ProfileDashboard: React.FC<ProfileProps> = ({
                                 }
                             </p>
                         </div>
-
                         {!isEditing && (
                             <Button
-                                onClick={() => setIsEditing(true)}
+                                onClick={handleStartEdit}
                                 variant="outline"
                                 className="flex items-center space-x-2"
                             >
@@ -93,9 +90,8 @@ const ProfileDashboard: React.FC<ProfileProps> = ({
             {isEditing ? (
                 /* Edit Mode */
                 <ProfileEditForm
-                    profileForm={profileForm}
-                    setProfileForm={setProfileForm}
-                    handleUpdateProfile={handleUpdateProfile}
+                    initialData={seller}
+                    onSubmit={handleUpdateProfile}
                     loading={loading}
                     onCancel={handleCancelEdit}
                 />
@@ -104,16 +100,12 @@ const ProfileDashboard: React.FC<ProfileProps> = ({
                 <div className="space-y-6">
                     {/* Basic Information */}
                     <BasicInfoSection seller={seller} />
-
                     {/* Business Information */}
                     <BusinessInfoSection seller={seller} />
-
                     {/* Address Information */}
                     <AddressSection seller={seller} />
-
                     {/* Account Information */}
                     <AccountInfoSection seller={seller} />
-
                     {/* Quick Actions */}
                     <Card>
                         <CardHeader>
@@ -123,19 +115,17 @@ const ProfileDashboard: React.FC<ProfileProps> = ({
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <Button
                                     variant="outline"
-                                    onClick={() => setIsEditing(true)}
+                                    onClick={handleStartEdit}
                                     className="flex items-center justify-center space-x-2 h-12"
                                 >
                                     <Edit3 className="w-4 h-4" />
                                     <span>Edit Profile</span>
                                 </Button>
-
                                 {!seller?.isEmailVerified && (
                                     <Button
                                         variant="outline"
                                         className="flex items-center justify-center space-x-2 h-12"
                                         onClick={() => {
-                                            // Add email verification logic here
                                             console.log('Verify email clicked');
                                         }}
                                     >
@@ -143,13 +133,11 @@ const ProfileDashboard: React.FC<ProfileProps> = ({
                                         <span>Verify Email</span>
                                     </Button>
                                 )}
-
                                 {!seller?.isPhoneVerified && (
                                     <Button
                                         variant="outline"
                                         className="flex items-center justify-center space-x-2 h-12"
                                         onClick={() => {
-                                            // Add phone verification logic here
                                             console.log('Verify phone clicked');
                                         }}
                                     >
@@ -166,7 +154,4 @@ const ProfileDashboard: React.FC<ProfileProps> = ({
     );
 };
 
-// Export the main profile component
-export const renderProfile = (props: ProfileProps) => <ProfileDashboard {...props} />;
-
-export default ProfileDashboard;
+export default React.memo(ProfileDashboard);

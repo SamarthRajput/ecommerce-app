@@ -1,23 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { User, Package, BarChart3, MessageSquare, Settings, MessageCircle } from 'lucide-react';
-
-import { renderProfile } from '../src/components/Seller/Dashboard/ProfileDashboard';
-import RenderOverview from '../src/components/Seller/Dashboard/Overview';
-import RFQComponent from '../src/app/seller/dashboard/RFQ';
-import SettingsDashboard from '../src/components/Seller/Dashboard/SettingsDashboard';
 import { useAuth } from '@/src/context/AuthContext';
-
 import { Seller, Listing, DashboardStats, RFQ } from '@/lib/types/seller/sellerDashboard';
-import ListingDashboard from '../src/components/Seller/Dashboard/ManageListing';
-import ChatDashboard from '../src/components/Seller/Dashboard/ChatDashboard';
-import Certifications from '../src/components/Seller/Dashboard/Certifications';
+import SettingsDashboard from '@/src/components/seller/dashboard/SettingsDashboard';
+import ChatDashboard from '@/src/components/seller/dashboard/ChatDashboard';
+import SellerCertifications from '@/src/components/seller/dashboard/Certifications';
+import ProfileDashboard from '@/src/components/seller/dashboard/ProfileDashboard';
+import RFQComponent from '@/src/app/seller/dashboard/RFQ';
+import ListingDashboard from '@/src/components/seller/dashboard/ManageListing';
+import RenderOverview from '@/src/components/seller/dashboard/Overview';
 
 // Constants
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
 const API_BASE_URL = `${API_BACKEND_URL}/seller`;
-
 
 // Navigation configuration
 const NAVIGATION_ITEMS = [
@@ -84,7 +81,6 @@ const useSellerDashboard = () => {
 
     // Profile editing state
     const [isEditing, setIsEditing] = useState(false);
-    const [profileForm, setProfileForm] = useState<Seller>(createDefaultSeller());
     const [profileLoading, setProfileLoading] = useState(false);
     const [profileError, setProfileError] = useState('');
 
@@ -97,9 +93,12 @@ const useSellerDashboard = () => {
         }
     }, [user, authLoading, router]);
 
-    // Profile update handler
-    const handleUpdateProfile = async (e: React.FormEvent) => {
-        e.preventDefault();
+    useEffect(() => {
+        toast.success('Welcome to your dashboard!');
+    }, []);
+
+    // Profile update handler - optimized
+    const handleUpdateProfile = useCallback(async (updatedProfile: Seller) => {
         setProfileLoading(true);
         setProfileError('');
 
@@ -110,7 +109,7 @@ const useSellerDashboard = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(profileForm),
+                body: JSON.stringify(updatedProfile),
             });
 
             if (response.ok) {
@@ -118,24 +117,28 @@ const useSellerDashboard = () => {
                 await fetchProfile();
                 setIsEditing(false);
             } else {
-                setProfileError('Failed to update profile');
-                toast.error('Failed to update profile');
+                try{
+                    const data = await response.json();
+                    const errorData = data.error || data.message || "Failed to update Profile...";
+                    throw new Error(errorData);
+                } catch (error) {
+                    throw new Error(error instanceof Error ? error.message : 'Failed to update profile');
+                }
             }
-        } catch (error) {
-            const errorMessage = 'Failed to update profile';
+        } catch (error:any) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to update profile';
             setProfileError(errorMessage);
             toast.error(errorMessage);
             console.error('Profile update error:', error);
         } finally {
             setProfileLoading(false);
         }
-    };
+    }, []);
 
     // Dashboard initialization
     const initializeDashboard = async () => {
         try {
             setDashboardLoading(true);
-
             await Promise.all([
                 fetchProfile(),
                 fetchDashboardStats(),
@@ -156,12 +159,10 @@ const useSellerDashboard = () => {
             const response = await fetch(`${API_BASE_URL}/profile`, {
                 credentials: 'include',
             });
-
             const responseData = await response.json();
 
             if (response.ok) {
                 setSeller(responseData.seller);
-                setProfileForm(responseData.seller);
                 setIsEditing(false);
             } else {
                 throw new Error(responseData.error || 'Failed to fetch profile');
@@ -178,7 +179,6 @@ const useSellerDashboard = () => {
             const response = await fetch(`${API_BASE_URL}/dashboard-stats`, {
                 credentials: 'include',
             });
-
             if (response.ok) {
                 const data = await response.json();
                 setDashboardStats(data.stats);
@@ -193,7 +193,6 @@ const useSellerDashboard = () => {
             const response = await fetch(`${API_BASE_URL}/listings`, {
                 credentials: 'include'
             });
-
             if (response.ok) {
                 const data = await response.json();
                 setListings(data.listings || []);
@@ -208,7 +207,6 @@ const useSellerDashboard = () => {
             const response = await fetch(`${API_BASE_URL}/rfq-requests`, {
                 credentials: 'include'
             });
-
             if (response.ok) {
                 const data = await response.json();
                 setRfqRequests(data.rfqRequests || []);
@@ -231,38 +229,31 @@ const useSellerDashboard = () => {
                         setCurrentView={setCurrentView}
                     />
                 );
-
             case 'listings':
                 return <ListingDashboard />;
             case 'rfqs':
                 return <RFQComponent rfqRequests={rfqRequests} />;
-
             case 'profile':
-                return renderProfile({
-                    seller,
-                    isEditing,
-                    setIsEditing,
-                    profileForm,
-                    setProfileForm,
-                    handleUpdateProfile,
-                    loading: profileLoading,
-                    error: profileError
-                });
-
+                return (
+                    <ProfileDashboard
+                        seller={seller}
+                        isEditing={isEditing}
+                        setIsEditing={setIsEditing}
+                        handleUpdateProfile={handleUpdateProfile}
+                        loading={profileLoading}
+                        error={profileError}
+                    />
+                );
             case 'certifications':
-                {/* Seller Certificates */ }
                 const sellerId = seller?.id;
                 if (sellerId) {
-                    return <Certifications sellerId={sellerId} />;
+                    return <SellerCertifications sellerId={sellerId} />;
                 }
+                break;
             case 'chats':
                 return <ChatDashboard />;
-                // router.push('/seller/chats');
-                return null;
-
             case 'settings':
                 return <SettingsDashboard />;
-
             default:
                 return (
                     <div className="p-4 text-center text-gray-500">

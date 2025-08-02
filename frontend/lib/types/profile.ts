@@ -41,7 +41,6 @@ export interface Seller {
 }
 
 export interface ProfileFormData extends Seller {
-    // Any additional form-specific properties can be added here
 }
 
 export interface ProfileProps {
