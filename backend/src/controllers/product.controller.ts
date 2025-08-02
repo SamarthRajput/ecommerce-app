@@ -110,37 +110,48 @@ export const getProductById = async (req: Request, res: Response) => {
 };
 
 export const getProductsBySellerId = async (req: Request, res: Response) => {
-    const { id } = req.params; // Product id, Get Seller id from product
+    const { id } = req.params; // This is the seller ID, not product ID
     const { skip, take } = parsePagination(req.query);
 
-    // Find Seller ID from Product ID
-    // fix this route
     try {
-        const product = await prisma.product.findUnique({
+        // Verify seller exists (optional but recommended)
+        const seller = await prisma.seller.findUnique({
             where: { id },
-            select: { sellerId: true },
+            select: { id: true },
         });
 
-        if (!product) return res.status(404).json({ message: "Product not found" });
-        if (!product.sellerId) return res.status(404).json({ message: "Seller not found" });
+        if (!seller) {
+            return res.status(404).json({ message: "Seller not found" });
+        }
 
-        const sellerId = product.sellerId;
-
+        // Get all products for this seller
         const products = await prisma.product.findMany({
             where: {
-                id,
-                status: "APPROVED",
+                sellerId: id, // Use seller ID to filter products
+                status: "APPROVED", // Only get approved products
             },
             skip,
             take,
+            // You might want to include additional fields or relations
+            select: {
+                id: true,
+                name: true,
+                // Add other product fields you need in the frontend
+                description: true,
+                price: true,
+                createdAt: true,
+                updatedAt: true,
+                // Add any other fields your frontend needs
+            },
         });
 
-        res.status(200).json({ products });
+        res.status(200).json(products); // Return products array directly
     } catch (err) {
         console.error("Error fetching products by seller ID:", err);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
 
 export const getSimilarProducts = async (req: Request, res: Response) => {
     const { id } = req.params;

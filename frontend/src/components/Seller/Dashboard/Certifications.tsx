@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { ExternalLink, Award, Clock, CheckCircle, Download, Eye, Shield, Loader2 } from "lucide-react";
+import RequestCertificationButton from "../../RequestCertificationButton";
 
 interface Product {
   id: string;
   name: string;
+  description: string;
+  price: string;
   // Add other product properties as needed
 }
 
@@ -19,11 +22,9 @@ export default function SellerCertifications({ sellerId }: { sellerId: string })
   const [certs, setCerts] = useState<Certification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [creating, setCreating] = useState<string | null>(null); // To handle per-product loading
 
   const fetchProductsAndCerts = async () => {
     try {
-        // Fix this 
       const productRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/seller/${sellerId}`, {
         credentials: 'include'
       });
@@ -94,25 +95,10 @@ export default function SellerCertifications({ sellerId }: { sellerId: string })
     link.click();
     document.body.removeChild(link);
   };
-  
-  const handleRequestCertification = async (productId: string, amount: number) => {
-    setCreating(productId);
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/certification/request`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ productId, amount }),
-      });
-      if (!res.ok) throw new Error("Failed to request certification");
-      
-      // After a successful request, re-fetch the data to update the UI
-      await fetchProductsAndCerts();
-    } catch (e) {
-      setError("Failed to create certification request.");
-    } finally {
-      setCreating(null);
-    }
+
+  // Callback function to refresh data when certification is requested
+  const handleCertificationRequested = () => {
+    fetchProductsAndCerts();
   };
 
   if (loading) {
@@ -176,7 +162,7 @@ export default function SellerCertifications({ sellerId }: { sellerId: string })
           
           return (
             <div key={product.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   {cert ? getStatusIcon(cert.status) : <Shield className="w-5 h-5 text-gray-400" />}
                   <div>
@@ -198,7 +184,7 @@ export default function SellerCertifications({ sellerId }: { sellerId: string })
                   </div>
                 </div>
                 
-                {cert && cert.certificateUrl ? (
+                {cert && cert.certificateUrl && cert.status.toLowerCase() === 'issued' && (
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleViewCertificate(cert.certificateUrl!)}
@@ -215,21 +201,19 @@ export default function SellerCertifications({ sellerId }: { sellerId: string })
                       Download
                     </button>
                   </div>
-                ) : (
-                  <button
-                    onClick={() => handleRequestCertification(product.id, 100)} // Set your desired certification amount here
-                    disabled={creating === product.id}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {creating === product.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Shield className="w-4 h-4" />
-                    )}
-                    {creating === product.id ? "Requesting..." : "Request Certification"}
-                  </button>
                 )}
               </div>
+
+              {/* Show RequestCertificationButton if no certification exists or if certification is not issued */}
+              {(!cert || cert.status.toLowerCase() !== 'issued') && (
+                <div className="mt-4">
+                  <RequestCertificationButton 
+                    productId={product.id} 
+                    amount={100} // You can make this configurable
+                    onCertificationRequested={handleCertificationRequested}
+                  />
+                </div>
+              )}
             </div>
           );
         })}
