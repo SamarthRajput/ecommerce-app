@@ -9,7 +9,7 @@ import Section5 from './Section5';
 import useSignup from '@/hooks/useSellerSignup';
 
 // Business type options
-export const businessTypeOptions = [
+const businessTypeOptions = [
     { value: 'individual', label: 'Individual' },
     { value: 'proprietorship', label: 'Proprietorship' },
     { value: 'partnership', label: 'Partnership' },
@@ -21,13 +21,13 @@ export const businessTypeOptions = [
     { value: 'other', label: 'Other' }
 ];
 
-export const industryOptions = [
+const industryOptions = [
     'Agriculture', 'Manufacturing', 'Technology', 'Healthcare', 'Education',
     'Financial Services', 'Real Estate', 'Retail', 'Transportation', 'Energy',
     'Construction', 'Food & Beverage', 'Textiles', 'Chemicals', 'Automotive'
 ];
 
-export const yearsInBusinessOptions = [
+const yearsInBusinessOptions = [
     { value: 1, label: 'Less than 1 year' },
     { value: 2, label: '1-3 years' },
     { value: 3, label: '3-5 years' },
