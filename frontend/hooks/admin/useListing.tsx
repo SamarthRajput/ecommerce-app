@@ -167,11 +167,11 @@ export const useListing = (): ListingState => {
                 setListings(data.data)
                 setStats(statsData.data)
             } else {
-                throw new Error(data.error || "Failed to fetch listings")
+                throw new Error(data.error || data.message || "Failed to fetch listings")
             }
         } catch (error: any) {
             console.error("Error fetching listings:", error)
-            toast.error("Failed to fetch listings")
+            toast.error(error.message || "Failed to fetch listings")
         }
     }, [])
 

@@ -93,10 +93,6 @@ const useSellerDashboard = () => {
         }
     }, [user, authLoading, router]);
 
-    useEffect(() => {
-        toast.success('Welcome to your dashboard!');
-    }, []);
-
     // Profile update handler - optimized
     const handleUpdateProfile = useCallback(async (updatedProfile: Seller) => {
         setProfileLoading(true);

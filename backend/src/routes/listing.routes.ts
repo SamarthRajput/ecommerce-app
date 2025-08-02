@@ -19,12 +19,12 @@ console.log('Listing router called');
 listingRouter.use(requireAdmin);
 
 // GET /api/v1/listing/pending - Get all pending listings
-listingRouter.get('/all', requireAuth({ allowedRoles: ['admin'], allowedAdminRoles: ["SUPER_ADMIN", "ADMIN"] }), asyncHandler(getAllListings));
-listingRouter.get('/stats', requireAuth({ allowedRoles: ['admin'], allowedAdminRoles: ["SUPER_ADMIN", "ADMIN"] }), asyncHandler(getStatsForAdminListing));
+listingRouter.get('/all', requireAuth({ allowedRoles: ['admin'], allowedAdminRoles: ["SUPER_ADMIN", "INSPECTOR", "ADMIN"] }), asyncHandler(getAllListings));
+listingRouter.get('/stats', requireAuth({ allowedRoles: ['admin'], allowedAdminRoles: ["SUPER_ADMIN", "INSPECTOR", "ADMIN"] }), asyncHandler(getStatsForAdminListing));
 
 
 // POST /api/v1/listing/approve/:id - Approve a listing
-listingRouter.post('/approve/:id', async (req: Request, res: Response) => {
+listingRouter.post('/approve/:id', requireAuth({ allowedRoles: ['admin'], allowedAdminRoles: ["SUPER_ADMIN", "INSPECTOR", "ADMIN"] }), async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
@@ -81,7 +81,7 @@ listingRouter.post('/approve/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/v1/listing/reject/:id - Reject a listing
-listingRouter.post('/reject/:id', async (req: Request, res: Response) => {
+listingRouter.post('/reject/:id', requireAuth({ allowedRoles: ['admin'], allowedAdminRoles: ["SUPER_ADMIN", "INSPECTOR", "ADMIN"] }), async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
