@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { FormInput, FormTextarea } from "./ProfileComponent"
 import { ProfileFormData } from "@/lib/types/profile"
-import { businessTypeOptions } from "@/src/app/seller/(auth)/signup/page"
 
 interface ProfileEditFormProps {
     initialData: ProfileFormData
