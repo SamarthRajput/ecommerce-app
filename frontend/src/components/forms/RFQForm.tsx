@@ -124,7 +124,7 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
             <CardContent>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                        <FormField label="Quantity" error={errors.quantity?.message}>
+                        <FormField label="Quantity *" error={errors.quantity?.message}>
                             <Input
                                 id="quantity"
                                 type="number"
@@ -133,7 +133,7 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
                             />
                         </FormField>
 
-                        <FormField label="Delivery Date" error={errors.deliveryDate?.message}>
+                        <FormField label="Delivery Date *" error={errors.deliveryDate?.message}>
                             <Input
                                 id="deliveryDate"
                                 type="date"
@@ -143,7 +143,7 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <FormField label="Budget" error={errors.budget?.message}>
+                        <FormField label="Budget *" error={errors.budget?.message}>
                             <Input
                                 id="budget"
                                 type="number"
@@ -153,7 +153,7 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
                             />
                         </FormField>
 
-                        <FormField label="Currency" error={errors.currency?.message}>
+                        <FormField label="Currency *" error={errors.currency?.message}>
                             <Input
                                 id="currency"
                                 {...register('currency')}
@@ -162,7 +162,7 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
                         </FormField>
                     </div>
 
-                    <FormField label="Payment Terms" error={errors.paymentTerms?.message}>
+                    <FormField label="Payment Terms *" error={errors.paymentTerms?.message}>
                         <Input
                             id="paymentTerms"
                             {...register('paymentTerms')}
@@ -170,7 +170,7 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
                         />
                     </FormField>
 
-                    <FormField label="Special Requirements" error={errors.specialRequirements?.message}>
+                    <FormField label="Special Requirements *" error={errors.specialRequirements?.message}>
                         <Textarea
                             id="specialRequirements"
                             {...register('specialRequirements')}

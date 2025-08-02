@@ -99,8 +99,18 @@ export const OverviewTab = ({ buyerId }: OverviewTabProps) => {
 
   const parseRFQDetails = (message: string): RFQDetails => {
     try {
-      return JSON.parse(message);
+      const parsed = JSON.parse(message);
+      // Ensure all required properties exist with fallback values
+      return {
+        deliveryDate: parsed?.deliveryDate || "",
+        budget: parsed?.budget || 0,
+        currency: parsed?.currency || "USD",
+        paymentTerms: parsed?.paymentTerms || "",
+        specialRequirements: parsed?.specialRequirements || "",
+        additionalNotes: parsed?.additionalNotes || ""
+      };
     } catch (error) {
+      // Return a complete RFQDetails object with default values
       return {
         deliveryDate: "",
         budget: 0,
@@ -223,7 +233,7 @@ export const OverviewTab = ({ buyerId }: OverviewTabProps) => {
                           <TableCell className="font-medium max-w-[200px] truncate">{rfq.product.name}</TableCell>
                           <TableCell>{rfq.quantity}</TableCell>
                           <TableCell>
-                            {details.currency} {details.budget.toFixed(2)}
+                            {details.currency} {details.budget?.toFixed(2) || "0.00"}
                           </TableCell>
                           <TableCell>
                             {details.deliveryDate ? formatDate(details.deliveryDate) : "-"}
@@ -334,7 +344,7 @@ export const OverviewTab = ({ buyerId }: OverviewTabProps) => {
                         <div>
                           <h4 className="font-semibold text-sm text-gray-500 mb-2">Budget</h4>
                           <p className="text-sm font-medium">
-                            {formatCurrency(details.budget, details.currency)}
+                            {formatCurrency(details.budget || 0, details.currency || "USD")}
                           </p>
                         </div>
                         <div>

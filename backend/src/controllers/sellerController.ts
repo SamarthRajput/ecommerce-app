@@ -17,6 +17,7 @@ import { uploadImageToCloudinary } from "../utils/uploadImageToCloudinary";
 import slugify from "slugify";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import { BusinessType } from "@prisma/client";
 
 // Sign up seller
 export const signupSeller = async (req: Request, res: Response) => {
@@ -386,19 +387,41 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        // Validate request body with Zod
-        const parsed = registerSellerSchema.safeParse(req.body);
+        // Extract data from request body
+        const {
+            email,
+            firstName,
+            lastName,
+            businessName,
+            businessType,
+            phone,
+            countryCode,
+            taxId,
+            panOrTin,
+            registrationNo,
+            website,
+            linkedIn,
+            yearsInBusiness,
+            industryTags,
+            keyProducts,
+            companyBio,
+            address
+        } = req.body;
 
-        // 2. If validation fails, return error
-        if (!parsed.success) {
-            return res.status(400).json({
-                message: 'Validation failed',
-                errors: parsed.error.flatten().fieldErrors,
+        // Basic validation
+        if (!email || !firstName || !lastName || !businessName || !businessType || !phone) {
+            return res.status(400).json({ 
+                error: 'Missing required fields',
+                required: ['email', 'firstName', 'lastName', 'businessName', 'businessType', 'phone']
             });
         }
 
-        const data = parsed.data;
-        console.log('Updating seller:', data.email, data.businessName)
+        if (!address || !address.street || !address.city || !address.state || !address.zipCode || !address.country) {
+            return res.status(400).json({ 
+                error: 'Complete address is required',
+                required: ['street', 'city', 'state', 'zipCode', 'country']
+            });
+        }
 
         // Check if seller exists
         const existingSeller = await prisma.seller.findUnique({
@@ -406,30 +429,58 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
         });
 
         if (!existingSeller) {
-            res.status(404).json({ error: 'Seller not found' });
-            return;
+            return res.status(404).json({ error: 'Seller not found' });
         }
 
-        // Map businessType to enum value (uppercase and underscores)
-        const mapBusinessType = (type: string) => type.toUpperCase().replace(/ /g, "_");
+        // Business type mapping based on your actual enum
+        const businessTypeMap: { [key: string]: BusinessType } = {
+            'Individual': 'INDIVIDUAL',
+            'Proprietorship': 'PROPRIETORSHIP',
+            'Partnership': 'PARTNERSHIP',
+            'LLP': 'LLP',
+            'Private Limited': 'PRIVATE_LIMITED',
+            'Public Limited': 'PUBLIC_LIMITED',
+            'NGO': 'NGO',
+            'Government Entity': 'GOVERNMENT_ENTITY',
+            'Other': 'OTHER'
+        };
+
+        // Get the proper enum value
+        const mappedBusinessType: BusinessType = businessTypeMap[businessType] || 'OTHER';
+
+        // Prepare update data
+        const updateData = {
+            email,
+            firstName,
+            lastName,
+            businessName,
+            businessType: mappedBusinessType, // Now properly typed as BusinessType enum
+            phone,
+            countryCode: countryCode || '+91',
+            taxId: taxId || null,
+            panOrTin: panOrTin || null,
+            registrationNo: registrationNo || null,
+            website: website || null,
+            linkedIn: linkedIn || null,
+            yearsInBusiness: yearsInBusiness ? parseInt(yearsInBusiness.toString()) : null,
+            industryTags: Array.isArray(industryTags) ? industryTags : [],
+            keyProducts: Array.isArray(keyProducts) ? keyProducts : [],
+            companyBio: companyBio || null,
+            // Address fields (required in schema)
+            street: address.street,
+            city: address.city,
+            state: address.state,
+            zipCode: address.zipCode,
+            country: address.country,
+            updatedAt: new Date()
+        };
+
+        console.log('Update data prepared:', updateData);
 
         // Update seller profile
         const updatedSeller = await prisma.seller.update({
             where: { id: sellerId },
-            data: {
-                email: data.email,
-                firstName: data.firstName,
-                lastName: data.lastName,
-                businessName: data.businessName,
-                businessType: mapBusinessType(data.businessType) as any,
-                phone: data.phone,
-                street: data.street,
-                city: data.city,
-                state: data.state,
-                zipCode: data.zipCode,
-                country: data.country,
-                taxId: data.taxId
-            },
+            data: updateData,
             select: {
                 id: true,
                 email: true,
@@ -438,45 +489,60 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
                 businessName: true,
                 businessType: true,
                 phone: true,
+                countryCode: true,
+                taxId: true,
+                panOrTin: true,
+                registrationNo: true,
+                website: true,
+                linkedIn: true,
+                yearsInBusiness: true,
+                industryTags: true,
+                keyProducts: true,
+                companyBio: true,
                 street: true,
                 city: true,
                 state: true,
                 zipCode: true,
                 country: true,
-                taxId: true,
+                isEmailVerified: true,
+                isPhoneVerified: true,
+                isApproved: true,
+                approvalNote: true,
+                govIdUrl: true,
+                gstCertUrl: true,
+                businessDocUrl: true,
+                otherDocsUrl: true,
                 createdAt: true,
                 updatedAt: true
             }
         });
 
+        // Format response to match frontend expectations
+        const responseData = {
+            ...updatedSeller,
+            address: {
+                street: updatedSeller.street || '',
+                city: updatedSeller.city || '',
+                state: updatedSeller.state || '',
+                zipCode: updatedSeller.zipCode || '',
+                country: updatedSeller.country || ''
+            }
+        };
+
+        console.log('Profile updated successfully:', responseData.email);
+
         res.json({
             message: 'Profile updated successfully',
-            seller: {
-                id: updatedSeller.id,
-                email: updatedSeller.email,
-                firstName: updatedSeller.firstName,
-                lastName: updatedSeller.lastName,
-                businessName: updatedSeller.businessName,
-                businessType: updatedSeller.businessType,
-                phone: updatedSeller.phone,
-                address: {
-                    street: updatedSeller.street,
-                    city: updatedSeller.city,
-                    state: updatedSeller.state,
-                    zipCode: updatedSeller.zipCode,
-                    country: updatedSeller.country
-                },
-                taxId: updatedSeller.taxId,
-                createdAt: updatedSeller.createdAt,
-                updatedAt: updatedSeller.updatedAt
-            }
+            seller: responseData
         });
     } catch (error) {
         console.error('Update profile error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-}
 
+        res.status(500).json({ 
+            error: 'Server error', 
+        });
+    }
+};
 
 
 // Get Seller Listings
