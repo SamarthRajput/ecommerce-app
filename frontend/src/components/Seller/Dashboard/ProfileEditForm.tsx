@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback, useState, useMemo } from "react"
+import React, { useCallback, useState, useMemo, useEffect } from "react"
 import { Save, X, Building, User, MapPin } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -21,6 +21,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSubmit
         ...initialData,
         address: { ...initialData?.address },
     }))
+    const [keyProducts, setKeyProducts] = useState("");
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
@@ -51,6 +52,27 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSubmit
             [field]: tags,
         }))
     }, [])
+
+    useEffect(() => {
+        // set form data when keyProducts changes
+        if (keyProducts) {
+            const products = keyProducts
+                .split(",")
+                .map((product) => product.trim())
+                .filter((product) => product.length > 0)
+            setFormData((prev) => ({
+                ...prev,
+                keyProducts: products,
+            }))
+        }
+    }, [keyProducts])
+
+    useEffect(() => {
+        // Initialize keyProducts from formData
+        if (initialData.keyProducts) {
+            setKeyProducts(initialData.keyProducts.join(", "))
+        }
+    }, [initialData.keyProducts])
 
     const handleSubmit = useCallback(
         async (e: React.FormEvent<HTMLFormElement>) => {
@@ -238,12 +260,19 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSubmit
                             <Label className="block text-sm font-medium text-gray-700 mb-2">Key Products</Label>
                             <input
                                 type="text"
-                                value={formData.keyProducts?.join(", ") || ""}
-                                onChange={(e) => handleArrayChange("keyProducts", e.target.value)}
+                                value={keyProducts}
+                                onChange={(e) => {
+                                    setKeyProducts(e.target.value)
+                                }}
                                 placeholder="Enter key products separated by commas (e.g., Industrial Machinery, Electronic Components)"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                             <p className="text-xs text-gray-500 mt-1">Separate multiple products with commas</p>
+                            {formData.keyProducts.length > 0 && (
+                                <p>
+                                    Current Key Products are: {formData.keyProducts.join(",")}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </CardContent>

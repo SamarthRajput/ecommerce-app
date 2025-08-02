@@ -409,15 +409,15 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
         } = req.body;
 
         // Basic validation
-        if (!email || !firstName || !lastName || !businessName || !businessType || !phone) {
-            return res.status(400).json({ 
+        if (!email.trim() || !firstName.trim() || !lastName.trim() || !businessName.trim() || !businessType.trim() || !phone.trim()) {
+            return res.status(400).json({
                 error: 'Missing required fields',
                 required: ['email', 'firstName', 'lastName', 'businessName', 'businessType', 'phone']
             });
         }
 
         if (!address || !address.street || !address.city || !address.state || !address.zipCode || !address.country) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'Complete address is required',
                 required: ['street', 'city', 'state', 'zipCode', 'country']
             });
@@ -450,18 +450,18 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
 
         // Prepare update data
         const updateData = {
-            email,
-            firstName,
-            lastName,
-            businessName,
+            email: email.trim(),
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            businessName: businessName.trim(),
             businessType: mappedBusinessType, // Now properly typed as BusinessType enum
-            phone,
-            countryCode: countryCode || '+91',
-            taxId: taxId || null,
-            panOrTin: panOrTin || null,
-            registrationNo: registrationNo || null,
-            website: website || null,
-            linkedIn: linkedIn || null,
+            phone: phone.trim(),
+            countryCode: countryCode.trim() || '+91',
+            taxId: taxId.trim() || null,
+            panOrTin: panOrTin.trim() || null,
+            registrationNo: registrationNo.trim() || null,
+            website: website.trim() || null,
+            linkedIn: linkedIn.trim() || null,
             yearsInBusiness: yearsInBusiness ? parseInt(yearsInBusiness.toString()) : null,
             industryTags: Array.isArray(industryTags) ? industryTags : [],
             keyProducts: Array.isArray(keyProducts) ? keyProducts : [],
@@ -538,8 +538,8 @@ export const updateSellerProfile = async (req: AuthenticatedRequest, res: Respon
     } catch (error) {
         console.error('Update profile error:', error);
 
-        res.status(500).json({ 
-            error: 'Server error', 
+        res.status(500).json({
+            error: 'Server error',
         });
     }
 };
