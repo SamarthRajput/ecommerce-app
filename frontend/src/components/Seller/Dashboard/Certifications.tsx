@@ -71,11 +71,7 @@ export default function SellerCertifications({ sellerId }: { sellerId: string })
     }
   };
 
-  const getFileType = (url: string) => {
-    if (!url) return 'unknown';
-    const extension = url.split('.').pop()?.toLowerCase();
-    return extension || 'unknown';
-  };
+  const getFileType = (url: string) => 'pdf';
 
   const handleViewCertificate = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
@@ -186,13 +182,15 @@ export default function SellerCertifications({ sellerId }: { sellerId: string })
                 
                 {cert && cert.certificateUrl && cert.status.toLowerCase() === 'issued' && (
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleViewCertificate(cert.certificateUrl!)}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    <a
+                      href={`https://docs.google.com/viewer?url=${encodeURIComponent(cert.certificateUrl)}&embedded=true`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                     >
-                      <Eye className="w-4 h-4" />
-                      View
-                    </button>
+                      <Eye className="w-3 h-3 mr-1" />
+                      View Certificate
+                    </a>
                     <button
                       onClick={() => handleDownloadCertificate(cert.certificateUrl!, product.name)}
                       className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"

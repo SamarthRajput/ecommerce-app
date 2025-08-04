@@ -157,14 +157,6 @@ export default function EditListingPage() {
                     onCancel={handleCancel}
                 />
             </div>
-
-            {/* Certification Section - Styled as a distinct box */}
-            <div className="border-t border-gray-200 p-6 bg-gray-50">
-                <RequestCertificationButton
-                    productId={params.id as string}
-                    amount={100}
-                />
-            </div>
         </div>
     );
 }

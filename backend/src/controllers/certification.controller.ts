@@ -83,7 +83,7 @@ export const issueCertificate = async (req: Request, res: Response): Promise<voi
       return;
     }
     const result = await cloudinary.uploader.upload_stream(
-      { resource_type: 'raw', folder: 'certificates', format: 'pdf' },
+      { resource_type: 'raw', folder: 'certificates' },
       async (error, uploadResult) => {
         if (error || !uploadResult) {
           return res.status(500).json({ error: 'Cloudinary upload failed.' });

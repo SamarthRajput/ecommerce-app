@@ -243,10 +243,16 @@ const CategoryWiseProducts = () => {
     };
 
     const formatCategoryName = (cat: string) => {
-        return cat.split('-').map(word =>
-            word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ');
+        // First decode URL encoding (handles %20, %21, etc.)
+        const decoded = decodeURIComponent(cat);
+        
+        // Then handle both dash-separated and space-separated strings
+        return decoded
+            .split(/[-\s]+/) // Split on dashes or spaces
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
     };
+
 
     // Product Card Components
     const ProductCard = ({ product }: { product: Product }) => (
@@ -335,7 +341,7 @@ const CategoryWiseProducts = () => {
                         )}
 
                         {/* Seller Info */}
-                        <div className="mt-auto">
+                        {/* <div className="mt-auto">
                             <div className="flex items-center space-x-1 mb-2">
                                 <Building className="w-3 h-3 text-gray-400" />
                                 <span className="text-xs text-gray-600 truncate">
@@ -348,7 +354,7 @@ const CategoryWiseProducts = () => {
                                     {product.seller?.city}, {product.seller?.state}
                                 </span>
                             </div>
-                        </div>
+                        </div> */}
 
                         {/* Quick Actions */}
                         <div className="mt-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
