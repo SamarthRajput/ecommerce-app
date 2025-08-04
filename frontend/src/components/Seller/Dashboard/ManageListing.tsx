@@ -6,16 +6,8 @@ import { Button } from '@/components/ui/button';
 
 // Import the separated components and hooks
 import { useListingData, useListingFilters } from '@/hooks/useSDListing';
-import {
-    ListingStatsCards,
-    ListingFiltersSection,
-    ListingCard,
-    ListingTableView,
-    ListingEmptyState,
-    ListingLoadingState,
-    ListingErrorAlert
-} from './ListingComponent';
 import { Listing } from '@/lib/types/seller/sellerDashboardListing';
+import { ListingCard, ListingEmptyState, ListingErrorAlert, ListingFiltersSection, ListingLoadingState, ListingStatsCards, ListingTableView } from './ListingComponent';
 import { ListingDetailModal } from './ListingDetailModel';
 
 const ListingDashboard: React.FC = () => {

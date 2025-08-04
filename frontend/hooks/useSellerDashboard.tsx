@@ -4,13 +4,13 @@ import toast from 'react-hot-toast';
 import { User, Package, BarChart3, MessageSquare, Settings, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/src/context/AuthContext';
 import { Seller, Listing, DashboardStats, RFQ } from '@/lib/types/seller/sellerDashboard';
-import SettingsDashboard from '@/src/components/seller/dashboard/SettingsDashboard';
-import ChatDashboard from '@/src/components/seller/dashboard/ChatDashboard';
-import SellerCertifications from '@/src/components/seller/dashboard/Certifications';
-import ProfileDashboard from '@/src/components/seller/dashboard/ProfileDashboard';
 import RFQComponent from '@/src/app/seller/dashboard/RFQ';
-import ListingDashboard from '@/src/components/seller/dashboard/ManageListing';
-import RenderOverview from '@/src/components/seller/dashboard/Overview';
+import RenderOverview from '@/src/components/Seller/Dashboard/Overview';
+import ListingDashboard from '@/src/components/Seller/Dashboard/ManageListing';
+import ProfileDashboard from '@/src/components/Seller/Dashboard/ProfileDashboard';
+import SellerCertifications from '@/src/components/Seller/Dashboard/Certifications';
+import ChatDashboard from '@/src/components/Seller/Dashboard/ChatDashboard';
+import SettingsDashboard from '@/src/components/Seller/Dashboard/SettingsDashboard';
 
 // Constants
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
