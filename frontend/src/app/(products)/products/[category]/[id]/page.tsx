@@ -428,7 +428,7 @@ const ProductPage = () => {
                             <Link href="/products" className="hover:text-orange-600 whitespace-nowrap">Products</Link>
                             <span className="mx-1 md:mx-2">/</span>
                             <Link href={`/products/${category}`} className="hover:text-orange-600 whitespace-nowrap">
-                                {category.charAt(0).toUpperCase() + category.slice(1)}
+                                {decodeURIComponent(category).charAt(0).toUpperCase() + decodeURIComponent(category).slice(1)}
                             </Link>
                             <span className="mx-1 md:mx-2">/</span>
                             <span className="text-gray-900 truncate max-w-32 md:max-w-none">{product.name}</span>

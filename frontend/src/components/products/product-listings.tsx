@@ -276,7 +276,7 @@ export function ProductListings({ initialCategory }: ProductListingsProps) {
                 <>
                   <span className="mx-1 md:mx-2">/</span>
                   <span className="text-gray-900 font-medium whitespace-nowrap">
-                    {formatCategoryName(initialCategory)}
+                    {formatCategoryName(decodeURIComponent(initialCategory))}
                   </span>
                 </>
               )}
@@ -322,7 +322,7 @@ export function ProductListings({ initialCategory }: ProductListingsProps) {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
               <div>
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-                  {formatCategoryName(initialCategory)}
+                  {formatCategoryName(decodeURIComponent(initialCategory))}
                 </h1>
                 <p className="text-gray-600 text-sm md:text-base">
                   {filteredProducts.length} of {products.length} products

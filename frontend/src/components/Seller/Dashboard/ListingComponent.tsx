@@ -229,6 +229,7 @@ export const ListingActions: React.FC<ListingActionsProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => onViewDetails(listing)}
+            title="View Details"
         >
             <Eye className="w-4 h-4" />
         </Button>
@@ -239,6 +240,7 @@ export const ListingActions: React.FC<ListingActionsProps> = ({
                 size="sm"
                 onClick={() => onToggleStatus(listing.id, 'deactivate')}
                 disabled={actionLoading === listing.id}
+                title="Deactivate Listing"
             >
                 <ToggleRight className="w-4 h-4 text-yellow-600" />
             </Button>
@@ -248,19 +250,34 @@ export const ListingActions: React.FC<ListingActionsProps> = ({
                 size="sm"
                 onClick={() => onToggleStatus(listing.id, 'activate')}
                 disabled={actionLoading === listing.id}
+                title="Activate Listing"
             >
                 <ToggleLeft className="w-4 h-4 text-green-600" />
             </Button>
         )}
 
-        <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onToggleStatus(listing.id, 'archive')}
-            disabled={actionLoading === listing.id}
-        >
-            <Archive className="w-4 h-4 text-gray-600" />
-        </Button>
+        {listing.status !== 'archived' ? (
+            <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onToggleStatus(listing.id, 'archive')}
+                disabled={actionLoading === listing.id}
+                title="Archive Listing"
+            >
+                <Archive className="w-4 h-4 text-gray-600" />
+            </Button>
+        ) : (
+            <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onToggleStatus(listing.id, 'archive')}
+                disabled={actionLoading === listing.id}
+                title="Unarchive Listing"
+            >
+                <Archive className="w-4 h-4 text-gray-600" />
+            </Button>
+        )}
+
     </div>
 );
 

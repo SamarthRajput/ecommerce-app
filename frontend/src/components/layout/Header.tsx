@@ -25,7 +25,7 @@ export function Header() {
     if (isBuyer) {
       return [
         { href: "/buyer/dashboard", label: "Dashboard", icon: BarChart3 },
-        { href: "/buyer/requests", label: "My Requests", icon: FileText },
+        // { href: "/buyer/requests", label: "My Requests", icon: FileText },
         { href: "/buyer/chat", label: "Messages", icon: MessageSquare },
       ];
     }
@@ -112,10 +112,10 @@ export function Header() {
                     )}
 
                     <DropdownMenuItem asChild>
-                      <Link href={`/${role}/settings`} className="flex items-center gap-2">
+                      {/* <Link href={`/${role}/settings`} className="flex items-center gap-2">
                         <Settings className="h-4 w-4" />
                         Settings
-                      </Link>
+                      </Link> */}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={handleSignOut}

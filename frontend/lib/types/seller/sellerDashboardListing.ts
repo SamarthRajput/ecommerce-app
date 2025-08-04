@@ -20,11 +20,25 @@ export interface Listing {
     price: number;
     quantity: number;
     category: string;
-    status: 'active' | 'inactive' | 'archived';
+    status: 'active' | 'inactive' | 'archived' | 'rejected';
     createdAt: string;
+    rejectionReason?: string; // Optional for rejected listings
     updatedAt?: string;
     views?: number;
     rfqCount?: number;
+    slug: string;
+    minimumOrderQuantity: number;
+    currency?: string 
+    brochureUrl?: string
+    deliveryTimeInDays?: number,
+    expiryDate?: string,
+    licenses: string[],
+    certifications: string[],
+    logisticsSupport: boolean,
+    tags: string[],
+    warrantyPeriod?: string,
+    keywords: string[],
+    videoUrl: string,
 }
 
 export interface ListingFilters {
@@ -62,6 +76,16 @@ export const STATUS_CONFIG = {
         icon: Archive,
         label: 'Archived'
     },
+    rejected: {
+        color: 'bg-red-100 text-red-700 border-red-200',
+        icon: AlertTriangle,
+        label: 'Rejected'
+    },
+    approved: {
+        color: 'bg-blue-100 text-blue-700 border-blue-200',
+        icon: Check,
+        label: 'Approved'
+    }
 } as const;
 
 export const SORT_OPTIONS = [
@@ -69,7 +93,7 @@ export const SORT_OPTIONS = [
     { value: 'createdAt-asc', label: 'Oldest First' },
     { value: 'price-desc', label: 'Price: High to Low' },
     { value: 'price-asc', label: 'Price: Low to High' },
-    { value: 'productName-asc', label: 'Name: A to Z' },
-    { value: 'productName-desc', label: 'Name: Z to A' },
+    // { value: 'productName-asc', label: 'Name: A to Z' },
+    // { value: 'productName-desc', label: 'Name: Z to A' },
 ] as const;
 

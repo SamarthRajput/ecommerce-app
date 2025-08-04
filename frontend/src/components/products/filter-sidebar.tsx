@@ -85,7 +85,7 @@ export function FilterSidebar({
             onValueChange={(value: [number, number]) => handleFilterChange("priceRange", value)}
             max={maxPrice}
             min={0}
-            step={1000}
+            step={100}
             className="w-full"
           />
         </div>

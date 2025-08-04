@@ -1,6 +1,7 @@
 // hooks/useListing.ts
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Listing, ListingFilters, ListingStats, API_BASE_URL } from '@/lib/types/seller/sellerDashboardListing';
+import { toast } from 'sonner';
 
 export const useListingData = () => {
     const [listings, setListings] = useState<Listing[]>([]);
@@ -89,6 +90,7 @@ export const useListingData = () => {
 
             return data.status;
         } catch (err: any) {
+            toast.error(err);
             setError(err.message);
             throw err;
         } finally {

@@ -116,7 +116,7 @@ const EnhancedBuyerDashboard = () => {
     const [rfqs, setRfqs] = useState<RFQ[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [savedListings, setSavedListings] = useState<SavedListing[]>([]);
-    const [notifications, setNotifications] = useState<number>(2);
+    const [notifications, setNotifications] = useState<number>(0);
     const [error, setError] = useState<string | null>(null);
 
     const router = useRouter();
@@ -634,14 +634,14 @@ const EnhancedBuyerDashboard = () => {
                             </div>
 
                             {/* Notifications */}
-                            <Button variant="ghost" size="sm" className="relative">
+                            {/* <Button variant="ghost" size="sm" className="relative">
                                 <Bell className="w-5 h-5" />
                                 {notifications > 0 && (
                                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                                         {notifications}
                                     </span>
                                 )}
-                            </Button>
+                            </Button> */}
 
                             {/* Profile Menu */}
                             <div className="flex items-center space-x-3">

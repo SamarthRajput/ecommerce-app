@@ -566,6 +566,19 @@ export const getSellerListings = async (req: AuthenticatedRequest, res: Response
                 specifications: true,
                 hsnCode: true,
                 countryOfSource: true,
+                minimumOrderQuantity: true,
+                currency: true,
+                brochureUrl: true,
+                deliveryTimeInDays: true,
+                expiryDate: true,
+                rejectionReason: true,
+                licenses: true,
+                logisticsSupport: true,
+                tags: true,
+                warrantyPeriod: true,
+                keywords: true,
+                videoUrl: true,
+                updatedAt: true,
                 validityPeriod: true,
                 images: true,
                 price: true,
@@ -610,7 +623,7 @@ export const toggleListingStatus = async (req: AuthenticatedRequest, res: Respon
             return;
         }
 
-        let updatedStatus: "INACTIVE" | "ACTIVE" | "ARCHIVED";
+        let updatedStatus: "INACTIVE" | "PENDING" | "ARCHIVED";
         switch (action) {
             case 'deactivate':
                 updatedStatus = "INACTIVE";
@@ -618,8 +631,11 @@ export const toggleListingStatus = async (req: AuthenticatedRequest, res: Respon
             case 'archive':
                 updatedStatus = "ARCHIVED";
                 break;
+            case 'activate':
+                updatedStatus = "PENDING";
+                break;
             default:
-                return res.status(400).json({ error: 'Invalid action' });
+                return res.status(400).json({ error: `Invalid action ${action}` });
         }
 
         // Update listing status
