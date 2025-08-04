@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Slider } from "@/components/ui/slider"
-import type { FilterState } from "@/types/product"
+import { FilterState } from "@/src/lib/types/product"
 
 interface FilterSidebarProps {
   filters: FilterState

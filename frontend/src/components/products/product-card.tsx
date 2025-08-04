@@ -5,7 +5,7 @@ import { Package, Star, ShoppingCart } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import type { Product } from "@/types/product"
+import { Product } from "@/src/lib/types/product"
 
 interface ProductCardProps {
   product: Product

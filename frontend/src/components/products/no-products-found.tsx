@@ -2,7 +2,7 @@
 import { Search } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import type { FilterState } from "@/types/product"
+import { FilterState } from "@/src/lib/types/product"
 
 interface NoProductsFoundProps {
   filters: FilterState

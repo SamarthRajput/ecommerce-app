@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Package } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import type { CategoryData } from "@/types/product"
+import { CategoryData } from "@/src/lib/types/product"
 
 interface CategoryCardProps {
   category: CategoryData
