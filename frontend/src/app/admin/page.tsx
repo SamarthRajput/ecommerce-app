@@ -31,7 +31,7 @@ const adminLinks = [
 const inspectorLinks = [
     { href: '/admin/listings', label: 'Manage Listings', icon: Package, description: 'Add, edit, and manage property listings' },
     { href: '/admin/certifications', label: 'Certifications', icon: BookCheck, description: 'Seller Certification approval' },
-    { href: '/admin/analytics', label: 'Reports', icon: BarChart3, description: 'Submit reports for analysis' },
+    { href: '/admin/reports', label: 'Reports', icon: BarChart3, description: 'Submit reports for analysis' },
 ];
 interface AdminUser {
     name: string;
