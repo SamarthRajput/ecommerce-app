@@ -59,7 +59,9 @@ export function ProductListItem({ product, formatCategoryName, onQuoteClick }: P
                   <div className="flex items-center space-x-1 text-sm text-gray-600">
                     <Building className="w-3 h-3" />
                     <span>{product.seller?.businessName}</span>
-                    <span>•</span>
+                    {product.seller?.city || product.seller?.country && (
+                      <span className="mx-1">•</span>
+                    )}
                     <span>
                       {product.seller?.city}, {product.seller?.country}
                     </span>
@@ -77,7 +79,7 @@ export function ProductListItem({ product, formatCategoryName, onQuoteClick }: P
                     <ShoppingCart className="w-4 h-4 mr-1" />
                     Get Quote
                   </Button>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     size="sm"
                     className="h-8 px-2 bg-transparent"
@@ -87,7 +89,7 @@ export function ProductListItem({ product, formatCategoryName, onQuoteClick }: P
                     }}
                   >
                     <MessageSquare className="w-3 h-3" />
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             </div>
