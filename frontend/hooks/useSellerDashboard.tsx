@@ -5,12 +5,12 @@ import { User, Package, BarChart3, MessageSquare, Settings, MessageCircle } from
 import { useAuth } from '@/src/context/AuthContext';
 import { Seller, Listing, DashboardStats, RFQ } from '@/lib/types/seller/sellerDashboard';
 import RFQComponent from '@/src/app/seller/dashboard/RFQ';
-import RenderOverview from '@/src/components/Seller/Dashboard/Overview';
-import ListingDashboard from '@/src/components/Seller/Dashboard/ManageListing';
-import ProfileDashboard from '@/src/components/Seller/Dashboard/ProfileDashboard';
-import SellerCertifications from '@/src/components/Seller/Dashboard/Certifications';
-import ChatDashboard from '@/src/components/Seller/Dashboard/ChatDashboard';
-import SettingsDashboard from '@/src/components/Seller/Dashboard/SettingsDashboard';
+import RenderOverview from '@/src/components/seller/dashboard/Overview';
+import ListingDashboard from '@/src/components/seller/dashboard/ManageListing';
+import ProfileDashboard from '@/src/components/seller/dashboard/ProfileDashboard';
+import SellerCertifications from '@/src/components/seller/dashboard/Certifications';
+import SettingsDashboard from '@/src/components/seller/dashboard/SettingsDashboard';
+import ChatDashboard from '@/src/components/seller/dashboard/ChatDashboard';
 
 // Constants
 const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
@@ -113,7 +113,7 @@ const useSellerDashboard = () => {
                 await fetchProfile();
                 setIsEditing(false);
             } else {
-                try{
+                try {
                     const data = await response.json();
                     const errorData = data.error || data.message || "Failed to update Profile...";
                     throw new Error(errorData);
@@ -121,7 +121,7 @@ const useSellerDashboard = () => {
                     throw new Error(error instanceof Error ? error.message : 'Failed to update profile');
                 }
             }
-        } catch (error:any) {
+        } catch (error: any) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to update profile';
             setProfileError(errorMessage);
             toast.error(errorMessage);
