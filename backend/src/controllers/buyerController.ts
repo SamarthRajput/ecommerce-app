@@ -126,10 +126,9 @@ export const signinBuyer = async (req: Request, res: Response) => {
         });
 
     }
-    catch (e) {
-        console.log(e);
-        res.status(400).json({
-            message: "Invalid!"
+    catch (e: any) {
+        res.status(500).json({
+            message: "Server Error: " + e.message || "Something went wrong"
         })
         return;
     }
@@ -187,10 +186,10 @@ export const getBuyerProfile = async (req: AuthenticatedRequest, res: Response) 
             }
         });
     }
-    catch (error) {
+    catch (error: any) {
         console.log(error);
         res.json({
-            error: "Server error"
+            error: "Server error: " + error.message || "Something went wrong, please try again later."
         });
     }
 };
@@ -207,9 +206,9 @@ export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Respons
             });
             return;
         }
-        
+
         const body = req.body;
-        
+
         // Validate request body
         const { success, data } = updateProfileSchema.safeParse(body);
 
@@ -226,7 +225,7 @@ export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Respons
                 id: buyerId
             }
         });
-        
+
         if (!existingBuyer) {
             res.status(404).json({
                 error: "Buyer not found"
@@ -236,7 +235,7 @@ export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Respons
 
         // Update buyer profile - only update fields that are provided
         const updateData: any = {};
-        
+
         if (data.firstName) updateData.firstName = data.firstName;
         if (data.lastName) updateData.lastName = data.lastName;
         if (data.phoneNumber) updateData.phoneNumber = data.phoneNumber;
@@ -245,7 +244,7 @@ export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Respons
         if (data.city) updateData.city = data.city;
         if (data.zipCode) updateData.zipCode = data.zipCode;
         if (data.country) updateData.country = data.country;
-        
+
         const updatedBuyer = await prisma.buyer.update({
             where: { id: buyerId },
             data: updateData
@@ -266,10 +265,10 @@ export const updateBuyerProfile = async (req: AuthenticatedRequest, res: Respons
                 country: updatedBuyer.country
             }
         });
-    } catch (error) {
-        console.log(error);
+    } catch (error: any) {
+        console.error("Error updating profile:", error);
         res.status(500).json({
-            error: "Internal server error"
+            error: "Internal server error: " + error.message || "Something went wrong, please try again later."
         });
     }
 };
@@ -283,9 +282,9 @@ export const forgotPassword = async (req: Request, res: Response) => {
                 email: buyerEmail
             }
         });
-        
-        if(!existingBuyer){
-            res.status(404).json ({
+
+        if (!existingBuyer) {
+            res.status(404).json({
                 message: "Buyer does not exist"
             })
             return;
@@ -307,7 +306,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
                 otpExpiry: otpExpiry
             }
         });
-        
+
         const transporter = nodemailer.createTransport({
             service: 'Gmail',
             auth: {
@@ -328,7 +327,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         console.log(info);
         console.log(info.messageId);
     }
-    catch(error) {
+    catch (error) {
         res.status(404).json({
             data: "Problem in sending OTP"
         })
@@ -336,50 +335,50 @@ export const forgotPassword = async (req: Request, res: Response) => {
 }
 
 export const updatePassword = async (req: Request, res: Response) => {
-  const { email, otp, newPassword } = req.body;
+    const { email, otp, newPassword } = req.body;
 
-  if (!email || !otp || !newPassword) {
-    return res.status(400).json({ message: "Email, OTP and newPassword are required" });
-  }
-
-  try {
-    // Find buyer by email
-    const buyer = await prisma.buyer.findUnique({
-      where: { email }
-    });
-
-    if (!buyer) {
-      return res.status(404).json({ message: "Buyer not found" });
+    if (!email || !otp || !newPassword) {
+        return res.status(400).json({ message: "Email, OTP and newPassword are required" });
     }
 
-    // Validate OTP
-    if (buyer.otp !== Number(otp)) {
-      return res.status(400).json({ message: "Invalid OTP" });
+    try {
+        // Find buyer by email
+        const buyer = await prisma.buyer.findUnique({
+            where: { email }
+        });
+
+        if (!buyer) {
+            return res.status(404).json({ message: "Buyer not found" });
+        }
+
+        // Validate OTP
+        if (buyer.otp !== Number(otp)) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
+
+        // Check OTP expiry
+        const now = new Date();
+        if (!buyer.otpExpiry || now > buyer.otpExpiry) {
+            return res.status(400).json({ message: "OTP expired" });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update buyer password and clear OTP & expiry
+        await prisma.buyer.update({
+            where: { email },
+            data: {
+                password: hashedPassword,
+                otp: null,
+                otpExpiry: null,
+            }
+        });
+
+        return res.status(200).json({ message: "Password updated successfully" });
+
+    } catch (error) {
+        console.error("Error updating password:", error);
+        return res.status(500).json({ message: "Failed to update password" });
     }
-
-    // Check OTP expiry
-    const now = new Date();
-    if (!buyer.otpExpiry || now > buyer.otpExpiry) {
-      return res.status(400).json({ message: "OTP expired" });
-    }
-
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update buyer password and clear OTP & expiry
-    await prisma.buyer.update({
-      where: { email },
-      data: {
-        password: hashedPassword,
-        otp: null,
-        otpExpiry: null,
-      }
-    });
-
-    return res.status(200).json({ message: "Password updated successfully" });
-
-  } catch (error) {
-    console.error("Error updating password:", error);
-    return res.status(500).json({ message: "Failed to update password" });
-  }
 };
