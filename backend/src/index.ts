@@ -60,9 +60,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // Server start
-const PORT = process.env.PORT || 3001;
-const server = app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+const port = process.env.PORT || 3001;
+const server = app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
   const actualPort = (server.address() as any).port;
   console.log(`✅ Server is running on port ${actualPort}`);
 });

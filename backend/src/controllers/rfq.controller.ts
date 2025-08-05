@@ -3,31 +3,55 @@ import { prisma } from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import { AuthenticatedRequest } from "../middlewares/authSeller";
 
+// Define the interface for message data
+interface MessageData {
+  budget?: number;
+  currency?: string;
+  deliveryDate?: string;
+  paymentTerms?: string;
+  specialRequirements?: string;
+  additionalNotes?: string;
+}
+
 // POST /rfq
 export const createRFQ = async (req: Request, res: Response) => {
-  const { productId, quantity, message } = req.body;
+  const body = req.body;
   const buyerId = req.user?.userId;
-
+  
   if (!buyerId) {
     res.status(401).json({ message: 'Unauthorized: Buyer ID is required' });
     return;
   }
 
-  if (!productId || !quantity) {
+  if (!body.productId || !body.quantity) {
     res.status(400).json({ message: 'productId and quantity are required' });
     return;
   }
 
-  if (typeof quantity !== 'number' || quantity <= 0) {
+  if (typeof body.quantity !== 'number' || body.quantity <= 0) {
     res.status(400).json({ message: 'quantity must be a positive number' });
     return;
+  }
+
+  // Parse the message if it's a string
+  let messageData: MessageData = {};
+  if (body.message) {
+    try {
+      messageData = typeof body.message === 'string' 
+        ? JSON.parse(body.message) 
+        : body.message;
+    } catch (error) {
+      console.error('Error parsing message:', error);
+      res.status(400).json({ message: 'Invalid message format' });
+      return;
+    }
   }
 
   // handle rfq creation
   try {
     const [product, buyer] = await Promise.all([
       prisma.product.findUnique({
-        where: { id: productId },
+        where: { id: body.productId },
         select: { id: true }
       }),
       prisma.buyer.findUnique({
@@ -37,28 +61,31 @@ export const createRFQ = async (req: Request, res: Response) => {
     ]);
 
     if (!product) {
-      res.status(404).json({ message: 'Product not found' }); return;
+      res.status(404).json({ message: 'Product not found' }); 
+      return;
     }
 
     if (!buyer) {
-      res.status(404).json({ message: 'Buyer not found' }); return;
+      res.status(404).json({ message: 'Buyer not found' }); 
+      return;
     }
 
     const rfq = await prisma.rFQ.create({
       data: {
-        productId,
+        productId: body?.productId,
         buyerId,
-        quantity,
-        budget: message?.budget || 0,
-        currency: message?.currency || 'USD',
-        deliveryDate: message?.deliveryDate ? new Date(message.deliveryDate) : undefined,
-        paymentTerms: message?.paymentTerms || '',
-        specialRequirements: message?.specialRequirements || '',
-        additionalNotes: message?.additionalNotes || '',
+        quantity: body?.quantity,
+        budget: messageData?.budget || 0,
+        currency: messageData?.currency || 'USD',
+        deliveryDate: messageData?.deliveryDate ? new Date(messageData.deliveryDate) : undefined,
+        paymentTerms: messageData?.paymentTerms || '',
+        specialRequirements: messageData?.specialRequirements || '',
+        additionalNotes: messageData?.additionalNotes || '',
         status: 'PENDING',
       }
     });
-
+    
+    
     // Handle chat room creation. (wont block rfq creation)
     await handleChatRoomCreation(rfq.id, buyerId);
 

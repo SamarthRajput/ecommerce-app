@@ -44,6 +44,14 @@ export const RFQRow = React.memo(({ rfq, rfqState }: RFQRowProps) => {
         }
     }
 
+    // Safe access to product data with fallbacks
+    const productName = rfq.product?.name || rfq.productName || "Product name not available"
+    const productPrice = rfq.product?.price || rfq.price || 0
+    const buyerName = `${rfq.buyer?.firstName || ""} ${rfq.buyer?.lastName || ""}`.trim() || 
+                     rfq.buyer?.email || 
+                     rfq.buyerEmail || 
+                     "Buyer information not available"
+
     return (
         <div className="grid grid-cols-12 gap-4 p-4 hover:bg-muted/30 transition-colors">
             {/* Product & Buyer */}
@@ -52,9 +60,11 @@ export const RFQRow = React.memo(({ rfq, rfqState }: RFQRowProps) => {
                     <Package className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                    <div className="font-medium truncate text-sm">{rfq.product.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                        {`${rfq.buyer.firstName || ""} ${rfq.buyer.lastName || ""}`.trim() || rfq.buyer.email}
+                    <div className="font-medium truncate text-sm" title={productName}>
+                        {productName}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate" title={buyerName}>
+                        {buyerName}
                     </div>
                 </div>
             </div>
@@ -63,11 +73,13 @@ export const RFQRow = React.memo(({ rfq, rfqState }: RFQRowProps) => {
             <div className="col-span-2 space-y-1">
                 <div className="flex items-center gap-1 text-sm">
                     <DollarSign className="w-3 h-3 text-emerald-600" />
-                    <span className="font-semibold text-emerald-600">{formatPrice(rfq.product.price)}</span>
+                    <span className="font-semibold text-emerald-600">
+                        {formatPrice(productPrice)}
+                    </span>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Package className="w-3 h-3" />
-                    {rfq.quantity.toLocaleString()} units
+                    {(rfq.quantity || 0).toLocaleString()} units
                 </div>
             </div>
 
@@ -79,7 +91,9 @@ export const RFQRow = React.memo(({ rfq, rfqState }: RFQRowProps) => {
                 {rfq.message?.budget ? (
                     <div className="flex items-center gap-1 text-sm">
                         <CreditCard className="w-3 h-3 text-purple-600" />
-                        <span className="font-medium text-purple-600">{formatPrice(rfq.message?.budget, rfq.message?.currency)}</span>
+                        <span className="font-medium text-purple-600">
+                            {formatPrice(rfq.message.budget, rfq.message.currency)}
+                        </span>
                     </div>
                 ) : (
                     <div className="text-xs text-muted-foreground">No budget specified</div>
@@ -92,7 +106,13 @@ export const RFQRow = React.memo(({ rfq, rfqState }: RFQRowProps) => {
 
             {/* Actions */}
             <div className="col-span-2 flex items-center justify-center gap-1">
-                <Button variant="ghost" size="sm" onClick={() => handleViewRFQ(rfq)} className="h-8 w-8 p-0">
+                <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleViewRFQ(rfq)} 
+                    className="h-8 w-8 p-0"
+                    title="View RFQ details"
+                >
                     <Eye className="w-4 h-4" />
                 </Button>
 
@@ -107,6 +127,7 @@ export const RFQRow = React.memo(({ rfq, rfqState }: RFQRowProps) => {
                             }}
                             disabled={processingAction === rfq.id}
                             className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                            title="Forward RFQ"
                         >
                             {processingAction === rfq.id ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -120,6 +141,7 @@ export const RFQRow = React.memo(({ rfq, rfqState }: RFQRowProps) => {
                             onClick={() => handleRejectClick(rfq)}
                             disabled={processingAction === rfq.id}
                             className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Reject RFQ"
                         >
                             <X className="w-4 h-4" />
                         </Button>

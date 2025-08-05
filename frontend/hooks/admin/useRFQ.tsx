@@ -22,6 +22,9 @@ export interface RFQ {
     productId: string
     buyerId: string
     quantity: number
+    productName: string
+    price: number
+    buyerEmail: string
     message?: Message
     status: "PENDING" | "APPROVED" | "REJECTED" | "FORWARDED"
     deliveryDate?: Date

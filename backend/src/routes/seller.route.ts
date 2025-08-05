@@ -39,7 +39,7 @@ sellerRouter.get("/dashboard-stats", requireSeller, asyncHandler(getDashboardSta
 sellerRouter.get("/rfq-requests", requireSeller, asyncHandler(getSellerRFQRequests));
 
 // * Document Upload
-sellerRouter.post("/upload-documents", requireSeller, upload.single('file'), asyncHandler(uploadDocuments));
+sellerRouter.post("/upload-documents", upload.single('file'), asyncHandler(uploadDocuments));
 
 // * Public Profile
 sellerRouter.get("/public-profile/:sellerId", asyncHandler(getSellerPublicProfile));
