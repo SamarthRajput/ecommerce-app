@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { APIURL } from '@/src/config/env';
 
-const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
-const API_BASE_URL = `${API_BACKEND_URL}/buyer`;
+const API_BASE_URL = `${APIURL}/buyer`;
 
 type ResetPasswordFormInputs = {
   email: string;

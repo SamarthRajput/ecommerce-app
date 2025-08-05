@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/src/context/AuthContext';
 import { toast } from 'sonner';
 import { AdminUser, ApprovalData, BuyerUser, CreateAdminData, SellerUser, UpdateAdminData, UserStats } from '@/src/lib/types/admin/userManagementInterface';
+import { APIURL } from '@/src/config/env';
 
 export const useUserManagement = () => {
     const [sellers, setSellers] = useState<SellerUser[]>([]);
@@ -11,7 +12,6 @@ export const useUserManagement = () => {
     const [error, setError] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
     const { authenticated, authLoading, isAdminAdmin, user, isSuperAdmin } = useAuth();
 
     // Calculate user statistics
@@ -33,12 +33,12 @@ export const useUserManagement = () => {
             setError(null);
 
             const requests = [
-                fetch(`${BASE_URL}/admin/sellers`, {
+                fetch(`${APIURL}/admin/sellers`, {
                     method: 'GET',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                 }),
-                fetch(`${BASE_URL}/admin/buyers`, {
+                fetch(`${APIURL}/admin/buyers`, {
                     method: 'GET',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
@@ -48,7 +48,7 @@ export const useUserManagement = () => {
             // Only fetch admins if user is SuperAdmin
             if (isSuperAdmin) {
                 requests.push(
-                    fetch(`${BASE_URL}/admin/admins`, {
+                    fetch(`${APIURL}/admin/admins`, {
                         method: 'GET',
                         credentials: 'include',
                         headers: { 'Content-Type': 'application/json' },
@@ -100,7 +100,7 @@ export const useUserManagement = () => {
         } finally {
             setLoading(false);
         }
-    }, [BASE_URL, isSuperAdmin]);
+    }, [APIURL, isSuperAdmin]);
 
     // Create admin user (SuperAdmin only)
     const createAdminUser = async (data: CreateAdminData): Promise<boolean> => {
@@ -114,7 +114,7 @@ export const useUserManagement = () => {
             setActionLoading('creating-admin');
             setError(null);
 
-            const response = await fetch(`${BASE_URL}/admin/admins`, {
+            const response = await fetch(`${APIURL}/admin/admins`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -151,7 +151,7 @@ export const useUserManagement = () => {
             setActionLoading(`updating-admin-${id}`);
             setError(null);
 
-            const response = await fetch(`${BASE_URL}/admin/admins/${id}`, {
+            const response = await fetch(`${APIURL}/admin/admins/${id}`, {
                 method: 'PUT',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -195,7 +195,7 @@ export const useUserManagement = () => {
             setActionLoading(`deleting-admin-${id}`);
             setError(null);
 
-            const response = await fetch(`${BASE_URL}/admin/admins/${id}`, {
+            const response = await fetch(`${APIURL}/admin/admins/${id}`, {
                 method: 'DELETE',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -224,7 +224,7 @@ export const useUserManagement = () => {
             setActionLoading(`deleting-buyer-${id}`);
             setError(null);
 
-            const response = await fetch(`${BASE_URL}/admin/buyers/${id}`, {
+            const response = await fetch(`${APIURL}/admin/buyers/${id}`, {
                 method: 'DELETE',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -253,7 +253,7 @@ export const useUserManagement = () => {
             setActionLoading(`approving-seller-${id}`);
             setError(null);
 
-            const response = await fetch(`${BASE_URL}/admin/sellers/${id}/approve`, {
+            const response = await fetch(`${APIURL}/admin/sellers/${id}/approve`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },

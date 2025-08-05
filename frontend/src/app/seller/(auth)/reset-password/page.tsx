@@ -1,4 +1,5 @@
 "use client";
+import { APIURL } from "@/src/config/env";
 import React, { useState } from "react";
 
 const ResetSellerPassword = () => {
@@ -8,8 +9,7 @@ const ResetSellerPassword = () => {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
-  const API_BASE_URL = `${API_BACKEND_URL}/seller`;
+  const API_BASE_URL = `${APIURL}/seller`;
 
   // Get token from URL safely (works only on client)
   const [token, setToken] = useState<string | null>(null);

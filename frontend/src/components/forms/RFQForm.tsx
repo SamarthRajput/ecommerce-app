@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { showSuccess, showError } from '@/lib/toast';
 import { useRouter } from 'next/navigation';
+import { APIURL } from '@/src/config/env';
 
 interface RFQFormProps {
     listingId: string;
@@ -80,10 +81,8 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
                 }),
                 status: "PENDING"
             };
-            // alert('Submitting RFQ...');
-            const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-            // console.log(BASE_URL + "/rfq/create");
-            const response = await fetch(`${BASE_URL}/rfq/create`, {
+
+            const response = await fetch(`${APIURL}/rfq/create`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {

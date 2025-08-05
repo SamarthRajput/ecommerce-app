@@ -34,7 +34,7 @@ import { NoProductsFound } from "./no-products-found"
 import { CategoryCard } from "./category-card"
 
 import type { Product, ProductsResponse, FilterState, CategoryData } from "@/src/lib/types/product";
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3001/api/v1"
+import { APIURL } from "@/src/config/env"
 
 interface ProductListingsProps {
   initialCategory?: string // Optional for the main products page
@@ -169,8 +169,8 @@ export function ProductListings({ initialCategory }: ProductListingsProps) {
       setError(null)
       try {
         const url = initialCategory
-          ? `${backendUrl}/products/${initialCategory}?page=1&limit=1000`
-          : `${backendUrl}/products/all?page=1&limit=1000`
+          ? `${APIURL}/products/${initialCategory}?page=1&limit=1000`
+          : `${APIURL}/products/all?page=1&limit=1000`
 
         const response = await fetch(url, {
           credentials: "include",

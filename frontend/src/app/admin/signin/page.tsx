@@ -4,9 +4,9 @@ import { Eye, EyeOff, Lock, Mail, Loader2, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/context/AuthContext';
 import { toast } from 'sonner';
+import { APIURL } from '@/src/config/env';
 
-const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
-const API_BASE_URL = `${API_BACKEND_URL}/auth/admin`;
+const API_BASE_URL = `${APIURL}/auth/admin`;
 
 const AdminLoginPage = () => {
     const [formData, setFormData] = useState({

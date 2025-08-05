@@ -1,6 +1,7 @@
 "use client";
 import { AlertCircle, CheckCircle, CreditCard, ExternalLink, Loader2, Shield } from "lucide-react";
 import React, { useState } from "react";
+import { APIURL } from "../config/env";
 
 export default function RequestCertificationButton({ 
   productId, 
@@ -25,7 +26,7 @@ export default function RequestCertificationButton({
       console.log(productId);
       console.log(amount);
       
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/certification/request`, {
+      const res = await fetch(`${APIURL}/certification/request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -44,7 +45,7 @@ export default function RequestCertificationButton({
       onCertificationRequested?.();
       
       // Create PayPal payment
-      const payRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/certification/paypal/create`, {
+      const payRes = await fetch(`${APIURL}/certification/paypal/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

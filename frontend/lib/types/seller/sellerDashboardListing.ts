@@ -56,10 +56,6 @@ export interface ListingStats {
     totalValue: number;
 }
 
-// Constants
-export const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
-export const API_BASE_URL = `${API_BACKEND_URL}/seller`;
-
 export const STATUS_CONFIG = {
     ACTIVE: {
         color: 'bg-green-100 text-green-700 border-green-200',

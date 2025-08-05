@@ -28,6 +28,7 @@ import { Package, ShoppingCart, History, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { APIURL } from "@/src/config/env";
 
 interface RFQ {
   id: string;
@@ -67,8 +68,7 @@ export const OverviewTab = ({ buyerId }: OverviewTabProps) => {
 
     const fetchRFQs = async () => {
       try {
-        const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${BASE_URL}/rfq/buyer/${buyerId}`, {
+        const response = await fetch(`${APIURL}/rfq/buyer/${buyerId}`, {
           method: "GET",
           credentials: "include",
           headers: {

@@ -29,9 +29,7 @@ import { Badge } from '@/components/ui/badge';
 import { renderProfile } from './Profile';
 import { useAuth } from '@/src/context/AuthContext';
 import { OverviewTab } from '@/src/app/buyer/dashboard/OverviewTab';
-
-const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
-const API_BASE_URL = `${API_BACKEND_URL}/buyer`;
+import { APIURL } from '@/src/config/env';
 
 // Types
 export interface Buyer {
@@ -155,7 +153,7 @@ const EnhancedBuyerDashboard = () => {
     // Fetch buyer profile
     const fetchProfile = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/profile`, {
+            const response = await fetch(`${APIURL}/profile`, {
                 credentials: 'include'
             });
 
@@ -189,7 +187,7 @@ const EnhancedBuyerDashboard = () => {
         setProfileError('');
         
         try {
-            const response = await fetch(`${API_BASE_URL}/update`, {
+            const response = await fetch(`${APIURL}/update`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -256,8 +254,7 @@ const EnhancedBuyerDashboard = () => {
         
         try {
             setRfqsLoading(true);
-            const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${BASE_URL}/rfq/buyer/${buyerId}`, {
+            const response = await fetch(`${APIURL}/rfq/buyer/${buyerId}`, {
                 method: "GET",
                 credentials: "include",
                 headers: {

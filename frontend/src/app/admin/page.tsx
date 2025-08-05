@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { BarChart3, Users, Package, FileText, LogOut, Loader2, MessageSquare, BookCheck } from 'lucide-react';
 import { useAuth } from '@/src/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { APIURL } from '@/src/config/env';
 
 // const quickLinks = [
 //     { href: '/admin/listings', label: 'Manage Listings', icon: Package, description: 'Add, edit, and manage property listings' },
@@ -87,8 +88,7 @@ const AdminDashboard = () => {
         const fetchAdminSummary = async () => {
             setIsLoading(true);
             try {
-                const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-                const response = await fetch(`${BASE_URL}/admin/dashboard-summary`, {
+                const response = await fetch(`${APIURL}/admin/dashboard-summary`, {
                     method: 'GET',
                     credentials: 'include', // Include cookies for authentication
                     headers: {

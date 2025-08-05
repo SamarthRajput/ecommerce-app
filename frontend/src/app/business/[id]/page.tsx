@@ -30,9 +30,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { APIURL } from '@/src/config/env';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const API_URL = `${BACKEND_URL}/seller`;
+const API_URL = `${APIURL}/seller`;
 
 interface SellerProfileData {
     message: string;

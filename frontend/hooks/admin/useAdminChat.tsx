@@ -1,4 +1,5 @@
 "use client"
+import { APIURL } from "@/src/config/env"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { toast } from "sonner"
 
@@ -43,11 +44,9 @@ export const useAdminChat = () => {
     const [creating, setCreating] = useState<string | null>(null)
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
-    const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
-
     const fetchRFQs = useCallback(async () => {
         try {
-            const response = await fetch(`${BASE_URL}/rfq/forwarded`, {
+            const response = await fetch(`${APIURL}/rfq/forwarded`, {
                 method: "GET",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -81,13 +80,13 @@ export const useAdminChat = () => {
             setLoadingRooms(false);
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
         }
-    }, [BASE_URL])
+    }, [APIURL])
 
     const createChatRoom = useCallback(
         async (rfqId: string) => {
             setCreating(rfqId)
             try {
-                const response = await fetch(`${BASE_URL}/chat/chatroom`, {
+                const response = await fetch(`${APIURL}/chat/chatroom`, {
                     method: "POST",
                     credentials: "include",
                     headers: { "Content-Type": "application/json" },
@@ -113,11 +112,11 @@ export const useAdminChat = () => {
                 setCreating(null)
             }
         },
-        [BASE_URL],
+        [APIURL],
     )
     const fetchChatRooms = useCallback(async () => {
         try {
-            const response = await fetch(`${BASE_URL}/chat/chatrooms`, {
+            const response = await fetch(`${APIURL}/chat/chatrooms`, {
                 method: "GET",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -134,7 +133,7 @@ export const useAdminChat = () => {
         } catch (err) {
             toast.error((err as Error).message)
         }
-    }, [BASE_URL])
+    }, [APIURL])
 
     const refreshData = useCallback(() => {
         setLoadingRooms(true)

@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/src/context/AuthContext';
 import { toast } from 'sonner';
+import { APIURL } from '@/src/config/env';
 
-const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
-const API_BASE_URL = `${API_BACKEND_URL}/seller`;
+const API_BASE_URL = `${APIURL}/seller`;
 
 const ForgotPassword = () => {
     const [message, setMessage] = useState('');
