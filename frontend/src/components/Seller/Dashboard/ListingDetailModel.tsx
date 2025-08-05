@@ -6,48 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Listing, STATUS_CONFIG } from '@/lib/types/seller/sellerDashboardListing';
 import { useRouter } from 'next/navigation';
-
-/*
-export interface Listing {
-    id: string;
-    productName: string;
-    name: string;
-    description: string;
-    listingType: string;
-    industry: string;
-    condition: string;
-    productCode: string;
-    model: string;
-    specifications: string;
-    hsnCode: string;
-    countryOfSource: string;
-    validityPeriod: string;
-    images: string[];
-    price: number;
-    quantity: number;
-    category: string;
-    status: 'active' | 'inactive' | 'archived' | 'rejected';
-    createdAt: string;
-    rejectionReason?: string; // Optional for rejected listings
-    updatedAt?: string;
-    views?: number;
-    rfqCount?: number;
-    slug: string;
-    minimumOrderQuantity: number;
-    currency?: string 
-    brochureUrl?: string
-    deliveryTimeInDays?: number,
-    expiryDate?: string,
-    licenses: string[],
-    certifications: string[],
-    logisticsSupport: boolean,
-    tags: string[],
-    warrantyPeriod?: string,
-    keywords: string[],
-    videoUrl: string,
-}
-    */
-
 interface ListingDetailModalProps {
     listing: Listing;
     onClose: () => void;
@@ -195,13 +153,20 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <Button variant="outline" size="sm" onClick={() => router.push(`/products/${listing.category}/${listing.id}`)}>
-                                        <Package className="w-4 h-4 mr-2" />
-                                        View on Marketplace
-                                    </Button>
-                                    <Button onClick={() =>
-                                        router.push(`/seller/edit-listing/${listing.slug}`)
-                                    }>
+                                    {listing.status == "APPROVED" && (
+                                        <Button variant="link" size="sm" onClick={() => router.push(`/products/${listing.category}/${listing.id}`)}>
+                                            <Package className="w-4 h-4 mr-2" />
+                                            View on Marketplace
+                                        </Button>
+                                    )}
+                                    
+                                    <Button onClick={() => {
+                                        if (listing.slug) {
+                                            router.push(`/seller/edit-listing/${listing.slug}`)
+                                        } else {
+                                            router.push(`/seller/edit-listing/${listing.id}`)
+                                        }
+                                    }}>
                                         <Edit className="w-4 h-4 mr-2" />
                                         Edit Listing
                                     </Button>

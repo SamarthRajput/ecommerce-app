@@ -51,7 +51,7 @@ export default function ReviewSubmitStep({
                 </div>
             </div>
 
-            {mode === 'create' && (
+            {/* {mode === 'create' && (
                 <div className="space-y-4">
                     <Controller
                         name="agreedToTerms"
@@ -83,7 +83,7 @@ export default function ReviewSubmitStep({
                         <p className="text-sm text-red-500">{errors.agreedToTerms.message}</p>
                     )}
                 </div>
-            )}
+            )} */}
 
             <Alert>
                 <AlertCircle className="h-4 w-4" />

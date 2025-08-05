@@ -50,7 +50,7 @@ export default function ProductDetailsStep({ control, errors }: ProductDetailsSt
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="specifications">Specifications</Label>
+                <Label htmlFor="specifications">Specifications *</Label>
                 <Controller
                     name="specifications"
                     control={control}

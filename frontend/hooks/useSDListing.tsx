@@ -132,6 +132,7 @@ export const useListingFilters = (listings: Listing[]) => {
             const matchesStatus = filters.status === 'all' || listing.status === filters.status;
             const matchesCategory = filters.category === 'all' || listing.category === filters.category;
 
+            console.log(`\n\nMatched Status: ${matchesStatus}`);
             return matchesSearch && matchesStatus && matchesCategory;
         });
 
@@ -153,7 +154,7 @@ export const useListingFilters = (listings: Listing[]) => {
                 return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
             }
         });
-
+        // alert(JSON.stringify(filtered))
         return filtered;
     }, [listings, filters]);
 
@@ -166,17 +167,21 @@ export const useListingFilters = (listings: Listing[]) => {
     // Calculate statistics
     const stats: ListingStats = useMemo(() => {
         const total = listings.length;
-        const active = listings.filter(l => l.status === 'active').length;
-        const inactive = listings.filter(l => l.status === 'inactive').length;
-        const archived = listings.filter(l => l.status === 'archived').length;
+        const active = listings.filter(l => l.status === 'ACTIVE').length;
+        const inactive = listings.filter(l => l.status === 'INACTIVE').length;
+        const archived = listings.filter(l => l.status === 'ARCHIVED').length;
+        const approved = listings.filter(l => l.status === 'APPROVED').length;
+        const rejected = listings.filter(l => l.status === "REJECTED").length;
+
         const totalValue = listings.reduce((sum, l) => sum + (l.price * l.quantity), 0);
 
-        return { total, active, inactive, archived, totalValue };
+        return { total, active, inactive, approved, rejected, archived, totalValue };
     }, [listings]);
 
     const handleFilterChange = useCallback((key: keyof ListingFilters, value: string) => {
+        // alert(`Filter changed to : ${JSON.stringify(filters)}`)
         setFilters((prev: ListingFilters) => ({ ...prev, [key]: value }));
-    }, []);
+    }, [filters])
 
     const clearFilters = useCallback(() => {
         setFilters({

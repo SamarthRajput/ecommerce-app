@@ -9,7 +9,7 @@ export const listingFormSchema = z.object({
   productName: z.string().min(1, 'Product name is required'),
   description: z.string().min(10, 'Description must be at least 10 characters'),
   model: z.string().min(1, 'Model is required'),
-  specifications: z.string().min(1, 'Specifications are required'),
+  specifications: z.string().min(10, 'Specifications must be at least 10 characters'),
   hsnCode: z.string().min(1, 'HSN code is required'),
   quantity: z.number().min(1, 'Quantity must be at least 1'),
   countryOfSource: z.string().min(1, 'Country of source is required'),

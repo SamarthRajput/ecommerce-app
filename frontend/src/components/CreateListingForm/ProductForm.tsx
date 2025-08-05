@@ -30,8 +30,6 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
         router.push("/seller/dashboard?tab=listings");
     };
 
-
-    // Use appropriate schema based on mode
     const schema = mode === 'create' ? createProductSchema : productSchema;
 
     const {
@@ -61,7 +59,7 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
             certifications: [],
             licenses: [],
             images: [],
-            agreedToTerms: mode === 'edit' ? true : false,
+            agreedToTerms: true,
             ...initialData
         }
     });
@@ -123,7 +121,7 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
             1: ['name', 'productCode', 'model', 'category', 'industry', 'condition', 'listingType', 'description'],
             2: ['price', 'currency', 'quantity', 'minimumOrderQuantity'],
             3: ['deliveryTimeInDays', 'logisticsSupport', 'countryOfSource', 'validityPeriod'],
-            4: ['hsnCode'],
+            4: ['hsnCode', 'specifications'],
             5: ['images'],
             6: ['tags'],
             7: mode === 'create' ? ['agreedToTerms'] : []
@@ -391,9 +389,9 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>
                             Please fix the following errors before proceeding:
-                            <span>
+                            {/* <span>
                                 {JSON.stringify(errors)}
-                            </span>
+                            </span> */}
                             <ul className="mt-2 list-disc list-inside">
                                 {Object.entries(errors).map(([field, error]) => {
                                     // Zod errors may have nested errors (e.g., for arrays/objects)

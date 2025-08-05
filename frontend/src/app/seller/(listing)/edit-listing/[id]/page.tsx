@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import { ProductFormData } from '@/lib/types/listing';
 import ProductForm from '@/src/components/CreateListingForm/ProductForm';
 import { useAuth } from '@/src/context/AuthContext';
-import RequestCertificationButton from '@/src/components/RequestCertificationButton';
 import { toast } from 'sonner';
 
 export default function EditListingPage() {
@@ -14,6 +13,7 @@ export default function EditListingPage() {
     const [initialData, setInitialData] = useState<Partial<ProductFormData> | null>(null);
     const [loading, setLoading] = useState(true);
     const { authLoading, isSeller, user } = useAuth();
+    const [successfullyUpdated, setSuccessfullyUpdated] = useState(false);
 
     useEffect(() => {
         if (!authLoading && !isSeller) {
@@ -86,8 +86,10 @@ export default function EditListingPage() {
             });
             const responseData = await response.json();
             if (response.ok) {
+                setSuccessfullyUpdated(true);
+                setInitialData(responseData.listing);
                 toast.success(responseData.message || 'Product updated successfully');
-                router.push(`/products/${responseData.listing.category}/${responseData.listing.id}`);
+                // router.push(`/products/${responseData.listing.category}/${responseData.listing.id}`);
             } else {
                 throw new Error(`Failed to update product: ${responseData.message || responseData.error}`);
             }
@@ -96,23 +98,11 @@ export default function EditListingPage() {
             throw error;
         }
     };
-    /*
-     res.json({
-                message: 'Listing updated successfully',
-                listing: {
-                    id: updatedListing.id,
-                    name: updatedListing.name,
-                    description: updatedListing.description,
-                    price: updatedListing.price,
-                    category: updatedListing.category,
-                    status: updatedListing.status
-                }
-            });
-            */
-    const handleCancel = () => {
-        // confirm before navigating away
 
-        router.push('/seller/dashboard?tab=listings');
+    const handleCancel = () => {
+        if (confirm('Are you sure you want to cancel? All changes will be lost.')) {
+            router.push('/seller/dashboard?tab=listings');
+        }
     };
 
     if (loading) {
@@ -127,6 +117,25 @@ export default function EditListingPage() {
         );
     }
 
+    if (successfullyUpdated) {
+        return (
+            <div className="min-h-screen bg-gray-50 py-8">
+                <div className="max-w-4xl mx-auto px-4">
+                    <div className="text-center">
+                        <h1 className="text-2xl font-bold text-gray-900 mb-4">Product Updated Successfully</h1>
+                        <p className="text-gray-600 mb-4">Your product has been updated successfully, and will be reviewed shortly by our team.</p>
+                        <button
+                            onClick={() => router.push('/seller/dashboard?tab=listings')}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                        >
+                            Go to Listings
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (!initialData) {
         return (
             <div className="min-h-screen bg-gray-50 py-8">
@@ -135,10 +144,10 @@ export default function EditListingPage() {
                         <h1 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h1>
                         <p className="text-gray-600 mb-4">The product you're trying to edit doesn't exist.</p>
                         <button
-                            onClick={() => router.push('/seller/listings')}
+                            onClick={() => router.back()}
                             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                         >
-                            Back to Listings
+                            Go Back
                         </button>
                     </div>
                 </div>

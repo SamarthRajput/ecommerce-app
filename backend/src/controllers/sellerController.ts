@@ -1217,14 +1217,7 @@ export const editListing = async (req: AuthenticatedRequest, res: Response) => {
 
         res.json({
             message: 'Listing updated successfully',
-            listing: {
-                id: updatedListing.id,
-                name: updatedListing.name,
-                description: updatedListing.description,
-                price: updatedListing.price,
-                category: updatedListing.category,
-                status: updatedListing.status
-            }
+            listing: updatedListing
         });
 
     } catch (error) {

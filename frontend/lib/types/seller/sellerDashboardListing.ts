@@ -20,7 +20,7 @@ export interface Listing {
     price: number;
     quantity: number;
     category: string;
-    status: 'active' | 'inactive' | 'archived' | 'rejected';
+    status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED' | 'REJECTED' | 'APPROVED' | 'PENDING';
     createdAt: string;
     rejectionReason?: string; // Optional for rejected listings
     updatedAt?: string;
@@ -28,7 +28,7 @@ export interface Listing {
     rfqCount?: number;
     slug: string;
     minimumOrderQuantity: number;
-    currency?: string 
+    currency?: string
     brochureUrl?: string
     deliveryTimeInDays?: number,
     expiryDate?: string,
@@ -61,30 +61,35 @@ export const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
 export const API_BASE_URL = `${API_BACKEND_URL}/seller`;
 
 export const STATUS_CONFIG = {
-    active: {
+    ACTIVE: {
         color: 'bg-green-100 text-green-700 border-green-200',
         icon: Check,
         label: 'Active'
     },
-    inactive: {
+    INACTIVE: {
         color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
         icon: AlertTriangle,
         label: 'Inactive'
     },
-    archived: {
+    ARCHIVED: {
         color: 'bg-gray-100 text-gray-700 border-gray-200',
         icon: Archive,
         label: 'Archived'
     },
-    rejected: {
+    REJECTED: {
         color: 'bg-red-100 text-red-700 border-red-200',
         icon: AlertTriangle,
         label: 'Rejected'
     },
-    approved: {
+    APPROVED: {
         color: 'bg-blue-100 text-blue-700 border-blue-200',
         icon: Check,
         label: 'Approved'
+    },
+    PENDING: {
+        color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+        icon: AlertTriangle,
+        label: 'Pending'
     }
 } as const;
 

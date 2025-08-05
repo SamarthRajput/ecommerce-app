@@ -234,7 +234,7 @@ export const ListingActions: React.FC<ListingActionsProps> = ({
             <Eye className="w-4 h-4" />
         </Button>
 
-        {listing.status === 'active' ? (
+        {/* {listing.status === 'active' ? (
             <Button
                 variant="ghost"
                 size="sm"
@@ -276,7 +276,7 @@ export const ListingActions: React.FC<ListingActionsProps> = ({
             >
                 <Archive className="w-4 h-4 text-gray-600" />
             </Button>
-        )}
+        )} */}
 
     </div>
 );
