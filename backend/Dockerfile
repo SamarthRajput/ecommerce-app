@@ -22,4 +22,5 @@ EXPOSE 3001
 
 # Set NODE_ENV and start the server with a production-safe Prisma migration
 ENV NODE_ENV=production
-CMD npx prisma migrate deploy && node dist/src/index.js
+# CMD npx prisma migrate deploy && node dist/src/index.js
+CMD npx prisma migrate deploy && node dist/index.js
