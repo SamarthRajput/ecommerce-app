@@ -35,21 +35,17 @@ interface RFQ {
     name: string;
   };
   quantity: number;
-  message: string; // Contains the JSON string with RFQ details
+  budget: number;
+  currency: string;
+  deliveryDate: string | null;
+  paymentTerms: string;
+  specialRequirements: string;
+  additionalNotes: string;
   status: string;
   createdAt: string;
   trade?: {
     name: string;
   };
-}
-
-interface RFQDetails {
-  deliveryDate: string;
-  budget: number;
-  currency: string;
-  paymentTerms: string;
-  specialRequirements: string;
-  additionalNotes: string;
 }
 
 interface OverviewTabProps {
@@ -96,31 +92,6 @@ export const OverviewTab = ({ buyerId }: OverviewTabProps) => {
 
     fetchRFQs();
   }, [buyerId]);
-
-  const parseRFQDetails = (message: string): RFQDetails => {
-    try {
-      const parsed = JSON.parse(message);
-      // Ensure all required properties exist with fallback values
-      return {
-        deliveryDate: parsed?.deliveryDate || "",
-        budget: parsed?.budget || 0,
-        currency: parsed?.currency || "USD",
-        paymentTerms: parsed?.paymentTerms || "",
-        specialRequirements: parsed?.specialRequirements || "",
-        additionalNotes: parsed?.additionalNotes || ""
-      };
-    } catch (error) {
-      // Return a complete RFQDetails object with default values
-      return {
-        deliveryDate: "",
-        budget: 0,
-        currency: "USD",
-        paymentTerms: "",
-        specialRequirements: "",
-        additionalNotes: ""
-      };
-    }
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -227,18 +198,17 @@ export const OverviewTab = ({ buyerId }: OverviewTabProps) => {
                 <TableBody>
                   {rfqs.length > 0 ? (
                     rfqs.map((rfq) => {
-                      const details = parseRFQDetails(rfq.message);
                       return (
                         <TableRow key={rfq.id}>
                           <TableCell className="font-medium max-w-[200px] truncate">{rfq.product.name}</TableCell>
                           <TableCell>{rfq.quantity}</TableCell>
                           <TableCell>
-                            {details.currency} {details.budget?.toFixed(2) || "0.00"}
+                            {formatCurrency(rfq.budget || 0, rfq.currency || "USD")}
                           </TableCell>
                           <TableCell>
-                            {details.deliveryDate ? formatDate(details.deliveryDate) : "-"}
+                            {rfq.deliveryDate ? formatDate(rfq.deliveryDate) : "-"}
                           </TableCell>
-                          <TableCell>{details.paymentTerms || "-"}</TableCell>
+                          <TableCell>{rfq.paymentTerms || "-"}</TableCell>
                           <TableCell>{formatDate(rfq.createdAt)}</TableCell>
                           <TableCell>
                             <Badge
@@ -334,53 +304,48 @@ export const OverviewTab = ({ buyerId }: OverviewTabProps) => {
                 </div>
 
                 {/* RFQ Details */}
-                {(() => {
-                  const details = parseRFQDetails(selectedRFQ.message);
-                  return (
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-lg border-b pb-2">Request Details</h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="font-semibold text-sm text-gray-500 mb-2">Budget</h4>
-                          <p className="text-sm font-medium">
-                            {formatCurrency(details.budget || 0, details.currency || "USD")}
-                          </p>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-sm text-gray-500 mb-2">Delivery Date</h4>
-                          <p className="text-sm">
-                            {details.deliveryDate ? formatDate(details.deliveryDate) : "Not specified"}
-                          </p>
-                        </div>
-                        <div className="md:col-span-2">
-                          <h4 className="font-semibold text-sm text-gray-500 mb-2">Payment Terms</h4>
-                          <p className="text-sm">
-                            {details.paymentTerms || "Not specified"}
-                          </p>
-                        </div>
-                      </div>
-
-                      {details.specialRequirements && (
-                        <div>
-                          <h4 className="font-semibold text-sm text-gray-500 mb-2">Special Requirements</h4>
-                          <p className="text-sm bg-gray-50 p-3 rounded-lg">
-                            {details.specialRequirements}
-                          </p>
-                        </div>
-                      )}
-
-                      {details.additionalNotes && (
-                        <div>
-                          <h4 className="font-semibold text-sm text-gray-500 mb-2">Additional Notes</h4>
-                          <p className="text-sm bg-gray-50 p-3 rounded-lg">
-                            {details.additionalNotes}
-                          </p>
-                        </div>
-                      )}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-lg border-b pb-2">Request Details</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-500 mb-2">Budget</h4>
+                      <p className="text-sm font-medium">
+                        {formatCurrency(selectedRFQ.budget || 0, selectedRFQ.currency || "USD")}
+                      </p>
                     </div>
-                  );
-                })()}
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-500 mb-2">Delivery Date</h4>
+                      <p className="text-sm">
+                        {selectedRFQ.deliveryDate ? formatDate(selectedRFQ.deliveryDate) : "Not specified"}
+                      </p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <h4 className="font-semibold text-sm text-gray-500 mb-2">Payment Terms</h4>
+                      <p className="text-sm">
+                        {selectedRFQ.paymentTerms || "Not specified"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {selectedRFQ.specialRequirements && (
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-500 mb-2">Special Requirements</h4>
+                      <p className="text-sm bg-gray-50 p-3 rounded-lg">
+                        {selectedRFQ.specialRequirements}
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedRFQ.additionalNotes && (
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-500 mb-2">Additional Notes</h4>
+                      <p className="text-sm bg-gray-50 p-3 rounded-lg">
+                        {selectedRFQ.additionalNotes}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -388,10 +353,10 @@ export const OverviewTab = ({ buyerId }: OverviewTabProps) => {
               <DialogClose asChild>
                 <Button variant="outline">Close</Button>
               </DialogClose>
-              <div className="flex gap-2">
+              {/* <div className="flex gap-2">
                 <Button variant="outline">Edit RFQ</Button>
                 <Button>Contact Suppliers</Button>
-              </div>
+              </div> */}
             </DialogFooter>
           </DialogContent>
         </Dialog>
