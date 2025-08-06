@@ -187,7 +187,7 @@ const EnhancedBuyerDashboard = () => {
         setProfileError('');
         
         try {
-            const response = await fetch(`${APIURL}/update`, {
+            const response = await fetch(`${APIURL}/buyer/update`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
