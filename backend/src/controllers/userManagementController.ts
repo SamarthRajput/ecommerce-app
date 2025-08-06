@@ -10,7 +10,8 @@ export const createAdmin = async (req: Request, res: Response) => {
         if (!email || !password || !name || !adminRole) {
             return res.status(400).json({
                 success: false,
-                error: 'All fields are required'
+                error: 'All fields are required',
+                message: 'All fields are required.'
             });
         }
 
