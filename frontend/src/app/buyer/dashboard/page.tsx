@@ -104,7 +104,8 @@ const NAVIGATION_ITEMS = [
 type ViewType = typeof NAVIGATION_ITEMS[number]['id'];
 
 const EnhancedBuyerDashboard = () => {
-    const { user, isBuyer, logout: authLogout } = useAuth();
+    // Use the existing authLoading from your AuthContext
+    const { user, isBuyer, authLoading, logout: authLogout } = useAuth();
     const [buyer, setBuyer] = useState<Buyer | null>(null);
     const [loading, setLoading] = useState(false);
     const [dashboardLoading, setDashboardLoading] = useState(true);
@@ -135,13 +136,22 @@ const EnhancedBuyerDashboard = () => {
     const [profileError, setProfileError] = useState('');
 
     useEffect(() => {
+        // Wait for auth loading to complete before making redirect decisions
+        if (authLoading) {
+            return;
+        }
+
+        // Only redirect if auth loading is complete and user is not authenticated
         if (!isBuyer && !user) {
             router.push('/buyer/signin');
             return;
         }
 
-        initializeDashboard();
-    }, [user, isBuyer]);
+        // If user is authenticated, initialize dashboard
+        if (isBuyer && user) {
+            initializeDashboard();
+        }
+    }, [user, isBuyer, authLoading, router]);
 
     // Fetch RFQs once buyer data is available
     useEffect(() => {
@@ -594,12 +604,15 @@ const EnhancedBuyerDashboard = () => {
         }
     };
 
-    if (dashboardLoading) {
+    // Show loading screen while authentication is being verified
+    if (authLoading || dashboardLoading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <h2 className="text-xl font-semibold text-gray-800 mb-2">Loading Dashboard</h2>
+                    <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                        {authLoading ? 'Verifying Authentication...' : 'Loading Dashboard'}
+                    </h2>
                     <p className="text-gray-600">Please wait while we fetch your data...</p>
                 </div>
             </div>
@@ -629,16 +642,6 @@ const EnhancedBuyerDashboard = () => {
                                     className="pl-10 w-64"
                                 />
                             </div>
-
-                            {/* Notifications */}
-                            {/* <Button variant="ghost" size="sm" className="relative">
-                                <Bell className="w-5 h-5" />
-                                {notifications > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                        {notifications}
-                                    </span>
-                                )}
-                            </Button> */}
 
                             {/* Profile Menu */}
                             <div className="flex items-center space-x-3">
