@@ -1,7 +1,8 @@
 // hooks/useListing.ts
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Listing, ListingFilters, ListingStats, API_BASE_URL } from '@/lib/types/seller/sellerDashboardListing';
+import { Listing, ListingFilters, ListingStats } from '@/lib/types/seller/sellerDashboardListing';
 import { toast } from 'sonner';
+import { APIURL } from '@/src/config/env';
 
 export const useListingData = () => {
     const [listings, setListings] = useState<Listing[]>([]);
@@ -13,7 +14,7 @@ export const useListingData = () => {
     const fetchListings = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/listings`, {
+            const response = await fetch(`${APIURL}/listings`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -37,7 +38,7 @@ export const useListingData = () => {
 
     // Edit listing
     const editListing = useCallback(async (listingId: string, updatedData: Partial<Listing>) => {
-        const response = await fetch(`${API_BASE_URL}/edit-listing/${listingId}`, {
+        const response = await fetch(`${APIURL}/edit-listing/${listingId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -68,7 +69,7 @@ export const useListingData = () => {
     ) => {
         try {
             setActionLoading(listingId);
-            const response = await fetch(`${API_BASE_URL}/toggle-listing-status/${listingId}`, {
+            const response = await fetch(`${APIURL}/toggle-listing-status/${listingId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
