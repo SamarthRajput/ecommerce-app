@@ -1,5 +1,6 @@
 "use client";
-import React, { useState } from "react";
+import { APIURL } from "@/src/config/env";
+import React, { useEffect, useState } from "react";
 
 const ResetSellerPassword = () => {
   const [password, setPassword] = useState("");
@@ -7,9 +8,9 @@ const ResetSellerPassword = () => {
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(7);
 
-  const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
-  const API_BASE_URL = `${API_BACKEND_URL}/seller`;
+  const API_BASE_URL = `${APIURL}/seller`;
 
   // Get token from URL safely (works only on client)
   const [token, setToken] = useState<string | null>(null);
@@ -22,6 +23,22 @@ const ResetSellerPassword = () => {
       setMounted(true);
     }
   }, []);
+
+  useEffect(() => {
+    // set time left after second
+    let timer: NodeJS.Timeout;
+    if (success) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev === 1) {
+            clearInterval(timer);
+          }
+          return Math.max(prev - 1, 0);
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [success]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -42,101 +59,113 @@ const ResetSellerPassword = () => {
       return;
     }
 
-        try {
-          const response = await fetch(`${API_BASE_URL}/resetPassword?token=${token}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ newPassword: password }),
-          });
-    
-          const data = await response.json();
-          if (response.ok) {
-            setMessage(data.message || "Password reset successful.");
-            setSuccess(true);
-            setPassword("");
-            setConfirmPassword("");
-          } else {
-            setMessage(data.error || "An error occurred. Please try again.");
-          }
-        } catch (error) {
-          setMessage(error instanceof Error ? error.message : "An unexpected error occurred.");
-        } finally {
-          setLoading(false);
-        }
-      };
-      
-      if (!mounted) {
-        return null;
+    try {
+      const response = await fetch(`${API_BASE_URL}/resetPassword?token=${token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword: password }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setMessage(data.message || "Password reset successful.");
+        setSuccess(true);
+        setPassword("");
+        setConfirmPassword("");
+      } else {
+        setMessage(data.error || "An error occurred. Please try again.");
       }
-    
-      if (!token) {
-        return (
-          <section className="bg-gray-100 dark:bg-gray-900 min-h-screen flex items-center justify-center">
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
-              <h2 className="text-2xl font-bold mb-6 text-center">Invalid Token</h2>
-              <p className="text-red-500">Invalid Url</p>
-              <p className="text-sm mt-4">
-                Please{" "}
-                <a href="/seller/forgot-password" className="text-blue-600 hover:underline">
-                  request a new password reset link
-                </a>
-                .
-              </p>
-            </div>
-          </section>
-        );
-      }
-    
-      return (
-        <section className="bg-gray-100 dark:bg-gray-900 min-h-screen flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
-            <h2 className="text-2xl font-bold mb-6 text-center">Reset Password</h2>
-            <form onSubmit={handleSubmit} autoComplete="off">
-              <div className="mb-4">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  minLength={8}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                  autoComplete="new-password"
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  value={confirmPassword}
-                  minLength={8}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                  autoComplete="new-password"
-                />
-              </div>
-              {message && (
-                <p className={`text-sm mb-4 ${success ? "text-green-600" : "text-red-500"}`}>{message}</p>
-              )}
-              <button
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-                disabled={success || loading}
-              >
-                {loading ? "Resetting..." : "Reset Password"}
-              </button>
-            </form>
-          </div>
-        </section>
-      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "An unexpected error occurred.");
+    } finally {
+      setLoading(false);
     }
-  
+  };
+
+  if (!mounted) {
+    return null;
+  }
+
+  if (!token) {
+    return (
+      <section className="bg-gray-100 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
+          <h2 className="text-2xl font-bold mb-6 text-center">Invalid Token</h2>
+          <p className="text-red-500">Invalid Url</p>
+          <p className="text-sm mt-4">
+            Please{" "}
+            <a href="/seller/forgot-password" className="text-blue-600 hover:underline">
+              request a new password reset link
+            </a>
+            .
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  if (success) {
+    return (
+      <section className="bg-gray-100 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
+          <h2 className="text-2xl font-bold mb-6 text-center">Password Reset Successful</h2>
+          <p className="text-green-600">{message}</p>
+          <p className="text-sm mt-4">Redirecting you in {timeLeft} seconds.          </p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="bg-gray-100 dark:bg-gray-900 min-h-screen flex items-center justify-center">
+      <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Reset Password</h2>
+        <form onSubmit={handleSubmit} autoComplete="off">
+          <div className="mb-4">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              New Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              minLength={8}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+              autoComplete="new-password"
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              value={confirmPassword}
+              minLength={8}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+              autoComplete="new-password"
+            />
+          </div>
+          {message && (
+            <p className={`text-sm mb-4 ${success ? "text-green-600" : "text-red-500"}`}>{message}</p>
+          )}
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+            disabled={success || loading}
+          >
+            {loading ? "Resetting..." : "Reset Password"}
+          </button>
+        </form>
+      </div>
+    </section>
+  );
+}
+
 
 export default ResetSellerPassword;

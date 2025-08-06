@@ -11,10 +11,7 @@ import ProfileDashboard from '@/src/components/Seller/Dashboard/ProfileDashboard
 import SellerCertifications from '@/src/components/Seller/Dashboard/Certifications';
 import ChatDashboard from '@/src/components/Seller/Dashboard/ChatDashboard';
 import SettingsDashboard from '@/src/components/Seller/Dashboard/SettingsDashboard';
-
-// Constants
-const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
-const API_BASE_URL = `${API_BACKEND_URL}/seller`;
+import { APIURL } from '@/src/config/env';
 
 // Navigation configuration
 const NAVIGATION_ITEMS = [
@@ -99,7 +96,7 @@ const useSellerDashboard = () => {
         setProfileError('');
 
         try {
-            const response = await fetch(`${API_BASE_URL}/details`, {
+            const response = await fetch(`${APIURL}/seller/details`, {
                 method: 'PUT',
                 credentials: 'include',
                 headers: {
@@ -152,7 +149,7 @@ const useSellerDashboard = () => {
     // API fetch functions
     const fetchProfile = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/profile`, {
+            const response = await fetch(`${APIURL}/seller/profile`, {
                 credentials: 'include',
             });
             const responseData = await response.json();
@@ -172,7 +169,7 @@ const useSellerDashboard = () => {
 
     const fetchDashboardStats = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/dashboard-stats`, {
+            const response = await fetch(`${APIURL}/seller/dashboard-stats`, {
                 credentials: 'include',
             });
             if (response.ok) {
@@ -186,7 +183,7 @@ const useSellerDashboard = () => {
 
     const fetchListings = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/listings`, {
+            const response = await fetch(`${APIURL}/seller/listings`, {
                 credentials: 'include'
             });
             if (response.ok) {
@@ -200,7 +197,7 @@ const useSellerDashboard = () => {
 
     const fetchRFQRequests = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/rfq-requests`, {
+            const response = await fetch(`${APIURL}/seller/rfq-requests`, {
                 credentials: 'include'
             });
             if (response.ok) {

@@ -102,7 +102,7 @@ async function main() {
     // test@gmail.com
     // 12345
     // Upsert Buyer to ensure it exists
-    const buyerEmail = 'test@gmail.com';
+    const buyerEmail = 'rohitkuyada@gmail.com';
     const buyerPassword = '123456789';
     const buyerHashedPassword = await bcrypt.hash(buyerPassword, 10);
 
@@ -500,7 +500,6 @@ async function main() {
 main()
     .catch((e) => {
         console.error('Error during seeding:', e);
-        process.exit(1);
     })
     .finally(async () => {
         await prisma.$disconnect();

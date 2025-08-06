@@ -1,9 +1,7 @@
+import { APIURL } from '@/src/config/env';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001/api/v1';
-const API_URL = `${BACKEND_URL}/seller`;
 
 const useSignup = () => {
     const [currentSection, setCurrentSection] = useState(1);
@@ -131,7 +129,7 @@ const useSignup = () => {
 
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/upload-documents`, {
+            const response = await fetch(`${APIURL}/seller/upload-documents`, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
@@ -241,7 +239,7 @@ const useSignup = () => {
         if (!validateSection(5)) return;
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/signup`, {
+            const response = await fetch(`${APIURL}/seller/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -7,6 +7,7 @@ import {
     useState,
     ReactNode,
 } from 'react';
+import { APIURL } from '../config/env';
 
 type Role = 'seller' | 'buyer' | 'admin' | null;
 type AdminRole = 'SUPER_ADMIN' | 'ADMIN' | 'INSPECTOR' | null;
@@ -52,8 +53,7 @@ const AuthContext = createContext<AuthState>({
     logout: async () => { },
 });
 
-const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
-const API_BASE_URL = `${API_BACKEND_URL}/auth`;
+const API_BASE_URL = `${APIURL}/auth`;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [state, setState] = useState<Omit<AuthState, 'refetch' | 'isAdmin' | 'isSeller' | 'isBuyer' | 'logout'>>({
@@ -123,13 +123,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             switch (state.role) {
                 case 'admin':
-                    logoutURL = `${API_BACKEND_URL}/auth/admin/logout`;
+                    logoutURL = `${APIURL}/auth/admin/logout`;
                     break;
                 case 'seller':
-                    logoutURL = `${API_BACKEND_URL}/seller/logout`;
+                    logoutURL = `${APIURL}/seller/logout`;
                     break;
                 case 'buyer':
-                    logoutURL = `${API_BACKEND_URL}/buyer/logout`;
+                    logoutURL = `${APIURL}/buyer/logout`;
                     break;
                 default:
                     console.warn('No role found, skipping logout API call.');

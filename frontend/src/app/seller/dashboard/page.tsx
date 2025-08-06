@@ -3,6 +3,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import useSellerDashboard from '@/hooks/useSellerDashboard';
+import AccountUnderReview from './AccountReview';
 
 const EnhancedSellerDashboard = () => {
     const {
@@ -122,6 +123,10 @@ const EnhancedSellerDashboard = () => {
     // Show loading state
     if (dashboardLoading) {
         return <LoadingSpinner />;
+    }
+
+    if (seller?.isApproved === false) {
+        return <AccountUnderReview email={seller.email} />;
     }
 
     // Main dashboard layout

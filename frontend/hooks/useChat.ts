@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '../src/context/AuthContext';
+import { APIURL } from '@/src/config/env';
 
 // Types
 interface ChatRoom {
@@ -74,7 +75,6 @@ export const useChat = () => {
     const { authLoading, role, user } = useAuth();
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
     // Auto-scroll to bottom of messages
     const scrollToBottom = () => {
@@ -95,7 +95,7 @@ export const useChat = () => {
     const fetchChatRooms = async () => {
         setLoadingRooms(true);
         try {
-            const response = await fetch(`${BASE_URL}/chat/chatrooms?page=1&limit=100`, {
+            const response = await fetch(`${APIURL}/chat/chatrooms?page=1&limit=100`, {
                 method: "GET",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -128,7 +128,7 @@ export const useChat = () => {
     const fetchChatMessages = async (chatRoomId: string) => {
         try {
             const response = await fetch(
-                `${BASE_URL}/chat/chatroom/${chatRoomId}/messages?page=1&limit=100`,
+                `${APIURL}/chat/chatroom/${chatRoomId}/messages?page=1&limit=100`,
                 {
                     method: "GET",
                     credentials: "include",
@@ -188,7 +188,7 @@ export const useChat = () => {
         ]);
         setSending(true);
         try {
-            const response = await fetch(`${BASE_URL}/chat/chatroom/message`, {
+            const response = await fetch(`${APIURL}/chat/chatroom/message`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -245,7 +245,7 @@ export const useChat = () => {
             formData.append("file", file);
             formData.append("senderRole", currentUserRole);
 
-            const response = await fetch(`${BASE_URL}/chat/chatroom/${selectedRoom.id}/upload`, {
+            const response = await fetch(`${APIURL}/chat/chatroom/${selectedRoom.id}/upload`, {
                 method: "POST",
                 credentials: "include",
                 body: formData,
@@ -270,7 +270,7 @@ export const useChat = () => {
     const markMessagesAsRead = async (chatRoomId: string) => {
         try {
             const response = await fetch(
-                `${BASE_URL}/chat/chatroom/${chatRoomId}/messages`,
+                `${APIURL}/chat/chatroom/${chatRoomId}/messages`,
                 {
                     method: "GET",
                     credentials: "include",
@@ -285,7 +285,7 @@ export const useChat = () => {
 
             if (unreadMessageIds.length === 0) return;
 
-            await fetch(`${BASE_URL}/chat/chatroom/${chatRoomId}/mark-read`, {
+            await fetch(`${APIURL}/chat/chatroom/${chatRoomId}/mark-read`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -389,7 +389,7 @@ export const useChat = () => {
         );
 
         // API Call to edit the message
-        const response = await fetch(`${BASE_URL}/chat/message/${messageId}/edit`, {
+        const response = await fetch(`${APIURL}/chat/message/${messageId}/edit`, {
             method: "PUT",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
@@ -422,7 +422,7 @@ export const useChat = () => {
         );
 
         // API Call to delete the message
-        const response = await fetch(`${BASE_URL}/chat/message/${messageId}/delete`, {
+        const response = await fetch(`${APIURL}/chat/message/${messageId}/delete`, {
             method: "DELETE",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
@@ -448,7 +448,7 @@ export const useChat = () => {
         );
 
         // API Call to pin the message
-        const response = await fetch(`${BASE_URL}/chat/message/${messageId}/pin`, {
+        const response = await fetch(`${APIURL}/chat/message/${messageId}/pin`, {
             method: "PATCH",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
@@ -488,7 +488,7 @@ export const useChat = () => {
         );
 
         // API Call to add reaction
-        const response = await fetch(`${BASE_URL}/chat/message/${messageId}/react`, {
+        const response = await fetch(`${APIURL}/chat/message/${messageId}/react`, {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json" },

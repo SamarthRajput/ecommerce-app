@@ -2,7 +2,6 @@
 import { AuthenticatedRequest } from "../middlewares/authBuyer";
 import { Response } from "express";
 import { prisma } from "../lib/prisma";
-import { DEFAULT_ADMIN_ID } from "../config";
 import validator from 'validator';
 import sanitizeHtml from 'sanitize-html';
 import { parsePagination } from "../utils/parsePagination";

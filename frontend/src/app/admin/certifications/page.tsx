@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { CheckCircle, Clock, Eye, FileText, User, Package, CreditCard, Upload, X } from "lucide-react";
+import { APIURL } from "@/src/config/env";
 
 interface Certification {
   id: string;
@@ -22,7 +23,7 @@ export default function AdminCertificationsPage() {
   useEffect(() => {
     const fetchCerts = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/certification/all`, { credentials: 'include' });
+        const res = await fetch(`${APIURL}/certification/all`, { credentials: 'include' });
         if (!res.ok) throw new Error('Failed to fetch certifications');
         setCerts(await res.json());
       } catch (e: any) {
@@ -43,7 +44,7 @@ export default function AdminCertificationsPage() {
       formData.append('file', file);
       formData.append('certificationId', id);
       
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/certification/issue`, {
+      const res = await fetch(`${APIURL}/certification/issue`, {
         method: 'POST',
         credentials: 'include',
         body: formData,

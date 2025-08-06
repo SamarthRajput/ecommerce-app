@@ -192,7 +192,7 @@ const Section2 = ({ formData, errors, handleInputChange, businessTypeOptions, in
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Website *
+                    Website
                 </label>
                 <input
                     type="url"
@@ -205,7 +205,7 @@ const Section2 = ({ formData, errors, handleInputChange, businessTypeOptions, in
 
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                    LinkedIn Profile *
+                    LinkedIn Profile
                 </label>
                 <input
                     type="url"

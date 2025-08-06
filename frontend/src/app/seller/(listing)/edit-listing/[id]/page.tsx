@@ -6,6 +6,7 @@ import { ProductFormData } from '@/lib/types/listing';
 import ProductForm from '@/src/components/CreateListingForm/ProductForm';
 import { useAuth } from '@/src/context/AuthContext';
 import { toast } from 'sonner';
+import { APIURL } from '@/src/config/env';
 
 export default function EditListingPage() {
     const router = useRouter();
@@ -26,8 +27,7 @@ export default function EditListingPage() {
     useEffect(() => {
         const fetchProductData = async () => {
             try {
-                const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
-                const response = await fetch(`${BACKEND_URL}/seller/product/${params.id}`, {
+                const response = await fetch(`${APIURL}/seller/product/${params.id}`, {
                     credentials: 'include',
                 });
 
@@ -82,7 +82,7 @@ export default function EditListingPage() {
             // Append all other form fields
             Object.keys(data).forEach(key => {
                 if (key === 'images') return; // Already handled above
-                
+
                 const value = data[key as keyof ProductFormData];
                 if (value !== undefined && value !== null) {
                     if (Array.isArray(value)) {
@@ -93,8 +93,7 @@ export default function EditListingPage() {
                 }
             });
 
-            const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${BACKEND_URL}/seller/edit-listing/${params.id}`, {
+            const response = await fetch(`${APIURL}/seller/edit-listing/${params.id}`, {
                 method: 'PUT',
                 credentials: 'include',
                 body: formData,
@@ -109,7 +108,7 @@ export default function EditListingPage() {
             setSuccessfullyUpdated(true);
             setInitialData(responseData.listing);
             toast.success(responseData.message || 'Product updated successfully');
-            
+
         } catch (error) {
             console.error('Error updating product:', error);
             toast.error(`Error updating product: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -117,7 +116,7 @@ export default function EditListingPage() {
         }
     };
 
-    const handleCancel = () : any => {
+    const handleCancel = (): any => {
         if (confirm('Are you sure you want to cancel? All changes will be lost.')) {
             router.push('/seller/dashboard?tab=listings');
         }

@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { SummaryData } from '@/lib/types/summary';
 import BarChart from '@/src/components/BarChart';
 import { FileDown, FileText, SlidersHorizontal, X, Download, Calendar, Filter } from 'lucide-react';
+import { APIURL } from '@/src/config/env';
 
-const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
-const API_BASE_URL = `${API_BACKEND_URL}/analytics`;
+const API_BASE_URL = `${APIURL}/analytics`;
 
 export default function ReportsPage() {
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ProductFormData } from '@/lib/types/listing';
 import ProductForm from '@/src/components/CreateListingForm/ProductForm';
 import { toast } from "sonner"
+import { APIURL } from '@/src/config/env';
 
 export default function CreateListingPage() {
     const router = useRouter();
@@ -33,8 +34,7 @@ export default function CreateListingPage() {
 
             formData.append('isDraft', isDraft ? 'true' : 'false');
 
-            const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL;
-            const response = await fetch(`${BACKEND_URL}/seller/list-item`, {
+            const response = await fetch(`${APIURL}/seller/list-item`, {
                 method: 'POST',
                 credentials: 'include',
                 body: formData,

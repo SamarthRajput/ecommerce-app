@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ExternalLink, Award, Clock, CheckCircle, Download, Eye, Shield, Loader2 } from "lucide-react";
 import RequestCertificationButton from "../../RequestCertificationButton";
+import { APIURL } from "@/src/config/env";
 
 interface Product {
   id: string;
@@ -25,10 +26,10 @@ export default function SellerCertifications({ sellerId }: { sellerId: string })
 
   const fetchProductsAndCerts = async () => {
     try {
-      const productRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/seller/${sellerId}`, {
+      const productRes = await fetch(`${APIURL}/products/seller/${sellerId}`, {
         credentials: 'include'
       });
-      const certRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/certification/seller/${sellerId}`);
+      const certRes = await fetch(`${APIURL}/certification/seller/${sellerId}`);
 
       if (productRes.ok && certRes.ok) {
         setProducts(await productRes.json());

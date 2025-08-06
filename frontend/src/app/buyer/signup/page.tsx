@@ -6,9 +6,9 @@ import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { useAuth } from '@/src/context/AuthContext';
 import { buyerSignUpSchema, RegistrationData } from '@/lib/validations/buyer/signup';
+import { APIURL } from '@/src/config/env';
 
-const API_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL as string;
-const API_BASE_URL = `${API_BACKEND_URL}/buyer`;
+const API_BASE_URL = `${APIURL}/buyer`;
 
 interface VerifyResponse {
     message: string;

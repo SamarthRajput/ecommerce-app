@@ -12,8 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/src/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+import { APIURL } from '@/src/config/env';
 
 interface Product {
     id: string;
@@ -91,8 +90,8 @@ const ProductPage = () => {
             setError(null);
             try {
                 const [response, reviewsResponse] = await Promise.all([
-                    fetch(`${backendUrl}/products/${category}/${id}`),
-                    fetch(`${backendUrl}/products/${category}/${id}/reviews`)
+                    fetch(`${APIURL}/products/${category}/${id}`),
+                    fetch(`${APIURL}/products/${category}/${id}/reviews`)
                 ]);
 
                 if (!response.ok) {
@@ -134,7 +133,7 @@ const ProductPage = () => {
 
     const fetchSimilarProducts = async () => {
         try {
-            const response = await fetch(`${backendUrl}/products/${id}/similar?page=1&limit=8`);
+            const response = await fetch(`${APIURL}/products/${id}/similar?page=1&limit=8`);
             if (response.ok) {
                 const data = await response.json();
                 setSimilarProducts(data.products || []);
@@ -146,7 +145,7 @@ const ProductPage = () => {
 
     const fetchSellerProducts = async () => {
         try {
-            const response = await fetch(`${backendUrl}/products/seller/${id}?page=1&limit=8`, {
+            const response = await fetch(`${APIURL}/products/seller/${id}?page=1&limit=8`, {
                 credentials: 'include'
             });
             if (response.ok) {
@@ -171,7 +170,7 @@ const ProductPage = () => {
                 throw new Error('Please select a rating');
             }
 
-            const response = await fetch(`${backendUrl}/products/${id}/reviews`, {
+            const response = await fetch(`${APIURL}/products/${id}/reviews`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',

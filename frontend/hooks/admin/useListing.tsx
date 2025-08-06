@@ -1,11 +1,10 @@
 "use client"
 
+import { APIURL } from "@/src/config/env"
 import { useAuth } from "@/src/context/AuthContext"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, useCallback } from "react"
 import { toast } from "sonner"
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 
 export interface Listing {
     id: string
@@ -132,7 +131,7 @@ export const useListing = (): ListingState => {
 
     const apiCall = async (url: string, options: RequestInit = {}) => {
         try {
-            const response = await fetch(`${API_BASE_URL}${url}`, {
+            const response = await fetch(`${APIURL}${url}`, {
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",

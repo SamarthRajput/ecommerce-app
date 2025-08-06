@@ -29,7 +29,7 @@ export const signupSeller = async (req: Request, res: Response) => {
                 Object.entries(parsed.error.flatten().fieldErrors).map(([key, value]) => [key, value?.[0]])
             );
             return res.status(400).json({
-                message: 'Validation failed, Kindly check all the field for any error.',
+                message: `${parsed.error.issues[0].path} : ${parsed.error.issues[0].message}`,
                 errors
             });
         }
