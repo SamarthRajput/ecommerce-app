@@ -153,7 +153,7 @@ const EnhancedBuyerDashboard = () => {
     // Fetch buyer profile
     const fetchProfile = async () => {
         try {
-            const response = await fetch(`${APIURL}/profile`, {
+            const response = await fetch(`${APIURL}/buyer/profile`, {
                 credentials: 'include'
             });
 
