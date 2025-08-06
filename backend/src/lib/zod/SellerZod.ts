@@ -45,8 +45,8 @@ export const registerSellerSchema = z.object({
     state: z.string().min(1, 'State is required'),
     zipCode: z.string().min(4, 'Zip code must be at least 4 characters'),
 
-    website: z.string().url('Invalid website URL').optional(),
-    linkedIn: z.string().url('Invalid LinkedIn URL').optional(),
+    website: z.union([z.string().url('Invalid website URL'), z.literal('')]).optional(),
+    linkedIn: z.union([z.string().url('Invalid LinkedIn URL'), z.literal('')]).optional(),
 
     // Section 3: Documents
     govIdUrl: z.string().url().nullable().optional(),
