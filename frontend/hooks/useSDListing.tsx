@@ -14,7 +14,7 @@ export const useListingData = () => {
     const fetchListings = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${APIURL}/listings`, {
+            const response = await fetch(`${APIURL}/seller/listings`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
