@@ -15,9 +15,9 @@ export const upload = multer({ storage });
 import validator from 'validator';
 import { uploadImageToCloudinary } from "../utils/uploadImageToCloudinary";
 import slugify from "slugify";
-import nodemailer from "nodemailer";
 import crypto from "crypto";
 import { BusinessType } from "@prisma/client";
+import { sendEmail } from "../utils/sendEmail";
 
 // Sign up seller
 export const signupSeller = async (req: Request, res: Response) => {
@@ -275,16 +275,7 @@ export const forgotSellerPassword = async (req: Request, res: Response) => {
                     resetTokenExpiry: new Date(Date.now() + 10 * 60 * 1000)
                 }
             });
-
-            const transporter = nodemailer.createTransport({
-                service: 'Gmail',
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                },
-            });
-
-            const info = await transporter.sendMail({
+            const info = await sendEmail({
                 from: '"Sam"',
                 to: seller.email,
                 subject: 'Reset Your Password',
@@ -355,14 +346,7 @@ export const resetSellerPassword = async (req: Request, res: Response) => {
         });
 
         // Notify Seller that password has been reset via email
-        const transporter = nodemailer.createTransport({
-            service: 'Gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            },
-        });
-        const info = await transporter.sendMail({
+        await sendEmail({
             from: '"TradeConnect"',
             to: seller.email,
             subject: 'Your Password Has Been Reset',

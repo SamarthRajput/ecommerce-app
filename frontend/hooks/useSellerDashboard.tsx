@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { User, Package, BarChart3, MessageSquare, Settings, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/src/context/AuthContext';
 import { Seller, Listing, DashboardStats, RFQ } from '@/lib/types/seller/sellerDashboard';
@@ -12,6 +11,7 @@ import SellerCertifications from '@/src/components/Seller/Dashboard/Certificatio
 import ChatDashboard from '@/src/components/Seller/Dashboard/ChatDashboard';
 import SettingsDashboard from '@/src/components/Seller/Dashboard/SettingsDashboard';
 import { APIURL } from '@/src/config/env';
+import { toast } from 'sonner';
 
 // Navigation configuration
 const NAVIGATION_ITEMS = [
@@ -26,60 +26,40 @@ const NAVIGATION_ITEMS = [
 
 type ViewType = typeof NAVIGATION_ITEMS[number]['id'];
 
-// Default seller profile structure
-const createDefaultSeller = (): Seller => ({
-    id: '',
-    email: '',
-    firstName: '',
-    lastName: '',
-    businessName: '',
-    businessType: '',
-    phone: '',
-    countryCode: '',
-    isEmailVerified: false,
-    isPhoneVerified: false,
-    isApproved: false,
-    approvalNote: '',
-    registrationNo: '',
-    taxId: '',
-    panOrTin: '',
-    website: '',
-    linkedIn: '',
-    yearsInBusiness: 0,
-    industryTags: [],
-    keyProducts: [],
-    companyBio: '',
-    govIdUrl: '',
-    gstCertUrl: '',
-    businessDocUrl: '',
-    otherDocsUrl: '',
-    address: {
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        country: ''
-    },
-    createdAt: '',
-    updatedAt: ''
-});
-
 const useSellerDashboard = () => {
-    const router = useRouter();
     const { user, authLoading } = useAuth();
 
     // Core dashboard state
     const [seller, setSeller] = useState<Seller | null>(null);
     const [dashboardLoading, setDashboardLoading] = useState<boolean>(true);
-    const [currentView, setCurrentView] = useState<ViewType>('overview');
-    const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
-    const [listings, setListings] = useState<Listing[]>([]);
     const [rfqRequests, setRfqRequests] = useState<RFQ[]>([]);
+    const [listings, setListings] = useState<Listing[]>([]);
+    const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
 
     // Profile editing state
     const [isEditing, setIsEditing] = useState(false);
     const [profileLoading, setProfileLoading] = useState(false);
     const [profileError, setProfileError] = useState('');
+
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    const validTabs: ViewType[] = NAVIGATION_ITEMS.map(item => item.id);
+    const initialTab = searchParams.get('tab');
+    const initialView: ViewType = validTabs.includes(initialTab as ViewType) ? (initialTab as ViewType) : 'overview';
+
+    const [currentView, setCurrentView] = useState<ViewType>(initialView);
+
+    const updateUrlWithTab = useCallback(({ tab }: { tab: ViewType }) => {
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set('tab', tab);
+        router.replace(newUrl.toString(), { scroll: true });
+    }, [router]);
+
+    // Effect to update url when currentView changes
+    useEffect(() => {
+        updateUrlWithTab({ tab: currentView });
+    }, [currentView, updateUrlWithTab]);
 
     // Authentication effect
     useEffect(() => {

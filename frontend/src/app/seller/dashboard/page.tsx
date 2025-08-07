@@ -1,11 +1,12 @@
 "use client";
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Badge } from '@/components/ui/badge';
 import useSellerDashboard from '@/hooks/useSellerDashboard';
 import AccountUnderReview from './AccountReview';
+import { LoadingState } from '@/src/components/products/loading-state';
 
-const EnhancedSellerDashboard = () => {
+const EnhancedSeller = () => {
     const {
         seller,
         dashboardLoading,
@@ -140,4 +141,15 @@ const EnhancedSellerDashboard = () => {
     );
 };
 
+const EnhancedSellerDashboard = () => {
+    return (
+        <>
+            <Suspense fallback={<LoadingState />}>
+                <EnhancedSeller />
+            </Suspense>
+        </>
+    );
+};
+
 export default EnhancedSellerDashboard;
+

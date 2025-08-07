@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Search, ShoppingCart, User, Menu, X, LogOut, Settings, Package, MessageSquare, FileText, Plus, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/src/context/AuthContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function Header() {
   const router = useRouter();
@@ -17,6 +17,19 @@ export function Header() {
   const handleSignOut = () => {
     logout();
   };
+
+  // prefetch all routes for better performance
+  const prefetchRoutes = () => {
+    navigationItems.forEach(item => {
+      router.prefetch(item.href);
+    });
+  };
+  
+  useEffect(() => {
+    if (authenticated) {
+      prefetchRoutes();
+    }
+  }, [authenticated, router]);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
@@ -35,8 +48,9 @@ export function Header() {
         { href: "/seller/dashboard", label: "Dashboard", icon: BarChart3 },
         { href: "/seller/dashboard?tab=listings", label: "My Listings", icon: Package },
         { href: "/seller/create-listing", label: "Create Listing", icon: Plus },
-        { href: "/seller/dashboard?tab=orders", label: "Orders", icon: FileText },
-        { href: "/seller/dashboard?tab=chat", label: "Messages", icon: MessageSquare },
+        { href: "/seller/dashboard?tab=rfqs", label: "See RFQs", icon: FileText },
+        { href: "/seller/dashboard?tab=profile", label: "Manage Profile", icon: User },
+        { href: "/seller/dashboard?tab=chats", label: "Manage Chats", icon: MessageSquare },
       ];
     }
 

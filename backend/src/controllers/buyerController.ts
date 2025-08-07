@@ -7,7 +7,7 @@ import { signinSchema, signupSchema, updateProfileSchema } from "../lib/zod/Buye
 import { AuthenticatedRequest } from "../middlewares/authBuyer";
 import { JWT_SECRET } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
-import nodemailer from "nodemailer";
+import { sendEmail } from "../utils/sendEmail";
 
 // POST /api/v1/buyer/signup
 export const signupBuyer = async (req: Request, res: Response) => {
@@ -307,20 +307,14 @@ export const forgotPassword = async (req: Request, res: Response) => {
             }
         });
 
-        const transporter = nodemailer.createTransport({
-            service: 'Gmail',
-            auth: {
-                user: 'samarthrajput224@gmail.com',
-                pass: 'oguaakqdvokgxhdb'
-            },
-        });
-
-        const info = await transporter.sendMail({
+        const info = await sendEmail({
             from: '"Sam"',
             to: buyerEmail,
             subject: 'Password reset OTP',
             text: `Your OTP (It will expiry after 5 min) : ${otp}`,
+            html: `<p style="font-size: 16px;">Your OTP (It will expiry after 5 min) : <strong>${otp}</strong></p>`,
         });
+
         res.status(200).json({
             message: "OTP send successfully"
         })
