@@ -28,38 +28,13 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
 }) => {
     if (!target) return null;
 
-    // Disable deletion if target is SuperAdmin and current user is not SuperAdmin
-    const isDisabled = target.type === 'admin' && currentUserRole !== 'SuperAdmin';
+    const isDisabled = currentUserRole !== 'SuperAdmin';
 
     const handleConfirm = async () => {
         if (isDisabled) return;
         const success = await onConfirm(target);
         if (success) onClose();
     };
-
-    if (isDisabled) {
-        return (
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-red-600">
-                        <AlertCircle className="w-5 h-5" />
-                        Access Denied
-                    </DialogTitle>
-                    <DialogDescription>
-                        You cannot delete SuperAdmin users unless you are a SuperAdmin yourself.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="py-4">
-                    <p className="text-sm text-center text-muted-foreground">
-                        Access denied for deleting this user.
-                    </p>
-                </div>
-                <DialogFooter>
-                    <Button onClick={onClose}>Close</Button>
-                </DialogFooter>
-            </DialogContent>
-        );
-    }
 
     return (
         <DialogContent>
