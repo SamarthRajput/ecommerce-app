@@ -56,6 +56,7 @@ import { CreateAdminModal } from './components/modals/CreateAdminModal';
 import { EditAdminModal } from './components/modals/EditAdminModal';
 import { ApprovalModal } from './components/modals/ApprovalModal';
 import { DeleteConfirmModal } from './components/modals/DeleteConfirmModal';
+import { toast } from 'sonner';
 
 interface DeleteTarget {
     type: string;
@@ -63,14 +64,14 @@ interface DeleteTarget {
     name: string;
 }
 
-const SearchInput = React.memo(({ 
-    type, 
-    searchTerm, 
-    setSearchTerm 
-}: { 
-    type: string; 
-    searchTerm: string; 
-    setSearchTerm: (term: string) => void 
+const SearchInput = React.memo(({
+    type,
+    searchTerm,
+    setSearchTerm
+}: {
+    type: string;
+    searchTerm: string;
+    setSearchTerm: (term: string) => void
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -382,10 +383,10 @@ const UserManagementDashboard = () => {
                     </div>
 
                     <div className="flex items-center gap-4 pt-4">
-                        <SearchInput 
-                            type={type} 
-                            searchTerm={searchTerm} 
-                            setSearchTerm={setSearchTerm} 
+                        <SearchInput
+                            type={type}
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
                         />
 
                         {type === 'sellers' && (
@@ -457,10 +458,24 @@ const UserManagementDashboard = () => {
 
     // Modal handlers
     const handleDeleteConfirm = useCallback(async (target: DeleteTarget) => {
+        toast.loading(`Deleting ${target.type}...`, {
+            id: 'delete-user',
+            description: `Deleting ${target.name}... Be patient, this may take a moment.`,
+        });
         if (target.type === 'admin') {
-            return await deleteAdminUser(target.id);
+            await deleteAdminUser(target.id);
+            toast.success(`Deleted ${target.name} successfully.`, {
+                id: 'delete-user',
+                description: `${target.type.charAt(0).toUpperCase() + target.type.slice(1)} deleted successfully.`,
+            });
+            return true;
         } else if (target.type === 'buyer') {
-            return await deleteBuyerUser(target.id);
+            await deleteBuyerUser(target.id);
+            toast.success(`Deleted ${target.name} successfully.`, {
+                id: 'delete-user',
+                description: `${target.type.charAt(0).toUpperCase() + target.type.slice(1)} deleted successfully.`,
+            });
+            return true;
         }
         return false;
     }, [deleteAdminUser, deleteBuyerUser]);

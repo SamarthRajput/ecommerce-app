@@ -4,6 +4,7 @@ import React from 'react';
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface DeleteTarget {
     type: string;
@@ -28,10 +29,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
 }) => {
     if (!target) return null;
 
-    const isDisabled = currentUserRole !== 'SuperAdmin';
-
     const handleConfirm = async () => {
-        if (isDisabled) return;
         const success = await onConfirm(target);
         if (success) onClose();
     };
