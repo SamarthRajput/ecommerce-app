@@ -8,7 +8,7 @@ const About = () => {
                     <section className="flex flex-col items-center justify-center h-screen bg-gray-100">
                         <h1 className="text-4xl font-bold mb-4">About Us</h1>
                         <p className="text-lg text-gray-700 mb-2">
-                            TradeConnect is the premier B2B marketplace connecting verified buyers and sellers through intelligent RFQ management.
+                            InterLink is the premier B2B marketplace connecting verified buyers and sellers through intelligent RFQ management.
                         </p>
                     </section>
                     <p className="text-lg text-gray-700 mb-2">

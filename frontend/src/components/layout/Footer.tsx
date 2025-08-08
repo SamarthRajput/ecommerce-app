@@ -21,7 +21,7 @@ export function Footer() {
                         {/* Company Info */}
                         <div className="col-span-1 md:col-span-2">
                             <div className="text-2xl font-bold mb-4">
-                                <span className="text-orange-600">Trade</span>Connect
+                                <span className="text-orange-600">Inter</span>Link
                             </div>
                             <p className="text-gray-300 mb-4 max-w-md">
                                 The premier B2B marketplace connecting verified buyers and sellers through intelligent RFQ management. Building trust in digital commerce.
@@ -112,7 +112,7 @@ export function Footer() {
                     <div className="border-t border-gray-800 mt-8 pt-8">
                         <div className="flex flex-col md:flex-row justify-between items-center">
                             <div className="text-gray-400 text-sm mb-4 md:mb-0">
-                                © 2025 TradeConnect. All rights reserved.
+                                © 2025 InterLink. All rights reserved.
                             </div>
                             <div className="flex space-x-6 text-sm">
                                 <button

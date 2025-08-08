@@ -56,7 +56,7 @@ const HomePage = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="text-3xl font-bold text-gray-900">
-            <span className="text-orange-600">Trade</span>Connect
+            <span className="text-orange-600">Inter</span>Link
           </div>
           <div className="w-8 h-8 border-3 border-gray-200 border-t-orange-600 rounded-full animate-spin mx-auto"></div>
           <p className="text-gray-600">Loading...</p>
@@ -112,8 +112,8 @@ const HomePage = () => {
         <div className="max-w-6xl mx-auto px-4 py-20">
           <div className="text-center">
             <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Welcome to <span className="text-orange-600">Trade</span>
-              <span className="text-purple-600">Connect</span>
+              Welcome to <span className="text-orange-600">Inter</span>
+              <span className="text-purple-600">Link</span>
             </h1>
 
             <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
@@ -166,7 +166,7 @@ const HomePage = () => {
         <section className="py-16">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Why Choose TradeConnect?
+              Why Choose InterLink?
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Powerful features designed to streamline your B2B trading experience
@@ -250,7 +250,7 @@ const HomePage = () => {
           <div className="rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800 p-12 text-white text-center">
             <h2 className="text-4xl font-bold mb-4">Ready to Get Started?</h2>
             <p className="text-xl mb-8 opacity-90">
-              Join thousands of businesses already trading on TradeConnect
+              Join thousands of businesses already trading on InterLink
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button

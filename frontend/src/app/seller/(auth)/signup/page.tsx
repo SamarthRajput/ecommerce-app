@@ -128,7 +128,7 @@ const SellerRegistrationForm = () => {
                         {/* Welcome section for desktop */}
                         <div className="hidden md:block text-center mb-8 lg:mb-12">
                             <h2 className="text-2xl lg:text-4xl font-bold text-gray-900 mb-4">
-                                Join TradeConnect as a Seller
+                                Join InterLink as a Seller
                             </h2>
                             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                                 Connect with thousands of buyers and grow your business with our trusted marketplace platform
@@ -141,7 +141,7 @@ const SellerRegistrationForm = () => {
                             <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
                                 <div className="text-center">
                                     <div className="md:hidden mb-4">
-                                        <h1 className="text-2xl font-bold text-white mb-2">TradeConnect</h1>
+                                        <h1 className="text-2xl font-bold text-white mb-2">InterLink</h1>
                                         <p className="text-blue-100 text-sm">Seller Registration</p>
                                     </div>
                                     <div className="hidden md:block">

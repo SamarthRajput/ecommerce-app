@@ -628,7 +628,7 @@ const EnhancedBuyerDashboard = () => {
                         <div className="flex items-center">
                             <Building className="text-blue-600 mr-3" size={28} />
                             <div>
-                                <h1 className="text-xl font-bold text-gray-900">TradeConnect</h1>
+                                <h1 className="text-xl font-bold text-gray-900">InterLink</h1>
                                 <p className="text-xs text-gray-500">Buyer Dashboard</p>
                             </div>
                         </div>

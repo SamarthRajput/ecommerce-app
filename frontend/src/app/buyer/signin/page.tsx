@@ -95,7 +95,7 @@ const BuyerLogin = () => {
               onClick={handleBackToHome}
               className="text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors"
             >
-              <span className="text-blue-600">Trade</span>Connect
+              <span className="text-blue-600">Inter</span>Link
             </button>
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

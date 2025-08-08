@@ -347,7 +347,7 @@ export const resetSellerPassword = async (req: Request, res: Response) => {
 
         // Notify Seller that password has been reset via email
         await sendEmail({
-            from: '"TradeConnect"',
+            from: '"InterLink"',
             to: seller.email,
             subject: 'Your Password Has Been Reset',
             text: `Your password has been reset successfully. If you did not request this, please contact support.`,

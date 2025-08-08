@@ -23,7 +23,7 @@ const Contact = () => {
           </p>
           <h3 className="text-xl font-semibold mt-6 mb-4">Contact Information</h3>
           <p>
-            Email: <a href="mailto:support@tradeconnect.com">support@tradeconnect.com</a>
+            Email: <a href="mailto:support@interlink.com">support@interlink.com</a>
           </p>
         </div>
       </section>
