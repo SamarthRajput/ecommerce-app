@@ -69,7 +69,7 @@ export function Header() {
             onClick={() => router.push('/')}
           >
             <div className="text-xl sm:text-2xl font-bold text-gray-900">
-              <span className="text-orange-600">Trade</span>Connect
+              <span className="text-orange-600">InterLink</span> Business
             </div>
           </div>
 
