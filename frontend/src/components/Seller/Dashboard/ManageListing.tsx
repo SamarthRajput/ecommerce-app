@@ -9,6 +9,7 @@ import { useListingData, useListingFilters } from '@/hooks/useSDListing';
 import { Listing } from '@/lib/types/seller/sellerDashboardListing';
 import { ListingCard, ListingEmptyState, ListingErrorAlert, ListingFiltersSection, ListingLoadingState, ListingStatsCards, ListingTableView } from './ListingComponent';
 import { ListingDetailModal } from './ListingDetailModel';
+import { toast } from 'sonner';
 
 const ListingDashboard: React.FC = () => {
     const router = useRouter();
@@ -60,12 +61,8 @@ const ListingDashboard: React.FC = () => {
         }
     };
 
-    const handleToggleStatus = async (listingId: string, action: 'activate' | 'deactivate' | 'archive') => {
-        try {
-            await toggleListingStatus(listingId, action);
-        } catch (error) {
-            // Error is already handled in the hook
-        }
+    const handleToggleStatus = async (listingId: string, action: 'activate' | 'deactivate' | 'archive' | 'unarchive') => {
+        await toggleListingStatus(listingId, action);
     };
 
     const hasActiveFilters = !!filters.search || filters.status !== 'all' || filters.category !== 'all';
@@ -148,6 +145,7 @@ const ListingDashboard: React.FC = () => {
                     listing={selectedListing}
                     onClose={handleCloseModal}
                     onSubmit={handleEditListing}
+                    toggle={handleToggleStatus}
                 />
             )}
         </div>

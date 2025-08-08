@@ -65,11 +65,11 @@ export const useListingData = () => {
     // Toggle listing status
     const toggleListingStatus = useCallback(async (
         listingId: string,
-        action: 'deactivate' | 'activate' | 'archive'
+        action: 'deactivate' | 'activate' | 'archive' | 'unarchive'
     ) => {
         try {
             setActionLoading(listingId);
-            const response = await fetch(`${APIURL}/toggle-listing-status/${listingId}`, {
+            const response = await fetch(`${APIURL}/seller/toggle-listing-status/${listingId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -80,20 +80,20 @@ export const useListingData = () => {
 
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.error || 'Failed to toggle listing status');
+                throw new Error(data.error || data.message || 'Failed to toggle listing status');
             }
 
             setListings(prevListings =>
                 prevListings.map(listing =>
                     listing.id === listingId ? { ...listing, status: data.status } : listing
                 )
-            );
+            );  
 
+            toast.success(`Listing ${action}d successfully!`);
             return data.status;
         } catch (err: any) {
-            toast.error(err);
+            toast.error(err.message);
             setError(err.message);
-            throw err;
         } finally {
             setActionLoading(null);
         }

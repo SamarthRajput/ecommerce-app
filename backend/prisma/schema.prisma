@@ -267,6 +267,7 @@ enum ProductStatus {
   PENDING
   REJECTED
   EXPIRED
+  DRAFT
 }
 
 enum ListingType {

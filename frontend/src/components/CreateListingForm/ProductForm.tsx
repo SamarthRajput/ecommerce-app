@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Package, DollarSign, Truck, FileText, Image as ImageIcon, Tag, Check, ChevronRight, ChevronLeft, Save, Send, AlertCircle, Edit } from 'lucide-react';
+import { Package, DollarSign, Truck, FileText, ImageIcon, Tag, Check, ChevronRight, ChevronLeft, Save, Send, AlertCircle, Edit } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui/alert-dialog"
 import { ProductFormData, ProductFormProps, productSchema, createProductSchema, FORM_STEPS } from '@/lib/types/listing'
 import { ProductBasicsStep, PricingQuantityStep, LogisticsValidityStep, ProductDetailsStep, MediaAttachmentsStep, SeoTaggingStep, ReviewSubmitStep } from './index'
@@ -383,56 +383,17 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
                     </div>
                 </div>
 
-                {/* Error summary */}
                 {Object.keys(errors).length > 0 && (
                     <Alert className="mt-6" variant="destructive">
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>
                             Please fix the following errors before proceeding:
-                            {/* <span>
-                                {JSON.stringify(errors)}
-                            </span> */}
-                            <ul className="mt-2 list-disc list-inside">
-                                {Object.entries(errors).map(([field, error]) => {
-                                    // Zod errors may have nested errors (e.g., for arrays/objects)
-                                    const messages: string[] = [];
-                                    if (error?.message) {
-                                        messages.push(error.message as string);
-                                    }
-                                    // If error has 'types' (for union/enum), collect those messages
-                                    if (error?.types && typeof error.types === 'object') {
-                                        messages.push(
-                                            ...Object.values(error.types).filter(Boolean).map(String)
-                                        );
-                                    }
-                                    // If error has 'refine' errors (for arrays/objects)
-                                    if (Array.isArray((error as any)?.types?.refine)) {
-                                        messages.push(
-                                            ...(error as any).types.refine.map((msg: any) => String(msg))
-                                        );
-                                    }
-                                    // If error has 'root' (for array/object errors)
-                                    if (Array.isArray((error as any)?.root)) {
-                                        messages.push(
-                                            ...(error as any).root.map((msg: any) => String(msg))
-                                        );
-                                    }
-                                    // If error has 'message' in nested errors (for arrays)
-                                    if (Array.isArray((error as any)?.message)) {
-                                        messages.push(
-                                            ...(error as any).message.map((msg: any) => String(msg))
-                                        );
-                                    }
-                                    // Fallback: show JSON if nothing else
-                                    if (messages.length === 0) {
-                                        messages.push(JSON.stringify(error));
-                                    }
-                                    return messages.map((msg, i) => (
-                                        <li key={field + i} className="text-sm">
-                                            {msg}
-                                        </li>
-                                    ));
-                                })}
+                            <ul className="mt-2 list-disc list-inside space-y-1">
+                                {Object.entries(errors).map(([key, value]) => (
+                                    <li key={key}>
+                                        {`${key.charAt(0).toUpperCase() + key.slice(1)}: ${value?.message || 'Invalid input'}`}
+                                    </li>
+                                ))}
                             </ul>
                         </AlertDescription>
                     </Alert>

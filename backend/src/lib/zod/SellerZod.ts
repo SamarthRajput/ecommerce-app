@@ -125,7 +125,7 @@ export const productSchema = z.object({
     validityPeriod: z.preprocess(val => Number(val), z.number().min(1, "Validity period must be at least 1 day")),
 
     // Product Details
-    specifications: z.string(),
+    specifications: z.string().optional(),
     hsnCode: z.string().min(1, "HSN code is required"),
     warrantyPeriod: z.string().optional(),
 
@@ -147,5 +147,6 @@ export const productSchema = z.object({
     keywords: z.preprocess(parseJsonArray, z.array(z.string()).optional()),
 
     // Terms
-    agreedToTerms: z.preprocess(val => val === 'true' || val === true, z.boolean().optional())
+    agreedToTerms: z.preprocess(val => val === 'true' || val === true, z.boolean().optional()),
+    isDraft: z.coerce.boolean().optional().default(false)
 });

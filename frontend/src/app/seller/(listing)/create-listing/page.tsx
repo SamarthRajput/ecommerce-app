@@ -1,13 +1,23 @@
 "use client";
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProductFormData } from '@/lib/types/listing';
 import ProductForm from '@/src/components/CreateListingForm/ProductForm';
 import { toast } from "sonner"
 import { APIURL } from '@/src/config/env';
+import { useAuth } from '@/src/context/AuthContext';
 
 export default function CreateListingPage() {
     const router = useRouter();
+    const { user, authLoading, authenticated } = useAuth();
+
+    useEffect(() => {
+        if (authLoading) return; // Wait for auth state to load
+        if (!authenticated || !user) {
+            toast.error('You must be logged in to create a listing.', { description: 'Please log in to continue.' });
+            router.push('/seller/signin'); // Redirect to login if not authenticated
+        }
+    }, [authLoading, authenticated, user, router]);
 
     const handleSubmit = async (data: ProductFormData, isDraft = false) => {
         try {
@@ -50,12 +60,10 @@ export default function CreateListingPage() {
                 toast.success(isDraft ? 'Product saved as draft!' : 'Product submitted for approval!');
                 router.push('/seller/dashboard?tab=listings');
             } else {
-                toast.error(`Error: ${result.error || 'Unknown error'}`);
-                throw new Error(`Failed to submit product: ${result.error || 'Unknown error'}`);
+                throw new Error(`${result.error || 'Unknown error'}`);
             }
-        } catch (error) {
-            console.error('Error submitting product:', error);
-            toast.error('Error submitting product. Please try again.');
+        } catch (error: any) {
+            toast.error(`Error submitting product: ${error.message || 'Unknown error'}`);
             throw error;
         }
     };

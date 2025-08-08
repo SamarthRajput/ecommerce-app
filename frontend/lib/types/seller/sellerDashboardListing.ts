@@ -20,7 +20,7 @@ export interface Listing {
     price: number;
     quantity: number;
     category: string;
-    status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED' | 'REJECTED' | 'APPROVED' | 'PENDING';
+    status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED' | 'REJECTED' | 'APPROVED' | 'PENDING' | 'DRAFT';
     createdAt: string;
     rejectionReason?: string; // Optional for rejected listings
     updatedAt?: string;
@@ -86,6 +86,11 @@ export const STATUS_CONFIG = {
         color: 'bg-yellow-100 text-yellow-700 border-yellow-200',
         icon: AlertTriangle,
         label: 'Pending'
+    },
+    DRAFT: {
+        color: 'bg-gray-100 text-gray-700 border-gray-200',
+        icon: Archive,
+        label: 'Draft'
     }
 } as const;
 

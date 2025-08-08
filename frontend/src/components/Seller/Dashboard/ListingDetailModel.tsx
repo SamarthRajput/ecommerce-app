@@ -10,12 +10,14 @@ interface ListingDetailModalProps {
     listing: Listing;
     onClose: () => void;
     onSubmit: (listingId: string, updated: Partial<Listing>) => Promise<void>;
+    toggle: (listingId: string, action: 'activate' | 'deactivate' | 'archive' | 'unarchive') => Promise<void>;
 }
 
 export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
     listing,
     onClose,
-    onSubmit
+    onSubmit,
+    toggle
 }) => {
     const router = useRouter();
 
@@ -159,7 +161,7 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
                                             View on Marketplace
                                         </Button>
                                     )}
-                                    
+
                                     <Button onClick={() => {
                                         if (listing.slug) {
                                             router.push(`/seller/edit-listing/${listing.slug}`)
@@ -168,7 +170,7 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
                                         }
                                     }}>
                                         <Edit className="w-4 h-4 mr-2" />
-                                        Edit Listing
+                                        {listing.status === 'DRAFT' ? 'Edit and Post Listing' : listing.status === 'REJECTED' ? 'Edit and Resubmit' : 'Edit Listing'}
                                     </Button>
                                 </div>
                             </div>
@@ -323,6 +325,24 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
                                 </CardContent>
                             )}
                         </div>
+                        {/* Helper Buttons  */}
+                        {/* if archive then show button for unarchive */}
+                        {listing.status === 'ARCHIVED' && (
+                            <Button variant="outline" onClick={() => toggle(listing.id, 'unarchive')}>
+                                Unarchive Listing
+                            </Button>
+                        )}
+                        {listing.status === 'APPROVED' && (
+                            < Button variant="outline" onClick={() => toggle(listing.id, 'archive')}>
+                                Archive Listing
+                            </Button>
+                        )}
+                        {/* if draft then show button for publish */}
+                        {listing.status === 'DRAFT' && (
+                            <Button variant="outline" onClick={() => toggle(listing.id, 'activate')}>
+                                Publish Listing
+                            </Button>
+                        )}
                     </div>
                 </CardContent>
             </Card>

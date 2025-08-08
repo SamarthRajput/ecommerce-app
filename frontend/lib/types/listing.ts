@@ -27,7 +27,7 @@ export const productSchema = z.object({
   validityPeriod: z.number().min(1, "Validity period must be at least 1 day"),
 
   // Product Details
-  specifications: z.string().min(10, "Specifications must be at least 10 characters"),
+  specifications: z.string().max(10000, "Specifications must be at most 10000 characters").optional(),
   hsnCode: z.string().min(1, "HSN code is required"),
   warrantyPeriod: z.string().optional(),
   certifications: z.array(z.string()).optional(),

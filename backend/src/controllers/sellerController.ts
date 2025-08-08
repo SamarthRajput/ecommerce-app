@@ -588,7 +588,7 @@ export const toggleListingStatus = async (req: AuthenticatedRequest, res: Respon
     try {
         const sellerId = req.seller?.sellerId;
         if (!sellerId) {
-            return res.status(401).json({ error: 'Unauthorized Access' });
+            return res.status(401).json({ error: 'Unauthorized Access, please log in!' });
         }
 
         const listingId = req.params.listingId;
@@ -596,7 +596,7 @@ export const toggleListingStatus = async (req: AuthenticatedRequest, res: Respon
             return res.status(400).json({ error: 'Listing ID is required' });
         }
 
-        const { action } = req.body; // action can be 'deactivate', 'activate', or 'archive'
+        const { action } = req.body; // action can be 'deactivate', 'activate', or 'archive', 'unarchive'
 
         // Check if listing exists
         const existingListing = await prisma.product.findUnique({
@@ -607,7 +607,7 @@ export const toggleListingStatus = async (req: AuthenticatedRequest, res: Respon
             return;
         }
 
-        let updatedStatus: "INACTIVE" | "PENDING" | "ARCHIVED";
+        let updatedStatus: "INACTIVE" | "PENDING" | "ARCHIVED" | "APPROVED";
         switch (action) {
             case 'deactivate':
                 updatedStatus = "INACTIVE";
@@ -616,11 +616,15 @@ export const toggleListingStatus = async (req: AuthenticatedRequest, res: Respon
                 updatedStatus = "ARCHIVED";
                 break;
             case 'activate':
-                updatedStatus = "PENDING";
+                updatedStatus = "PENDING"; // draft can be activated so it must be go to admin
+                break;
+            case 'unarchive':
+                updatedStatus = "APPROVED"; // unarchive are the archived ones (by the seller intentions) so not need to admin approval.
                 break;
             default:
                 return res.status(400).json({ error: `Invalid action ${action}` });
         }
+        console.log(`Toggling listing status for ${listingId} to ${updatedStatus} by seller ${sellerId}`);
 
         // Update listing status
         const updatedListing = await prisma.product.update({
@@ -628,6 +632,7 @@ export const toggleListingStatus = async (req: AuthenticatedRequest, res: Respon
             data: { status: updatedStatus }
         });
 
+        console.log(`Listing ${listingId} status updated to ${updatedStatus}`);
         res.json({
             message: `Listing ${action}d successfully`,
             listing: {
@@ -966,7 +971,6 @@ export const getSellerProfile = async (req: AuthenticatedRequest, res: Response)
     }
 }
 
-
 // Create a new listing by Seller
 export const createListing = async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -990,10 +994,7 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 req.body[field] = Number(req.body[field]);
             }
         });
-        console.log('Parsed numeric fields:', req.body);
 
-        // Upload and validate images
-        console.log('Files received for upload:', req.files);
         const files = (req.files as Express.Multer.File[]) || [];
         let imageUrls: string[] = [];
 
@@ -1008,20 +1009,20 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
         req.body.images = imageUrls;
 
         // Validate with Zod schema
-        const validationResult = productSchema.safeParse(req.body);
+        const parsed = productSchema.safeParse(req.body);
 
-        console.log('Validation failed:', validationResult.success, validationResult.error?.issues);
-        if (!validationResult.success) {
+        console.log('Validation failed:', parsed.success, parsed.error?.issues);
+        if (!parsed.success) {
             return res.status(400).json({
-                error: `validation failed: ${validationResult.error.issues[0]?.message}`,
-                details: validationResult.error.issues.map(issue => ({
+                error: `Validation failed: ${parsed.error.issues[0]?.message}`,
+                details: parsed.error.issues.map(issue => ({
                     field: issue.path.join('.'),
                     message: issue.message
                 }))
             });
         }
 
-        const data = validationResult.data;
+        const data = parsed.data;
 
         // Generate and ensure unique slug
         let slug = slugify(data.name, { lower: true, strict: true });
@@ -1060,7 +1061,7 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 name: data.name,
                 description: data.description,
                 model: data.model,
-                specifications: data.specifications,
+                specifications: data.specifications||"",
                 hsnCode: data.hsnCode,
                 quantity: data.quantity,
                 minimumOrderQuantity: data.minimumOrderQuantity,
@@ -1078,7 +1079,7 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 videoUrl: data.videoUrl || null,
                 tags: data.tags,
                 keywords: data.keywords,
-                status: 'PENDING'
+                status: data.isDraft ? 'DRAFT' : 'PENDING'
             }
         });
 
