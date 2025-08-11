@@ -107,7 +107,7 @@ export default function RequestQuotePage({ params }: RequestQuotePageProps) {
                     </li>
                     <li className="mx-2">-{'>'}</li>
                     <li>
-                        <a href={`/products/${encodeURIComponent(`${listingData?.category}/${listingData?.id}`)}`} className="text-blue-500 hover:underline">{listingData?.name}</a>
+                        <a href={`/products/${encodeURIComponent(`${listingData?.category}`)}/${encodeURIComponent(`${listingData?.id}`)}`} className="text-blue-500 hover:underline">{listingData?.name}</a>
                     </li>
                     <li className="mx-2">-{'>'}</li>
                     <li>
