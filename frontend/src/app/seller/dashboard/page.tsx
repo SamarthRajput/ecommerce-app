@@ -1,10 +1,12 @@
 "use client";
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import useSellerDashboard from '@/hooks/useSellerDashboard';
 import AccountUnderReview from './AccountReview';
 import { LoadingState } from '@/src/components/products/loading-state';
+import { useAuth } from '@/src/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const EnhancedSeller = () => {
     const {
@@ -16,6 +18,15 @@ const EnhancedSeller = () => {
         renderCurrentView,
         NAVIGATION_ITEMS
     } = useSellerDashboard();
+
+    const { user, isSeller, authLoading } = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!authLoading && (!isSeller || !user)) {
+            router.push('/seller/signin');
+        }
+    }, [authLoading, isSeller, user]);
 
     // Calculate pending RFQs count
     const pendingRFQsCount = rfqRequests.filter(rfq => rfq.status === 'FORWARDED').length;
