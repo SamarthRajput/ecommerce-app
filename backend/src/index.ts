@@ -47,9 +47,19 @@ app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/certification", certificationRouter);
 console.log("all router called");
 // Root route
-app.get("/", (req, res) => {
-  res.send("Welcome to the API");
-});
+app.get(
+  ["/", "/api/v1", "/api", "/welcome", "/home"],
+  (req, res) => {
+    res.send({
+      status: "success",
+      message: "Welcome to the API! 🚀",
+      version: "1.0.0",
+      path: req.originalUrl,
+      timestamp: new Date().toISOString()
+    });
+  }
+);
+
 
 // Catch-All Error Handler
 app.use(errorHandler as ErrorRequestHandler);
