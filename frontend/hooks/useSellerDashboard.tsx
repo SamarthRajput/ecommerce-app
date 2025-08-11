@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { User, Package, BarChart3, MessageSquare, Settings, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/src/context/AuthContext';
-import { Seller, Listing, DashboardStats, RFQ } from '@/lib/types/seller/sellerDashboard';
+import { Seller, DashboardStats, SellerDashboardRfq, SellerDashboardListing } from '@/lib/types/seller/sellerDashboard';
 import RFQComponent from '@/src/app/seller/dashboard/RFQ';
 import RenderOverview from '@/src/components/Seller/Dashboard/Overview';
 import ListingDashboard from '@/src/components/Seller/Dashboard/ManageListing';
@@ -32,8 +32,8 @@ const useSellerDashboard = () => {
     // Core dashboard state
     const [seller, setSeller] = useState<Seller | null>(null);
     const [dashboardLoading, setDashboardLoading] = useState<boolean>(true);
-    const [rfqRequests, setRfqRequests] = useState<RFQ[]>([]);
-    const [listings, setListings] = useState<Listing[]>([]);
+    const [rfqRequests, setRfqRequests] = useState<SellerDashboardRfq[]>([]);
+    const [listings, setListings] = useState<SellerDashboardListing[]>([]);
     const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
 
     // Profile editing state
@@ -183,6 +183,8 @@ const useSellerDashboard = () => {
             if (response.ok) {
                 const data = await response.json();
                 setRfqRequests(data.rfqRequests || []);
+                await navigator.clipboard.writeText(JSON.stringify(data.rfqRequests, null, 2)); // For debugging purposes
+                toast.info(`${data.rfqRequests.length} RFQ requests fetched and copied to clipboard`);
             }
         } catch (error) {
             console.error('Error fetching RFQ requests:', error);

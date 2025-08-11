@@ -134,7 +134,6 @@ export function RFQForm({ listingId, listingData }: RFQFormProps) {
             }
 
             const result = await response.json();
-            // console.log('RFQ created:', result);
 
             showSuccess('RFQ submitted successfully!');
             reset(); // Reset form after successful submission
