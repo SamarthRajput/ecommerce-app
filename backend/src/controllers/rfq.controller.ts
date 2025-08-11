@@ -2,102 +2,80 @@ import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import { AuthenticatedRequest } from "../middlewares/authSeller";
+import { createRFQRecord } from "../services/rfqService";
+import { CreateRFQRequest } from "../types/rfq";
+import { validateRFQInput } from "../validators/rfqValidator";
 
-// Define the interface for message data
-interface MessageData {
-  budget?: number;
-  currency?: string;
-  deliveryDate?: string;
-  paymentTerms?: string;
-  specialRequirements?: string;
-  additionalNotes?: string;
-}
-
-// POST /rfq
 export const createRFQ = async (req: Request, res: Response) => {
-  const body = req.body;
   const buyerId = req.user?.userId;
-  
+  if (!req.body || !Object.keys(req.body).length) {
+    return res.status(400).json({ message: 'Bad Request: RFQ data is required' });
+  }
+
   if (!buyerId) {
-    res.status(401).json({ message: 'Unauthorized: Buyer ID is required' });
-    return;
+    return res.status(401).json({ message: 'Unauthorized: Buyer ID is required' });
   }
 
-  if (!body.productId || !body.quantity) {
-    res.status(400).json({ message: 'productId and quantity are required' });
-    return;
+  const validation = validateRFQInput(req.body);
+  if (!validation.valid) {
+    return res.status(400).json({ message: validation.message });
   }
 
-  if (typeof body.quantity !== 'number' || body.quantity <= 0) {
-    res.status(400).json({ message: 'quantity must be a positive number' });
-    return;
-  }
-
-  // Parse the message if it's a string
-  let messageData: MessageData = {};
-  if (body.message) {
-    try {
-      messageData = typeof body.message === 'string' 
-        ? JSON.parse(body.message) 
-        : body.message;
-    } catch (error) {
-      console.error('Error parsing message:', error);
-      res.status(400).json({ message: 'Invalid message format' });
-      return;
-    }
-  }
-
-  // handle rfq creation
   try {
     const [product, buyer] = await Promise.all([
-      prisma.product.findUnique({
-        where: { id: body.productId },
-        select: { id: true }
-      }),
-      prisma.buyer.findUnique({
-        where: { id: buyerId },
-        select: { id: true }
-      })
+      prisma.product.findUnique({ where: { id: req.body.productId }, select: { id: true } }),
+      prisma.buyer.findUnique({ where: { id: buyerId }, select: { id: true } })
     ]);
 
-    if (!product) {
-      res.status(404).json({ message: 'Product not found' }); 
-      return;
-    }
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    if (!buyer) return res.status(404).json({ message: 'Buyer not found' });
 
-    if (!buyer) {
-      res.status(404).json({ message: 'Buyer not found' }); 
-      return;
-    }
+    const rfq = await createRFQRecord(buyerId, req.body as CreateRFQRequest);
 
-    const rfq = await prisma.rFQ.create({
-      data: {
-        productId: body?.productId,
-        buyerId,
-        quantity: body?.quantity,
-        budget: messageData?.budget || 0,
-        currency: messageData?.currency || 'USD',
-        deliveryDate: messageData?.deliveryDate ? new Date(messageData.deliveryDate) : undefined,
-        paymentTerms: messageData?.paymentTerms || '',
-        specialRequirements: messageData?.specialRequirements || '',
-        additionalNotes: messageData?.additionalNotes || '',
-        status: 'PENDING',
-      }
-    });
-    
-    
-    // Handle chat room creation. (wont block rfq creation)
-    await handleChatRoomCreation(rfq.id, buyerId);
+    handleChatRoomCreation(rfq.id, buyerId).catch(err =>
+      console.error('Chat room creation failed:', err)
+    );
 
-    res.status(201).json({ data: rfq });
-    return;
-  }
-  catch (error) {
-    console.error("Error creating rfq:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    return res.status(201).json({ data: rfq });
+  } catch (error) {
+    console.error('Error creating rfq:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+export const getListingInfoForRfq = async (req: Request, res: Response) => {
+  const { id } = req.params;
 
+  if (!id) {
+    return res.status(400).json({ message: 'Bad Request: Listing ID is required' });
+  }
+
+  try {
+    const listing = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!listing) {
+      return res.status(404).json({ message: 'Listing not found, please check the URL and try again.' });
+    }
+    const listingData = {
+      id: listing.id,
+      name: listing.name,
+      category: listing.category,
+      quantity: listing.quantity,
+      currency: listing.currency,
+      price: listing.price,
+      minimumOrderQuantity: listing.minimumOrderQuantity,
+      minimumDeliveryDateInDays: listing.deliveryTimeInDays,
+      createdAt: listing.createdAt,
+      updatedAt: listing.updatedAt,
+    };
+
+    return res.status(200).json({ data: listingData });
+  } catch (error) {
+    console.error('Error fetching listing info:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
 interface AdminUser {
   id: string;
   name: string;
@@ -209,7 +187,7 @@ export const getAllRFQs = async (req: Request, res: Response) => {
         createdAt: 'desc'
       }
     });
-console.log("\n\n\n\nAll RFQs:", allRFQs);
+    console.log("\n\n\n\nAll RFQs:", allRFQs);
     const count = await prisma.rFQ.count();
     console.log("All RFQs count:", count);
     res.status(200).json({
@@ -225,37 +203,6 @@ console.log("\n\n\n\nAll RFQs:", allRFQs);
   }
 };
 
-/**
- * This interface defines the structure of a Request for Quotation (RFQ). in frontend so from backend
- * data should match this interface.
- * export interface RFQ {
-  id: string;
-  productId: string;
-  buyerId: string;
-  quantity: number;
-  message?: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'FORWARDED';
-  deliveryDate?: Date;
-  budget?: number;
-  currency?: string;
-  paymentTerms?: string;
-  specialRequirements?: string;
-  additionalNotes?: string;
-  forwardedToSellers?: string[];
-  trade?: string;
-  chatRooms?: string[]; // Array of chat room IDs associated with the RFQ
-  updatedAt: Date;
-  rejectionReason?: string; // Reason for rejection if applicable
-  forwardedAt?: Date; // Timestamp when the RFQ was forwarded to sellers
-  createdAt: Date;
-  reviewedAt?: Date;
-  product: Product;
-  buyer: Buyer;
-  _count?: {
-    messages?: number;
-  };
-}
- */
 // GET /rfq/forwarded - Get all forwarded RFQs
 export const getForwardedRFQs = async (req: Request, res: Response) => {
   try {
