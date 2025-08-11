@@ -461,9 +461,6 @@ const ProductPage = () => {
                                     {product.name}
                                 </h1>
                                 <div className="flex space-x-1 md:space-x-2 flex-shrink-0">
-                                    <Button variant="outline" size="sm" className="p-2">
-                                        <Heart className="w-3 h-3 md:w-4 md:h-4" />
-                                    </Button>
                                     <Button variant="outline" size="sm" className="p-2" onClick={handleShare}>
                                         <Share2 className="w-3 h-3 md:w-4 md:h-4" />
                                     </Button>
@@ -574,7 +571,8 @@ const ProductPage = () => {
                             <CardContent className="p-4">
                                 <div className="flex items-center justify-between mb-3">
                                     <h3 className="font-semibold text-sm md:text-base">Seller Information</h3>
-                                    <Button
+                                    {/* Removed Seller Information from the product page  */}
+                                    {/* <Button
                                         variant="outline"
                                         size="sm"
                                         onClick={() => {
@@ -586,12 +584,13 @@ const ProductPage = () => {
                                         className="text-xs"
                                     >
                                         View Profile
-                                    </Button>
+                                    </Button> */}
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex items-center space-x-2">
                                         <Building className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
-                                        <span className="font-medium text-sm">{product.seller.businessName}</span>
+                                        {/* Buyer will only see Interlink as business name and see the actual location of the business */}
+                                        <span className="font-medium text-sm">InterLink Business</span>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <MapPin className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
@@ -755,6 +754,7 @@ const ProductPage = () => {
                                                     <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 mb-2">
                                                         <span className="font-medium text-sm md:text-base">
                                                             {review.buyer.firstName} {review.buyer.lastName}
+                                                            {/* {review.buyer.id} */}
                                                         </span>
                                                         <StarRating rating={review.rating} readonly />
                                                         <span className="text-xs md:text-sm text-gray-500">

@@ -46,9 +46,9 @@ export default function LogisticsValidityStep({ control, errors }: LogisticsVali
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="SELF">Self</SelectItem>
+                                    <SelectItem value="SELLER">Seller</SelectItem>
                                     <SelectItem value="INTERLINK">Interlink</SelectItem>
-                                    <SelectItem value="BOTH">Both</SelectItem>
+                                    <SelectItem value="BUYER">Buyer</SelectItem>
                                 </SelectContent>
                             </Select>
                         )}

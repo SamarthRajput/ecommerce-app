@@ -105,11 +105,11 @@ export const productSchema = z.object({
     name: z.string().min(3, "Product name must be at least 3 characters"),
     slug: z.string().optional(),
     productCode: z.string().min(1, "Product code is required"),
-    model: z.string().min(1, "Model is required"),
+    model: z.string().optional().nullable(),
     category: z.string().min(1, "Category is required"),
     industry: z.string().min(1, "Industry is required"),
     condition: z.enum(['NEW', 'USED', 'REFURBISHED', 'CUSTOM']),
-    listingType: z.enum(['SELL', 'LEASE', 'RENT']),
+    listingType: z.enum(['SELL', 'LEASE']),
     description: z.string().min(10, "Description must be at least 10 characters"),
 
     // Pricing & Quantity
@@ -120,7 +120,7 @@ export const productSchema = z.object({
 
     // Logistics & Validity
     deliveryTimeInDays: z.preprocess(val => Number(val), z.number().min(1, "Delivery time must be at least 1 day")),
-    logisticsSupport: z.enum(['SELF', 'INTERLINK', 'BOTH']),
+    logisticsSupport: z.enum(['SELLER', 'INTERLINK', 'BUYER']),
     countryOfSource: z.string().min(1, "Country of source is required"),
     validityPeriod: z.preprocess(val => Number(val), z.number().min(1, "Validity period must be at least 1 day")),
 
@@ -140,7 +140,7 @@ export const productSchema = z.object({
     }),
 
     brochureUrl: z.string().optional(),
-    videoUrl: z.string().url().optional().or(z.literal("")),
+    videoUrl: z.string().url().optional().or(z.literal("")).nullable(),
 
     // SEO & Tagging
     tags: z.preprocess(parseJsonArray, z.array(z.string()).optional()),

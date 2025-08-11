@@ -412,7 +412,7 @@ async function main() {
             minimumOrderQuantity: 4,
             deliveryTimeInDays: 6,
             logisticsSupport: LogisticsType.SELF,
-            listingType: ListingType.RENT, // Changed to RENT for variety
+            listingType: ListingType.LEASE, // Changed to LEASE for variety
             condition: ProductCondition.NEW,
             validityPeriod: 365,
             expiryDate: getExpiryDate(365),

@@ -48,7 +48,7 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
             condition: 'NEW',
             listingType: 'SELL',
             currency: 'INR',
-            logisticsSupport: 'BOTH',
+            logisticsSupport: 'INTERLINK',
             quantity: 1,
             minimumOrderQuantity: 1,
             validityPeriod: 30,

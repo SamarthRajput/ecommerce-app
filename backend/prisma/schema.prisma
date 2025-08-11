@@ -91,7 +91,7 @@ model Product {
   industry               String
   category               String
   productCode            String
-  model                  String
+  model                  String?
   specifications         String
   countryOfSource        String
   hsnCode                String
@@ -293,7 +293,6 @@ enum ProductStatus {
 enum ListingType {
   SELL
   LEASE
-  RENT
 }
 
 enum ProductCondition {
@@ -304,9 +303,9 @@ enum ProductCondition {
 }
 
 enum LogisticsType {
-  SELF
+  SELLER
   INTERLINK
-  BOTH
+  BUYER
 }
 
 enum TradeStatus {

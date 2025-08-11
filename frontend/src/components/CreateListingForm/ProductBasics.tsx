@@ -70,13 +70,14 @@ export default function ProductBasicsStep({ control, errors, setValue, watch }: 
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="model">Model *</Label>
+                    <Label htmlFor="model">Model</Label>
                     <Controller
                         name="model"
                         control={control}
                         render={({ field }) => (
                             <Input
                                 {...field}
+                                value={field.value ?? ""} // Convert null/undefined to empty string
                                 placeholder="Enter model"
                                 className={errors.model ? 'border-red-500' : ''}
                             />
@@ -171,7 +172,6 @@ export default function ProductBasicsStep({ control, errors, setValue, watch }: 
                                 <SelectContent>
                                     <SelectItem value="SELL">Sell</SelectItem>
                                     <SelectItem value="LEASE">Lease</SelectItem>
-                                    <SelectItem value="RENT">Rent</SelectItem>
                                 </SelectContent>
                             </Select>
                         )}

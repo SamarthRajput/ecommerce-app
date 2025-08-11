@@ -28,8 +28,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { renderProfile } from './Profile';
 import { useAuth } from '@/src/context/AuthContext';
-import { OverviewTab } from '@/src/app/buyer/dashboard/OverviewTab';
 import { APIURL } from '@/src/config/env';
+import { RFQTab } from './RFQTab';
 
 // Types
 export interface Buyer {
@@ -581,7 +581,7 @@ const EnhancedBuyerDashboard = () => {
             case 'overview':
                 return renderOverview();
             case 'rfqs':
-                return <OverviewTab buyerId={buyer?.id} />
+                return <RFQTab buyerId={buyer?.id} />
             case 'orders':
                 return <div className="p-4 text-center text-gray-500">All Orders history - Coming soon</div>;
             case 'history':
