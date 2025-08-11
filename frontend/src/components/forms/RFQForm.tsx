@@ -12,10 +12,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { showSuccess, showError } from '@/lib/toast';
 import { useRouter } from 'next/navigation';
 import { APIURL } from '@/src/config/env';
-
+import { toast } from 'sonner';
+import { ListingData } from '@/src/app/buyer/request-quote/[listingId]/page';
 interface RFQFormProps {
     listingId: string;
-    onSuccess?: () => void;
+    listingData: ListingData | null;
 }
 
 // Memoized Form Field Component
@@ -37,21 +38,32 @@ const FormField = React.memo(({
 
 FormField.displayName = 'FormField';
 
-export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
+export function RFQForm({ listingId, listingData }: RFQFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
 
     // Memoized default values
     const defaultValues = useMemo<RFQFormSchema>(() => ({
         listingId,
-        quantity: 0,
-        currency: '',
-        deliveryDate: '',
-        budget: 0,
+        quantity: listingData?.minimumOrderQuantity || 1,
+        currency: listingData?.currency || 'USD',
+        deliveryDate: listingData?.minimumDeliveryDateInDays
+            ? new Date(Date.now() + listingData.minimumDeliveryDateInDays * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+            : new Date().toISOString().slice(0, 10),
         paymentTerms: '',
+        paymentMethod: 'TELEGRAPHIC_TRANSFER',
         specialRequirements: '',
-        additionalNotes: ''
-    }), [listingId]);
+        advancePaymentPercentage: undefined,
+        cashAgainstDocumentsPercentage: undefined,
+        documentsAgainstPaymentPercentage: undefined,
+        documentsAgainstAcceptancePercentage: undefined,
+        letterOfCreditDescription: '',
+        servicesRequired: [],
+        requestChangeInDeliveryTerms: false,
+        additionalNotes: '',
+        message: '',
+    }), [listingId, listingData]);
+
 
     const {
         register,
@@ -59,6 +71,7 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
         formState: { errors },
         setValue,
         reset,
+        watch,
     } = useForm<RFQFormSchema>({
         resolver: zodResolver(rfqFormSchema),
         defaultValues,
@@ -67,18 +80,41 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
     const onSubmit = useCallback(async (data: RFQFormSchema) => {
         try {
             setIsSubmitting(true);
+            // quantity should be at least the minimum order quantity and not more then listingData.quantity (available)
+
+            if (listingData?.minimumOrderQuantity && data.quantity < listingData.minimumOrderQuantity) {
+                throw new Error(`Quantity must be at least ${listingData.minimumOrderQuantity}`);
+            }
+            if (listingData?.quantity && data.quantity > listingData?.quantity) {
+                throw new Error(`Quantity must not exceed ${listingData?.quantity}`);
+            }
+
+            // delivery date should be in the future and more than listingData.minimumDeliveryDateInDays
+            const deliveryDate = new Date(data.deliveryDate);
+            if (deliveryDate < new Date()) {
+                throw new Error(`Delivery date must be in the future`);
+            }
+            if (listingData?.minimumDeliveryDateInDays && deliveryDate < new Date(Date.now() + listingData.minimumDeliveryDateInDays * 24 * 60 * 60 * 1000)) {
+                throw new Error(`Delivery date must be at least ${listingData.minimumDeliveryDateInDays} days from now`);
+            }
 
             const payload = {
                 productId: data.listingId,
                 quantity: data.quantity,
-                message: JSON.stringify({
-                    deliveryDate: data.deliveryDate,
-                    budget: data.budget,
-                    currency: data.currency,
-                    paymentTerms: data.paymentTerms,
-                    specialRequirements: data.specialRequirements,
-                    additionalNotes: data.additionalNotes
-                }),
+                deliveryDate: data.deliveryDate,
+                currency: data.currency,
+                paymentTerms: data.paymentTerms,
+                advancePaymentPercentage: data.advancePaymentPercentage || null,
+                cashAgainstDocumentsPercentage: data.cashAgainstDocumentsPercentage || null,
+                documentsAgainstPaymentPercentage: data.documentsAgainstPaymentPercentage || null,
+                documentsAgainstAcceptancePercentage: data.documentsAgainstAcceptancePercentage || null,
+                paymentMethod: data.paymentMethod,
+                letterOfCreditDescription: data.letterOfCreditDescription || null,
+                specialRequirements: data.specialRequirements,
+                requestChangeInDeliveryTerms: data.requestChangeInDeliveryTerms || false,
+                servicesRequired: data.servicesRequired || [],
+                additionalNotes: data.additionalNotes || null,
+                message: data.message || null,
                 status: "PENDING"
             };
 
@@ -94,29 +130,25 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
             if (!response.ok) {
                 // alert(`Error: ${response.status} - ${response.statusText}`);
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to submit RFQ');
+                throw new Error(errorData.error || errorData.message || 'Failed to submit RFQ');
             }
-            // alert('RFQ submitted successfully!');
 
             const result = await response.json();
-            // console.log('RFQ created:', result);
 
             showSuccess('RFQ submitted successfully!');
             reset(); // Reset form after successful submission
-            onSuccess?.();
             router.push('/buyer/dashboard'); // Redirect to RFQs page after success
         } catch (error) {
-            alert(`Error submitting RFQ: ${error instanceof Error ? error.message : 'Unknown error'}`);
             console.error('Error submitting RFQ:', error);
             showError(error instanceof Error ? error.message : 'Failed to submit RFQ. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
-    }, [router, reset, onSuccess]);
+    }, [router, reset]);
 
 
     return (
-        <Card className="w-full max-w-2xl mx-auto">
+        <Card className="w-full max-w-2xl mx-auto" >
             <CardHeader>
                 <CardTitle>Request for Quote</CardTitle>
             </CardHeader>
@@ -136,22 +168,17 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
                             <Input
                                 id="deliveryDate"
                                 type="date"
+                                min={
+                                    listingData?.minimumDeliveryDateInDays
+                                        ? new Date(Date.now() + listingData.minimumDeliveryDateInDays * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+                                        : new Date().toISOString().slice(0, 10)
+                                }
                                 {...register('deliveryDate')}
                             />
                         </FormField>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <FormField label="Budget *" error={errors.budget?.message}>
-                            <Input
-                                id="budget"
-                                type="number"
-                                {...register('budget', { valueAsNumber: true })}
-                                min={0}
-                                step={0.01}
-                            />
-                        </FormField>
-
                         <FormField label="Currency *" error={errors.currency?.message}>
                             <Input
                                 id="currency"
@@ -160,8 +187,71 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
                             />
                         </FormField>
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField label="Payment Method *" error={errors.paymentMethod?.message}>
+                            <div className="flex gap-4">
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="radio"
+                                        value="TELEGRAPHIC_TRANSFER"
+                                        {...register('paymentMethod')}
+                                    /> Telegraphic Transfer (TT)
+                                </label>
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="radio"
+                                        value="LETTER_OF_CREDIT"
+                                        {...register('paymentMethod')}
+                                    /> Letter of Credit (LC)
+                                </label>
+                            </div>
+                        </FormField>
 
-                    <FormField label="Payment Terms *" error={errors.paymentTerms?.message}>
+                        {watch('paymentMethod') === 'LETTER_OF_CREDIT' && (
+                            <FormField label="Letter of Credit Details" error={errors.letterOfCreditDescription?.message}>
+                                <Textarea
+                                    {...register('letterOfCreditDescription')}
+                                    placeholder="Enter LC details"
+                                    rows={3}
+                                />
+                            </FormField>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField label="Advance Payment (%)" error={errors.advancePaymentPercentage?.message}>
+                            <Input type="number" {...register('advancePaymentPercentage', { valueAsNumber: true })} min={0} max={100} />
+                        </FormField>
+                        <FormField label="Cash Against Documents (%)" error={errors.cashAgainstDocumentsPercentage?.message}>
+                            <Input type="number" {...register('cashAgainstDocumentsPercentage', { valueAsNumber: true })} min={0} max={100} />
+                        </FormField>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField label="Documents Against Payment (%)" error={errors.documentsAgainstPaymentPercentage?.message}>
+                            <Input type="number" {...register('documentsAgainstPaymentPercentage', { valueAsNumber: true })} min={0} max={100} />
+                        </FormField>
+                        <FormField label="Documents Against Acceptance (%)" error={errors.documentsAgainstAcceptancePercentage?.message}>
+                            <Input type="number" {...register('documentsAgainstAcceptancePercentage', { valueAsNumber: true })} min={0} max={100} />
+                        </FormField>
+                    </div>
+
+                    <FormField label="Services Required" error={errors.servicesRequired?.message}>
+                        <div className="flex flex-wrap gap-4">
+                            {['Inspection', 'Shipping', 'Custom Clearance'].map(service => (
+                                <label key={service} className="flex items-center gap-2">
+                                    <input type="checkbox" value={service} {...register('servicesRequired')} />
+                                    {service}
+                                </label>
+                            ))}
+                        </div>
+                    </FormField>
+
+                    <FormField label="Request Change in Delivery Terms">
+                        <input type="checkbox" {...register('requestChangeInDeliveryTerms')} />
+                    </FormField>
+
+                    <FormField label="Payment Terms" error={errors.paymentTerms?.message}>
                         <Input
                             id="paymentTerms"
                             {...register('paymentTerms')}
@@ -169,7 +259,7 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
                         />
                     </FormField>
 
-                    <FormField label="Special Requirements *" error={errors.specialRequirements?.message}>
+                    <FormField label="Special Requirements" error={errors.specialRequirements?.message}>
                         <Textarea
                             id="specialRequirements"
                             {...register('specialRequirements')}
@@ -203,6 +293,6 @@ export function RFQForm({ listingId, onSuccess }: RFQFormProps) {
                     </Button>
                 </form>
             </CardContent>
-        </Card>
+        </Card >
     );
-} 
+}

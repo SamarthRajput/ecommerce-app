@@ -570,6 +570,8 @@ export const getSellerListings = async (req: AuthenticatedRequest, res: Response
                 category: true,
                 status: true,
                 createdAt: true,
+                _count: true,
+                rfqs:true,
             }
         });
 
@@ -728,15 +730,15 @@ export const getSellerRFQRequests = async (req: AuthenticatedRequest, res: Respo
     try {
         const sellerId = req.seller?.sellerId;
         if (!sellerId) {
-            return res.status(401).json({ error: 'Unauthorized' });
+            return res.status(401).json({ error: 'Unauthorized, please log in!' });
         }
 
         const rfqRequests = await prisma.rFQ.findMany({
             where: { product: { sellerId }, status: 'FORWARDED' },
             orderBy: { createdAt: 'desc' },
-            include: { product: true }
+            include: { product: true, buyer: true }
         });
-        // console.log(`RFQ requests for seller ${sellerId}:`, rfqRequests);
+        // console.log(`RFQ requests for seller ${sellerId}:`, rfqRequests.length);
         return res.json({
             message: 'RFQ requests retrieved successfully',
             rfqRequests
@@ -1061,7 +1063,7 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 name: data.name,
                 description: data.description,
                 model: data.model,
-                specifications: data.specifications||"",
+                specifications: data.specifications || "",
                 hsnCode: data.hsnCode,
                 quantity: data.quantity,
                 minimumOrderQuantity: data.minimumOrderQuantity,

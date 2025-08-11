@@ -47,16 +47,26 @@ app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/certification", certificationRouter);
 console.log("all router called");
 // Root route
-app.get("/", (req, res) => {
-  res.send("Welcome to the API");
-});
+app.get(
+  ["/", "/api/v1", "/api", "/welcome", "/home"],
+  (req, res) => {
+    res.send({
+      status: "success",
+      message: "Welcome to the API! 🚀",
+      version: "1.0.0",
+      path: req.originalUrl,
+      timestamp: new Date().toISOString()
+    });
+  }
+);
+
 
 // Catch-All Error Handler
 app.use(errorHandler as ErrorRequestHandler);
 
 // 404 Not Found Handler
 app.use((req: Request, res: Response, next: NextFunction) => {
-  res.status(404).json({ error: "Not Found" });
+  res.status(404).json({ error: "The API endpoint you are looking for does not exist." });
 });
 
 // Server start

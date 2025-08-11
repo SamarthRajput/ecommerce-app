@@ -116,27 +116,47 @@ model Product {
 }
 
 model RFQ {
-  id                  String       @id @default(uuid())
-  productId           String
-  buyerId             String
-  quantity            Int
-  deliveryDate        DateTime?
-  budget              Float?
-  currency            String?
-  paymentTerms        String?
-  specialRequirements String?
-  additionalNotes     String?
-  message             String?
-  status              RFQStatus
-  rejectionReason     String?
-  reviewedAt          DateTime?
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @default(now())
-  chatRooms           ChatRoom[]
-  buyer               Buyer        @relation(fields: [buyerId], references: [id])
-  product             Product      @relation(fields: [productId], references: [id])
-  forwardedToSellers  RFQForward[]
-  trade               Trade?
+  id                        String       @id @default(uuid())
+  productId                 String
+  buyerId                   String
+  quantity                  Int
+  unit                      String?               // NEW: Unit of measurement for quantity
+  deliveryDate              DateTime?              // Already exists, buyer's "Delivery by" date
+  budget                    Float?
+  currency                  String?
+  paymentTerms              String?                // Existing generic terms (kept for flexibility)
+  
+  // NEW: Detailed Payment Breakdown (Percentages)
+  advancePaymentPercentage  Float?                 // Advance Payment %
+  cashAgainstDocumentsPercentage Float?            // CAD %
+  documentsAgainstPaymentPercentage Float?         // DP %
+  documentsAgainstAcceptancePercentage Float?      // DA %
+
+  paymentMethod             PaymentMethod?         // NEW enum: TT, LC
+  letterOfCreditDescription String?                // LC Description
+  
+  specialRequirements       String?
+  requestChangeInDeliveryTerms Boolean?            // NEW: Buyer requests change in delivery terms
+  servicesRequired          String[]               // NEW: Optional list of extra services
+
+  additionalNotes           String?
+  message                   String?
+  status                    RFQStatus
+  rejectionReason           String?
+  reviewedAt                DateTime?
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @default(now())
+
+  chatRooms                 ChatRoom[]
+  buyer                     Buyer        @relation(fields: [buyerId], references: [id])
+  product                   Product      @relation(fields: [productId], references: [id])
+  forwardedToSellers        RFQForward[]
+  trade                     Trade?
+}
+
+enum PaymentMethod {
+  TELEGRAPHIC_TRANSFER      // TT
+  LETTER_OF_CREDIT          // LC
 }
 
 model RFQForward {

@@ -30,6 +30,7 @@ import {
     Calendar,
 } from 'lucide-react';
 import { formatDate, formatPrice } from '@/lib/listing-formatter';
+import { SellerDashboardListing, SellerDashboardRfq } from '@/lib/types/seller/sellerDashboard';
 
 // Types
 interface Seller {
@@ -40,7 +41,6 @@ interface Seller {
     isApproved: boolean;
     avgRating?: number;
 }
-
 interface DashboardStats {
     totalListings: number;
     activeListings: number;
@@ -53,36 +53,11 @@ interface DashboardStats {
     recentOrders: number;
     pendingOrders: number;
 }
-
-interface RFQ {
-    id: string;
-    productName?: string;
-    buyerName?: string;
-    quantity: number;
-    targetPrice?: number;
-    urgency?: string;
-    status: 'FORWARDED';
-    createdAt: Date | string;
-    message?: string;
-}
-
-interface Listing {
-    id: string;
-    productName: string;
-    price: number;
-    status: 'active' | 'inactive' | 'pending' | 'rejected';
-    views: number;
-    rfqCount: number;
-    images: string[];
-    createdAt: string;
-    category?: string;
-}
-
 interface OverviewProps {
     seller: Seller | null;
     dashboardStats: DashboardStats | null;
-    rfqRequests: RFQ[];
-    listings: Listing[];
+    rfqRequests: SellerDashboardRfq[];
+    listings: SellerDashboardListing[];
     setCurrentView: React.Dispatch<React.SetStateAction<
         'overview' | 'listings' | 'rfqs' | 'profile' | 'certifications' | 'chats' | 'settings'
     >>;
@@ -121,7 +96,12 @@ const RenderOverview: React.FC<OverviewProps> = ({
     const pendingRFQs = rfqRequests?.filter(rfq => rfq.status === 'FORWARDED') || [];
     const recentRFQs = rfqRequests?.slice(0, 5) || [];
     const topListings = listings
-        ?.sort((a, b) => (b.views + b.rfqCount * 5) - (a.views + a.rfqCount * 5))
+        ?.sort((a, b) => {
+            if (b.rfq && b.rfq.length !== a.rfq && a.rfq.length) {
+                return b.rfq.length - a.rfq.length;
+            }
+            return b.views - a.views;
+        })
         ?.slice(0, 5) || [];
 
     const activeListingsCount = listings?.filter(listing => listing.status === 'active').length || 0;
@@ -342,11 +322,11 @@ const RenderOverview: React.FC<OverviewProps> = ({
                                     >
                                         <div className="space-y-1 flex-1">
                                             <p className="font-medium text-sm">
-                                                {rfq.productName || 'Product Inquiry'}
+                                                {rfq.product.name || 'Product Inquiry'}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
                                                 Quantity: {rfq.quantity}
-                                                {rfq.targetPrice && ` • Target: ${formatPrice(rfq.targetPrice)}`}
+                                                {rfq.product.price && ` • Target: ${formatPrice(rfq.product.price)}`}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
                                                 <Calendar className="w-3 h-3 inline mr-1" />
@@ -417,11 +397,11 @@ const RenderOverview: React.FC<OverviewProps> = ({
                                             <div className="flex items-center space-x-3 text-xs text-muted-foreground">
                                                 <span className="flex items-center">
                                                     <Eye className="w-3 h-3 mr-1" />
-                                                    {listing.views}
+                                                    {listing.views || 0}
                                                 </span>
                                                 <span className="flex items-center">
                                                     <MessageSquare className="w-3 h-3 mr-1" />
-                                                    {listing.rfqCount}
+                                                    {listing.rfq && listing.rfq.length || 0}
                                                 </span>
                                             </div>
                                         </div>
