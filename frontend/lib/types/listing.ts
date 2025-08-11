@@ -39,10 +39,6 @@ export const productSchema = z.object({
   brochureUrl: z.string().url().or(z.literal("")).or(z.literal(null)).optional(),
   videoUrl: z.string().url().optional().or(z.literal("")),
 
-  // SEO & Tagging
-  tags: z.array(z.string()).optional(),
-  keywords: z.array(z.string()).optional(),
-
   // Terms (only required in create mode)
   agreedToTerms: z.boolean().optional()
 });
@@ -85,8 +81,7 @@ export const FORM_STEPS = [
   { id: 3, title: 'Logistics & Validity', description: 'Shipping and validity' },
   { id: 4, title: 'Product Details', description: 'Specifications and certifications' },
   { id: 5, title: 'Media & Attachments', description: 'Images and documents' },
-  { id: 6, title: 'SEO & Tagging', description: 'Tags and keywords' },
-  { id: 7, title: 'Review & Submit', description: 'Review and submit' }
+  { id: 6, title: 'Review & Submit', description: 'Review and submit' }
 ];
 
 export interface ProductFormProps {

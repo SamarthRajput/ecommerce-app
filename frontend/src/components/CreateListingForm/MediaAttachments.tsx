@@ -118,7 +118,7 @@ export default function MediaAttachmentsStep({
                     render={({ field }) => (
                         <Input
                             {...field}
-                            placeholder="YouTube or Vimeo URL"
+                            placeholder="YouTube or Video URL"
                             className={errors.videoUrl ? 'border-red-500' : ''}
                         />
                     )}

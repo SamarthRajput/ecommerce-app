@@ -41,7 +41,6 @@ interface Seller {
     isApproved: boolean;
     avgRating?: number;
 }
-
 interface DashboardStats {
     totalListings: number;
     activeListings: number;
@@ -54,7 +53,6 @@ interface DashboardStats {
     recentOrders: number;
     pendingOrders: number;
 }
-
 interface OverviewProps {
     seller: Seller | null;
     dashboardStats: DashboardStats | null;

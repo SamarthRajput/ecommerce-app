@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Package, DollarSign, Truck, FileText, ImageIcon, Tag, Check, ChevronRight, ChevronLeft, Save, Send, AlertCircle, Edit } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui/alert-dialog"
 import { ProductFormData, ProductFormProps, productSchema, createProductSchema, FORM_STEPS } from '@/lib/types/listing'
-import { ProductBasicsStep, PricingQuantityStep, LogisticsValidityStep, ProductDetailsStep, MediaAttachmentsStep, SeoTaggingStep, ReviewSubmitStep } from './index'
+import { ProductBasicsStep, PricingQuantityStep, LogisticsValidityStep, ProductDetailsStep, MediaAttachmentsStep, ReviewSubmitStep } from './index'
 import { useRouter } from 'next/navigation';
 
 // Form steps configuration with icons
@@ -54,8 +54,6 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
             validityPeriod: 30,
             deliveryTimeInDays: 7,
             price: 0,
-            tags: [],
-            keywords: [],
             certifications: [],
             licenses: [],
             images: [],
@@ -118,13 +116,12 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
     // Step validation mapping
     const getStepFields = (stepId: number): (keyof ProductFormData)[] => {
         const stepFields: { [key: number]: (keyof ProductFormData)[] } = {
-            1: ['name', 'productCode', 'model', 'category', 'industry', 'condition', 'listingType', 'description'],
+            1: ['name', 'model', 'category', 'industry', 'condition', 'listingType', 'description'],
             2: ['price', 'currency', 'quantity', 'minimumOrderQuantity'],
             3: ['deliveryTimeInDays', 'logisticsSupport', 'countryOfSource', 'validityPeriod'],
             4: ['hsnCode', 'specifications'],
             5: ['images'],
-            6: ['tags'],
-            7: mode === 'create' ? ['agreedToTerms'] : []
+            6: mode === 'create' ? ['agreedToTerms'] : []
         };
         return stepFields[stepId] || [];
     };
@@ -200,8 +197,6 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
                     />
                 );
             case 6:
-                return <SeoTaggingStep {...stepProps} />;
-            case 7:
                 return (
                     <ReviewSubmitStep
                         control={control}
