@@ -149,10 +149,11 @@ model Product {
   unit                   Unit             @relation(fields: [unitId], references: [id])
   seller                 Seller           @relation(fields: [sellerId], references: [id])
   certifications         String[]
-    certificationsRelation Certification[]
+  certificationsRelation Certification[]
   rfqs                   RFQ[]
   reviews                Review[]
   trades                 Trade[]
+  chatRooms              ChatRoom[]
 }
 
 model RFQ {
@@ -253,10 +254,11 @@ model Admin {
 
 model ChatRoom {
   id            String         @id @default(uuid())
-  rfqId         String
+  rfqId         String?
   buyerId       String?
   sellerId      String?
   adminId       String
+  productId     String?
   type          ChatRoomType
   status        ChatRoomStatus @default(ACTIVE)
   lastMessageAt DateTime       @default(now())
@@ -265,7 +267,8 @@ model ChatRoom {
   messages      ChatMessage[]
   admin         Admin          @relation(fields: [adminId], references: [id])
   buyer         Buyer?         @relation(fields: [buyerId], references: [id])
-  rfq           RFQ            @relation(fields: [rfqId], references: [id])
+  rfq           RFQ?            @relation(fields: [rfqId], references: [id])
+  product       Product?        @relation(fields: [productId], references: [id])
   seller        Seller?        @relation(fields: [sellerId], references: [id])
 
   @@unique([rfqId, type])

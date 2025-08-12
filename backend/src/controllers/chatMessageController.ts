@@ -334,8 +334,8 @@ export const getRecentChats = async (req: AuthenticatedRequest, res: Response) =
             chatRoomId: room.id,
             type: room.type,
             rfqId: room.rfqId,
-            rfqStatus: room.rfq.status,
-            productName: room.rfq.product.name,
+            rfqStatus: room.rfq?.status,
+            productName: room.rfq?.product.name,
             with: room.type === 'BUYER'
                 ? `${room.buyer?.firstName} ${room.buyer?.lastName}`
                 : `${room.seller?.businessName || room.seller?.firstName}`,

@@ -18,6 +18,7 @@ import slugify from "slugify";
 import crypto from "crypto";
 import { BusinessType } from "@prisma/client";
 import { sendEmail } from "../utils/sendEmail";
+import { createSellerAdminChatOnProduct } from "../services/chatService";
 
 // Sign up seller
 export const signupSeller = async (req: Request, res: Response) => {
@@ -1087,6 +1088,8 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 status: data.isDraft ? 'DRAFT' : 'PENDING'
             }
         });
+
+        await createSellerAdminChatOnProduct(listing.id, sellerId);
 
         return res.status(201).json({
             message: 'Listing created successfully',

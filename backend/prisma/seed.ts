@@ -73,7 +73,15 @@ async function main() {
     if (!seller) {
         console.log('Creating seller...');
         // find first industry
-        const industry = await prisma.industry.findFirst();
+        let industry = await prisma.industry.findFirst();
+
+        // If none exists, create one
+        if (!industry) {
+        industry = await prisma.industry.create({
+            data: { name: "Electronics" } // adjust according to your schema
+        });
+        }
+
         seller = await prisma.seller.create({
             data: {
                 firstName: 'Rohit',
@@ -98,8 +106,12 @@ async function main() {
                 taxId: 'TAX123456',
                 panOrTin: 'PAN123456',
                 agreedToTerms: true,
-                industryId: 
-            },
+                industry: {
+                    connect: {
+                        id: industry.id
+                    }
+                }
+            }
         });
     }
     // test@gmail.com
@@ -482,14 +494,14 @@ async function main() {
                 .replace(/(^-|-$)+/g, '')
                 .substring(0, 100); // Ensure slug isn't too long
 
-            await prisma.product.create({
-                data: {
-                    ...productData,
-                    sellerId: seller.id,
-                    status: 'APPROVED',
-                    slug: slug,
-                },
-            });
+            // await prisma.product.create({
+            //     data: {
+            //         ...productData,
+            //         sellerId: seller.id,
+            //         status: 'APPROVED',
+            //         slug: slug,
+            //     },
+            // });
 
             console.log(`✅ Successfully inserted product: ${productData.name}`);
         } catch (error) {

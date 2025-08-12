@@ -7,31 +7,56 @@ export const getProducts = async (req: Request, res: Response) => {
     const { skip, take } = parsePagination(req.query);
     const { category } = req.params;
     console.log("Fetching products for category:", category);
-    const categoryStr = typeof category === "string" ? category : undefined;
-    if (!categoryStr) {
-        return res.status(400).json({ message: "Category is required" });
-    }
 
     try {
         const products = await prisma.product.findMany({
-            where: {
-                status: "APPROVED",
-                categoryId: category
-            },
             skip,
             take,
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                price: true,
+                quantity: true,
+                listingType: true,
+                condition: true,
+                validityPeriod: true,
+                industry: true,
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                },
+                productCode: true,
+                model: true,
+                specifications: true,
+                countryOfSource: true,
+                hsnCode: true,
+                images: true,
+                createdAt: true,
+                updatedAt: true,
+                seller: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        slug: true,
+                        email: true,
+                        businessName: true,
+                        country: true,
+                        state: true,
+                        city: true,
+                    },
+                },
+            },
         });
-
+        console.log(products)
         res.status(200).json({
             products,
             page: typeof req.query.page === "string" ? parseInt(req.query.page) : 1,
             limit: take,
-            total: await prisma.product.count({
-                where: {
-                    status: "APPROVED",
-                    categoryId: category,
-                },
-            }),
+            total: await prisma.product.count({}),
             message: products.length > 0 ? "Products fetched successfully" : "No products found",
         });
     } catch (err) {
@@ -40,9 +65,10 @@ export const getProducts = async (req: Request, res: Response) => {
     }
 };
 
+
 export const getProductById = async (req: Request, res: Response) => {
     const { category, id } = req.params;
-    console.log("Fetching product with ID:", id);
+    console.log("Fetching product with ID:", id, " and category with id ", category);
     try {
         const product = await prisma.product.findFirst({
             where: {
@@ -60,7 +86,12 @@ export const getProductById = async (req: Request, res: Response) => {
                 condition: true,
                 validityPeriod: true,
                 industry: true,
-                category: true,
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                },
                 productCode: true,
                 model: true,
                 specifications: true,
