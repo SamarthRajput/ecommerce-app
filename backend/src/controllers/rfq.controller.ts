@@ -60,7 +60,9 @@ export const getListingInfoForRfq = async (req: Request, res: Response) => {
     const listingData = {
       id: listing.id,
       name: listing.name,
-      category: listing.category,
+      categoryId: listing.categoryId,
+      industryId: listing.industryId,
+      unitId: listing.unitId,
       quantity: listing.quantity,
       currency: listing.currency,
       price: listing.price,

@@ -21,12 +21,6 @@ const businessTypeOptions = [
     { value: 'other', label: 'Other' }
 ];
 
-const industryOptions = [
-    'Agriculture', 'Manufacturing', 'Technology', 'Healthcare', 'Education',
-    'Financial Services', 'Real Estate', 'Retail', 'Transportation', 'Energy',
-    'Construction', 'Food & Beverage', 'Textiles', 'Chemicals', 'Automotive'
-];
-
 const yearsInBusinessOptions = [
     { value: 1, label: 'Less than 1 year' },
     { value: 2, label: '1-3 years' },
@@ -38,6 +32,8 @@ const yearsInBusinessOptions = [
 const SellerRegistrationForm = () => {
     const {
         formData,
+        industry,
+        fieldErrors,
         errors,
         loading,
         handleInputChange,
@@ -111,9 +107,9 @@ const SellerRegistrationForm = () => {
     const renderCurrentSection = () => {
         switch (currentSection) {
             case 1: return <Section1 formData={formData} errors={errors} showPassword={showPassword} setShowPassword={setShowPassword} showConfirmPassword={showConfirmPassword} setShowConfirmPassword={setShowConfirmPassword} loading={loading} handleInputChange={handleInputChange} />;
-            case 2: return <Section2 formData={formData} errors={errors} handleInputChange={handleInputChange} businessTypeOptions={businessTypeOptions} industryOptions={industryOptions} yearsInBusinessOptions={yearsInBusinessOptions} />;
+            case 2: return <Section2 formData={formData} errors={errors} handleInputChange={handleInputChange} businessTypeOptions={businessTypeOptions} />;
             case 3: return <Section3 formData={formData} errors={errors} handleInputChange={handleInputChange} handleFileUpload={handleFileUpload} />;
-            case 4: return <Section4 formData={{ ...formData, yearsInBusiness: typeof formData.yearsInBusiness === 'string' ? Number(formData.yearsInBusiness) : formData.yearsInBusiness }} errors={errors} handleInputChange={handleInputChange} industryOptions={industryOptions} yearsInBusinessOptions={yearsInBusinessOptions} />;
+            case 4: return <Section4 formData={{ ...formData, yearsInBusiness: typeof formData.yearsInBusiness === 'string' ? Number(formData.yearsInBusiness) : formData.yearsInBusiness }} errors={errors} handleInputChange={handleInputChange} industryId={industry} yearsInBusinessOptions={yearsInBusinessOptions} />;
             case 5: return <Section5 formData={formData} errors={errors} handleInputChange={handleInputChange} businessTypeOptions={businessTypeOptions} />;
             default: return <Section1 formData={formData} errors={errors} showPassword={showPassword} setShowPassword={setShowPassword} showConfirmPassword={showConfirmPassword} setShowConfirmPassword={setShowConfirmPassword} loading={loading} handleInputChange={handleInputChange} />;
         }

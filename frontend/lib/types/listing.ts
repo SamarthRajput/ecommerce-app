@@ -8,8 +8,9 @@ export const productSchema = z.object({
   slug: z.string().optional(),
   productCode: z.string().min(1, "Product code is required"),
   model: z.string().optional().nullable(),
-  category: z.string().min(1, "Category is required"),
-  industry: z.string().min(1, "Industry is required"),
+  categoryId: z.string().min(1, "Category is required"),
+  industryId: z.string().min(1, "Industry is required"),
+  unitId: z.string().min(1, "Unit is required"),
   condition: z.enum(['NEW', 'USED', 'REFURBISHED', 'CUSTOM']),
   listingType: z.enum(['SELL', 'LEASE']),
   description: z.string().min(10, "Description must be at least 10 characters"),
@@ -57,16 +58,6 @@ export const CURRENCIES = [
   { value: 'USD', label: '$ USD' },
   { value: 'EUR', label: '€ EUR' },
   { value: 'GBP', label: '£ GBP' }
-];
-
-export const CATEGORIES = [
-  'Electronics', 'Machinery', 'Textiles', 'Chemicals', 'Food & Beverages',
-  'Automotive', 'Construction', 'Healthcare', 'Agriculture', 'Other'
-];
-
-export const INDUSTRIES = [
-  'Manufacturing', 'Technology', 'Healthcare', 'Agriculture', 'Construction',
-  'Automotive', 'Textiles', 'Food Processing', 'Chemical', 'Other'
 ];
 
 export const COUNTRIES = [

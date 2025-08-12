@@ -1,7 +1,10 @@
+import { showError, showInfo, showSuccess } from '@/lib/toast';
 import { APIURL } from '@/src/config/env';
+import { useAuth } from '@/src/context/AuthContext';
+import { IndustryMasterDataTypes } from '@/src/types/masterdata';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import toast from 'react-hot-toast';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 const useSignup = () => {
     const [currentSection, setCurrentSection] = useState(1);
@@ -10,7 +13,9 @@ const useSignup = () => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
     const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
+    const [industry, setIndustry] = useState<IndustryMasterDataTypes[]>([]);
     const router = useRouter();
+    const { user, isSeller, authLoading } = useAuth();
 
     const [formData, setFormData] = useState<{
         email: string;
@@ -40,50 +45,75 @@ const useSignup = () => {
         otherDocsUrl: string | null;
 
         companyBio: string;
-        industryTags: string[];
+        industryId: string;
         yearsInBusiness: string;
         keyProducts: string[];
 
         agreedToTerms: boolean;
     }>({
         // Section 1: Account & Verification
-        email: '',
-        password: '',
-        confirmPassword: '',
-        phone: '',
+        email: 'dummy@example.com',
+        password: '1',
+        confirmPassword: '1',
+        phone: '2',
         countryCode: '+91',
 
         // Section 2: Business Details
-        firstName: '',
-        lastName: '',
-        businessName: '',
+        firstName: 'farzi',
+        lastName: 'malik',
+        businessName: 'farzi enterprises',
         businessType: 'individual',
-        registrationNo: '',
-        taxId: '',
-        panOrTin: '',
-        country: '',
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        website: '',
+        registrationNo: 'fake',
+        taxId: 'jgfnbc',
+        panOrTin: 'nzgfcb',
+        country: 'gfnxb',
+        street: '123 Main St',
+        city: 'Metropolis',
+        state: 'NY',
+        zipCode: '12345',
+        website: 'https://farzi-enterprises.com',
         linkedIn: '',
 
         // Section 3: Documents
-        govIdUrl: null,
+        govIdUrl: 'https://example.com/gov-id',
         gstCertUrl: null,
-        businessDocUrl: null,
+        businessDocUrl: 'https://example.com/business-doc',
         otherDocsUrl: null,
 
         // Section 4: Business Profile
-        companyBio: '',
-        industryTags: [],
-        yearsInBusiness: '',
+        companyBio: 'ethdbv',
+        industryId: '',
+        yearsInBusiness: '23',
         keyProducts: [],
 
         // Section 5: Terms
         agreedToTerms: false
     });
+
+    useEffect(() => {
+        if (authLoading) return;
+        if (user && isSeller) {
+            showInfo('You are already logged in as a seller');
+            router.push('/seller/dashboard');
+        }
+    }, [user, isSeller, authLoading]);
+    
+    useEffect(() => {
+        const fetchIndustries = async () => {
+            try {
+                const response = await fetch(`${APIURL}/public/master-data`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch industries');
+                }
+                const data = await response.json();
+                setIndustry(data.data.industries ?? []);
+            } catch (error) {
+                console.error('Error fetching industries:', error);
+            }
+        };
+
+        fetchIndustries();
+    }, []);
 
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({
@@ -160,17 +190,19 @@ const useSignup = () => {
 
             if (data.url) {
                 handleInputChange(field, data.url);
+                showSuccess('File uploaded successfully');
             } else {
                 setErrors(prev => ({
                     ...prev,
                     [field]: 'No file URL returned from server.'
                 }));
             }
-        } catch (error) {
+        } catch (error: any) {
             setErrors(prev => ({
                 ...prev,
                 [field]: error instanceof Error ? error.message : 'File upload failed'
             }));
+            showError(error instanceof Error ? error.message : 'File upload failed');
         } finally {
             setLoading(false);
         }
@@ -183,6 +215,7 @@ const useSignup = () => {
             case 1:
                 if (!formData.email) newErrors.email = 'Email is required';
                 if (!formData.password) newErrors.password = 'Password is required';
+                if (formData.password.length < 4) newErrors.password = 'Password must be at least 4 characters';
                 if (formData.password !== formData.confirmPassword) {
                     newErrors.confirmPassword = 'Passwords do not match';
                 }
@@ -209,8 +242,8 @@ const useSignup = () => {
 
             case 4:
                 if (!formData.companyBio) newErrors.companyBio = 'Company bio is required';
-                if (formData.industryTags.length === 0) {
-                    newErrors.industryTags = 'Please select at least one industry';
+                if (!formData.industryId) {
+                    newErrors.industryId = 'Please select an industry';
                 }
                 break;
 
@@ -248,14 +281,13 @@ const useSignup = () => {
                 body: JSON.stringify(formData)
             });
             const data = await response.json();
-            toast(data.message);
             setLoading(false);
             if (!response.ok) {
                 setErrors(data.message || 'An error occurred');
                 if (data.errors) {
                     setFieldErrors(data.errors);
                 }
-
+                showError(data.message || 'An error occurred');
                 return;
             }
             if (data.seller) {
@@ -264,15 +296,14 @@ const useSignup = () => {
             }
         } catch (error) {
             setLoading(false);
-            console.error('Error during registration:', error);
-            alert(`Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            showError(error instanceof Error ? error.message : 'Unknown error');
         } finally {
             setLoading(false);
-            // alert(`${errors}`);
         }
     };
     return {
         formData,
+        industry,
         errors,
         fieldErrors,
         loading,

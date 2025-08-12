@@ -16,10 +16,7 @@ export const getProducts = async (req: Request, res: Response) => {
         const products = await prisma.product.findMany({
             where: {
                 status: "APPROVED",
-                category: categoryStr === "all" ? undefined : {
-                    equals: categoryStr,
-                    mode: "insensitive",
-                },
+                categoryId: category
             },
             skip,
             take,
@@ -32,10 +29,7 @@ export const getProducts = async (req: Request, res: Response) => {
             total: await prisma.product.count({
                 where: {
                     status: "APPROVED",
-                    category: categoryStr === "all" ? undefined : {
-                        equals: categoryStr,
-                        mode: "insensitive",
-                    },
+                    categoryId: category,
                 },
             }),
             message: products.length > 0 ? "Products fetched successfully" : "No products found",
@@ -54,10 +48,7 @@ export const getProductById = async (req: Request, res: Response) => {
             where: {
                 id,
                 status: "APPROVED",
-                category: category ? {
-                    equals: category,
-                    mode: "insensitive",
-                } : undefined,
+                categoryId: category,
             },
             select: {
                 id: true,
@@ -193,10 +184,7 @@ export const getProductReviews = async (req: Request, res: Response) => {
             where: {
                 productId: id,
                 product: {
-                    category: category ? {
-                        equals: category,
-                        mode: "insensitive",
-                    } : undefined,
+                    categoryId: category,
                     status: "APPROVED",
                 },
             },

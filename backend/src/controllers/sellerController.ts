@@ -112,7 +112,9 @@ export const signupSeller = async (req: Request, res: Response) => {
                 industryTags: data.industryTags || [],
                 keyProducts: data.keyProducts || [],
                 yearsInBusiness: data.yearsInBusiness ? Number(data.yearsInBusiness) : 0,
-                agreedToTerms: data.agreedToTerms || false
+                agreedToTerms: data.agreedToTerms || false,
+
+                industryId: data.industryId
             }
         })
 
@@ -642,7 +644,7 @@ export const toggleListingStatus = async (req: AuthenticatedRequest, res: Respon
                 name: updatedListing.name,
                 description: updatedListing.description,
                 price: updatedListing.price,
-                category: updatedListing.category,
+                categoryId: updatedListing.categoryId,
                 status: updatedListing.status
             }
         });
@@ -1056,9 +1058,10 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 sellerId,
                 slug: uniqueSlug,
                 listingType: data.listingType,
-                industry: data.industry,
-                category: data.category,
+                categoryId: data.categoryId,
+                industryId: data.industryId,
                 condition: data.condition,
+                unitId: data.unitId,
                 productCode: data.productCode,
                 name: data.name,
                 description: data.description,
@@ -1173,8 +1176,8 @@ export const editListing = async (req: AuthenticatedRequest, res: Response) => {
             where: { id: listingId },
             data: {
                 listingType: data.listingType,
-                industry: data.industry,
-                category: data.category,
+                categoryId: data.categoryId,
+                industryId: data.industryId,
                 condition: data.condition,
                 productCode: data.productCode,
                 name: data.name,

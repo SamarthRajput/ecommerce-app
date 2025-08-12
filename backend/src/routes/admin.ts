@@ -1,12 +1,14 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
 import { prisma } from "../lib/prisma";
-import { requireAdmin } from "../middlewares/authAdmin";
 import {
+    deleteMasterData,
+    editMasterData,
     getAdminSummary,
     getAllAdmins,
     getAllBuyers,
     getAllSellers,
-    getRecentRFQs
+    getRecentRFQs,
+    postMasterData
 } from "../controllers/adminController";
 import { getRecentChats } from "../controllers/chatMessageController";
 import { requireAuth } from "../middlewares/requireAuth";
@@ -28,13 +30,17 @@ adminRouter.delete('/buyers/:id', requireAuth({ allowedRoles: ["admin"], allowed
 adminRouter.post('/sellers/:id/approve', requireAuth({ allowedRoles: ["admin"], allowedAdminRoles: ["SUPER_ADMIN"] }), asyncHandler(approveSeller));
 
 // * Admin Dashboard Summary
-adminRouter.get('/dashboard-summary', requireAuth({ allowedRoles: ["admin"], allowedAdminRoles: ["SUPER_ADMIN", "ADMIN","INSPECTOR"] }), asyncHandler(getAdminSummary));
+adminRouter.get('/dashboard-summary', requireAuth({ allowedRoles: ["admin"], allowedAdminRoles: ["SUPER_ADMIN", "ADMIN", "INSPECTOR"] }), asyncHandler(getAdminSummary));
 
 // * Recent RFQs
 adminRouter.get('/rfqs/recent', requireAuth({ allowedRoles: ["admin"], allowedAdminRoles: ["SUPER_ADMIN"] }), asyncHandler(getRecentRFQs));
 
 // * Recent Chats
 adminRouter.get('/chats/recent', requireAuth({ allowedRoles: ["admin"], allowedAdminRoles: ["SUPER_ADMIN", "ADMIN"] }), asyncHandler(getRecentChats));
+
+adminRouter.post('/master-data', requireAuth({ allowedRoles: ["admin"], allowedAdminRoles: ["SUPER_ADMIN", "ADMIN"] }), asyncHandler(postMasterData));
+adminRouter.put('/master-data', requireAuth({ allowedRoles: ["admin"], allowedAdminRoles: ["SUPER_ADMIN", "ADMIN"] }), asyncHandler(editMasterData));
+adminRouter.delete('/master-data', requireAuth({ allowedRoles: ["admin"], allowedAdminRoles: ["SUPER_ADMIN", "ADMIN"] }), asyncHandler(deleteMasterData));
 
 // * Graceful Shutdown
 process.on('beforeExit', async () => {

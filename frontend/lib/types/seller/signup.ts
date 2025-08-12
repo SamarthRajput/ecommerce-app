@@ -1,3 +1,5 @@
+import { IndustryMasterDataTypes } from "@/src/types/masterdata";
+
 // Types for section1 for /seller/signup
 export type Section1Props = {
     formData: {
@@ -35,9 +37,7 @@ export type Section2Props = {
     };
     errors: { [key: string]: string };
     handleInputChange: (field: string, value: any) => void;
-    businessTypeOptions: { value: string; label: string }[];
-    industryOptions: string[];
-    yearsInBusinessOptions: { value: number; label: string }[];
+    businessTypeOptions: { value: string; label: string }[]
 };
 
 // Types for section3 for /seller/signup
@@ -58,7 +58,7 @@ export type Section3Props = {
 export interface FormData {
     email: string;
     companyBio: string;
-    industryTags: string[];
+    industryId: string;
     yearsInBusiness: number;
     keyProducts: string[];
 }
@@ -68,7 +68,7 @@ export interface Section4Props {
     formData: FormData;
     errors: Record<string, string>;
     handleInputChange: (field: string, value: any) => void;
-    industryOptions: string[];
+    industryId: IndustryMasterDataTypes[];
     yearsInBusinessOptions: { value: number; label: string }[];
 }
 
@@ -82,7 +82,7 @@ export type Section5Props = {
         businessType: string;
         city: string;
         state: string;
-        industryTags: string[];
+        industryId: string;
         agreedToTerms: boolean;
     };
     errors: { [key: string]: string };

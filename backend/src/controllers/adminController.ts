@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { JWT_SECRET } from "../config";
 import { setAuthCookie } from "../utils/setAuthCookie";
 import { clearAuthCookies } from "../utils/clearAuthCookies";
+import { MasterDataService } from "../services/masterData";
 
 interface SigninBody {
     email: string;
@@ -371,5 +372,79 @@ export const getRecentRFQs = async (req: Request, res: Response) => {
             success: false,
             error: 'Failed to fetch recent RFQs'
         });
+    }
+};
+
+
+// POST Master Data
+export const postMasterData = async (req: Request, res: Response) => {
+    try {
+        const { type, name, symbol } = req.body;
+        if (!type || !name) {
+            return res.status(400).json({ error: 'Type and name are required' });
+        }
+
+        if (type === 'category') {
+            await MasterDataService.Category.add({ name });
+        } else if (type === 'industry') {
+            await MasterDataService.Industry.add({ name });
+        } else if (type === 'unit') {
+            await MasterDataService.Unit.add({ name, symbol });
+
+        } else {
+            return res.status(400).json({ error: 'Invalid type, please provide a valid type' });
+        }
+
+        res.json({ message: `${name.toUpperCase()} added successfully to ${type.toUpperCase()}` });
+    } catch (error: any) {
+        console.error('Error adding master data:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+export const deleteMasterData = async (req: Request, res: Response) => {
+    try {
+        const { type, id } = req.body;
+        if (!type || !id) {
+            return res.status(400).json({ error: 'Type and ID are required' });
+        }
+
+        if (type === 'category') {
+            await MasterDataService.Category.delete({ id });
+        } else if (type === 'industry') {
+            await MasterDataService.Industry.delete({ id });
+        } else if (type === 'unit') {
+            await MasterDataService.Unit.delete({ id });
+
+        } else {
+            return res.status(400).json({ error: 'Invalid type, please provide a valid type' });
+        }
+
+        res.json({ message: `Selected ${type.toUpperCase()} deleted successfully` });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export const editMasterData = async (req: Request, res: Response) => {
+    try {
+        const { type, id, name, symbol } = req.body;
+        if (!type || !id || !name) {
+            return res.status(400).json({ error: 'Type, ID, and name are required' });
+        }
+
+        if (type === 'category') {
+            await MasterDataService.Category.edit({ id, name });
+        } else if (type === 'industry') {
+            await MasterDataService.Industry.edit({ id, name });
+        } else if (type === 'unit') {
+            await MasterDataService.Unit.edit({ id, name, symbol });
+
+        } else {
+            return res.status(400).json({ error: 'Invalid type, please provide a valid type' });
+        }
+
+        res.json({ message: `${name.toUpperCase()} edited successfully in ${type.toUpperCase()}` });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
     }
 };

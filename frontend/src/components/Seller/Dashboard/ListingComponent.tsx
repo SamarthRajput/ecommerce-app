@@ -143,7 +143,7 @@ export const ListingFiltersSection: React.FC<FiltersSectionProps> = ({
                         </SelectContent>
                     </Select>
 
-                    <Select value={filters.category} onValueChange={(value) => onFilterChange('category', value)}>
+                    {/* <Select value={filters.category} onValueChange={(value) => onFilterChange('category', value)}>
                         <SelectTrigger className="w-40">
                             <SelectValue placeholder="Category" />
                         </SelectTrigger>
@@ -155,7 +155,7 @@ export const ListingFiltersSection: React.FC<FiltersSectionProps> = ({
                                 </SelectItem>
                             ))}
                         </SelectContent>
-                    </Select>
+                    </Select> */}
 
                     <Select value={filters.sortBy} onValueChange={(value) => onFilterChange('sortBy', value)}>
                         <SelectTrigger className="w-44">
@@ -201,7 +201,7 @@ export const ListingFiltersSection: React.FC<FiltersSectionProps> = ({
                 </div>
             </div>
 
-            {(filters.search || filters.status !== 'all' || filters.category !== 'all') && (
+            {(filters.search || filters.status !== 'all') && (
                 <div className="mt-3 text-sm text-gray-600">
                     Showing {filteredCount} of {totalListings} listings
                 </div>
@@ -321,9 +321,9 @@ export const ListingCard: React.FC<ListingCardProps> = ({
                                 <h3 className="font-semibold text-gray-900 truncate">
                                     {listing.productName}
                                 </h3>
-                                <p className="text-sm text-gray-600 truncate">
+                                {/* <p className="text-sm text-gray-600 truncate">
                                     {listing.category}
-                                </p>
+                                </p> */}
                             </div>
                             <Badge className={statusConfig?.color ?? ''}>
                                 {statusConfig?.label ?? listing.status}
@@ -383,9 +383,9 @@ export const ListingTableView: React.FC<TableViewProps> = ({
                             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                                 Quantity
                             </th>
-                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                            {/* <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                                 Category
-                            </th>
+                            </th> */}
                             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                                 Status
                             </th>
@@ -433,9 +433,9 @@ export const ListingTableView: React.FC<TableViewProps> = ({
                                     <td className="px-4 py-3 text-gray-700">
                                         {listing.quantity}
                                     </td>
-                                    <td className="px-4 py-3 text-gray-700">
+                                    {/* <td className="px-4 py-3 text-gray-700">
                                         {listing.category}
-                                    </td>
+                                    </td> */}
                                     <td className="px-4 py-3">
                                         <Badge className={statusConfig?.color ?? ''}>
                                             {statusConfig?.label ?? listing.status}

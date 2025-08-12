@@ -71,6 +71,37 @@ model Seller {
   product          Product[]
   rfqForwards      RFQForward[]
   trades           Trade[]         @relation("SellerTrades")
+
+  
+  industryId       String
+  industry         Industry        @relation(fields: [industryId], references: [id])
+}
+
+model Category {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  products  Product[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now())
+}
+
+model Industry {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  products  Product[]
+  sellers   Seller[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now())
+}
+
+model Unit {
+  id        String     @id @default(uuid())
+  name      String     @unique  // e.g. "Kilogram", "Liter", "Meter"
+  symbol    String?             // e.g. "kg", "L", "m"
+  products  Product[]
+  rfqs      RFQ[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now())
 }
 
 model Product {
@@ -88,28 +119,37 @@ model Product {
   expiryDate             DateTime?
   deliveryTimeInDays     Int?
   logisticsSupport       LogisticsType?
-  industry               String
-  category               String
+  
+  industryId             String
+  categoryId             String
+  unitId                 String
+
   productCode            String
   model                  String?
   specifications         String
   countryOfSource        String
   hsnCode                String
-  certifications         String[]
-  licenses               String[]
   warrantyPeriod         String?
   brochureUrl            String?
   videoUrl               String?
   images                 String[]
   tags                   String[]
   keywords               String[]
+  licenses               String[]
+
   status                 ProductStatus    @default(PENDING)
   rejectionReason        String?
   sellerId               String
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @default(now())
-  certificationsRelation Certification[]
+
+  // Relations
+  industry               Industry         @relation(fields: [industryId], references: [id])
+  category               Category         @relation(fields: [categoryId], references: [id])
+  unit                   Unit             @relation(fields: [unitId], references: [id])
   seller                 Seller           @relation(fields: [sellerId], references: [id])
+  certifications         String[]
+    certificationsRelation Certification[]
   rfqs                   RFQ[]
   reviews                Review[]
   trades                 Trade[]
@@ -120,25 +160,22 @@ model RFQ {
   productId                 String
   buyerId                   String
   quantity                  Int
-  unit                      String?               // NEW: Unit of measurement for quantity
-  deliveryDate              DateTime?              // Already exists, buyer's "Delivery by" date
+  unitId                    String       // Now linked to Unit table
+  deliveryDate              DateTime?
   budget                    Float?
   currency                  String?
-  paymentTerms              String?                // Existing generic terms (kept for flexibility)
+  paymentTerms              String?
   
-  // NEW: Detailed Payment Breakdown (Percentages)
-  advancePaymentPercentage  Float?                 // Advance Payment %
-  cashAgainstDocumentsPercentage Float?            // CAD %
-  documentsAgainstPaymentPercentage Float?         // DP %
-  documentsAgainstAcceptancePercentage Float?      // DA %
+  advancePaymentPercentage  Float?
+  cashAgainstDocumentsPercentage Float?
+  documentsAgainstPaymentPercentage Float?
+  documentsAgainstAcceptancePercentage Float?
 
-  paymentMethod             PaymentMethod?         // NEW enum: TT, LC
-  letterOfCreditDescription String?                // LC Description
-  
+  paymentMethod             PaymentMethod?
+  letterOfCreditDescription String?
   specialRequirements       String?
-  requestChangeInDeliveryTerms Boolean?            // NEW: Buyer requests change in delivery terms
-  servicesRequired          String[]               // NEW: Optional list of extra services
-
+  requestChangeInDeliveryTerms Boolean?
+  servicesRequired          String[]
   additionalNotes           String?
   message                   String?
   status                    RFQStatus
@@ -147,6 +184,8 @@ model RFQ {
   createdAt                 DateTime     @default(now())
   updatedAt                 DateTime     @default(now())
 
+  // Relations
+  unit                      Unit         @relation(fields: [unitId], references: [id])
   chatRooms                 ChatRoom[]
   buyer                     Buyer        @relation(fields: [buyerId], references: [id])
   product                   Product      @relation(fields: [productId], references: [id])

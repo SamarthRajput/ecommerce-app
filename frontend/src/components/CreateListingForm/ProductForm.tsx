@@ -12,6 +12,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ProductFormData, ProductFormProps, productSchema, createProductSchema, FORM_STEPS } from '@/lib/types/listing'
 import { ProductBasicsStep, PricingQuantityStep, LogisticsValidityStep, ProductDetailsStep, MediaAttachmentsStep, ReviewSubmitStep } from './index'
 import { useRouter } from 'next/navigation';
+import { CategoryMasterDataTypes, IndustryMasterDataTypes, UnitMasterDataTypes } from '@/src/types/masterdata';
+import { APIURL } from '@/src/config/env';
+import { showError, showInfo } from '@/lib/toast';
 
 // Form steps configuration with icons
 const STEP_ICONS = [Package, DollarSign, Truck, FileText, ImageIcon, Tag, Check];
@@ -23,6 +26,10 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
     const [imageUrls, setImageUrls] = useState<string[]>([]);
     const [submitType, setSubmitType] = useState<'draft' | 'submit'>('submit');
     const [open, setOpen] = useState(false);
+    const [category, setCategory] = useState<CategoryMasterDataTypes[] | null>(null);
+    const [industry, setIndustry] = useState<IndustryMasterDataTypes[] | null>(null);
+    const [unit, setUnit] = useState<UnitMasterDataTypes[] | null>(null);
+
     const router = useRouter();
 
     const handleConfirm = () => {
@@ -62,7 +69,20 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
         }
     });
 
-    // Load initial data for edit mode
+    useEffect(() => {
+        const fetchCategoryData = async () => {
+            const response = await fetch(`${APIURL}/public/master-data`);
+            if (!response.ok) {
+                showError('Failed to fetch Categories...');
+            }
+            const data = await response.json();
+            setCategory(data.data.categories);
+            setIndustry(data.data.industries);
+            setUnit(data.data.units);
+        }
+        fetchCategoryData();
+    }, []);
+
     useEffect(() => {
         if (mode === 'edit' && initialData) {
             reset(initialData);
@@ -116,8 +136,8 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
     // Step validation mapping
     const getStepFields = (stepId: number): (keyof ProductFormData)[] => {
         const stepFields: { [key: number]: (keyof ProductFormData)[] } = {
-            1: ['name', 'model', 'category', 'industry', 'condition', 'listingType', 'description'],
-            2: ['price', 'currency', 'quantity', 'minimumOrderQuantity'],
+            1: ['name', 'model', 'categoryId', 'industryId', 'condition', 'listingType', 'description'],
+            2: ['price', 'currency', 'quantity', 'unitId', 'minimumOrderQuantity'],
             3: ['deliveryTimeInDays', 'logisticsSupport', 'countryOfSource', 'validityPeriod'],
             4: ['hsnCode', 'specifications'],
             5: ['images'],
@@ -178,9 +198,9 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
 
         switch (currentStep) {
             case 1:
-                return <ProductBasicsStep {...stepProps} />;
+                return <ProductBasicsStep {...stepProps} category={category} industry={industry} />;
             case 2:
-                return <PricingQuantityStep control={control} errors={errors} />;
+                return <PricingQuantityStep control={control} errors={errors} unit={unit} />;
             case 3:
                 return <LogisticsValidityStep control={control} errors={errors} />;
             case 4:
@@ -350,7 +370,6 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
                                 <Button
                                     type="button"
                                     onClick={() => {
-                                        // alert(`IsValid : ${isValid}`)
                                         setSubmitType('submit');
                                         handleSubmit(onFormSubmit)();
                                     }}

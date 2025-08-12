@@ -2,7 +2,7 @@ import React from 'react'
 import { Building, MapPin } from 'lucide-react';
 import { Section2Props } from '@/lib/types/seller/signup';
 
-const Section2 = ({ formData, errors, handleInputChange, businessTypeOptions, industryOptions, yearsInBusinessOptions }: Section2Props) => (
+const Section2 = ({ formData, errors, handleInputChange, businessTypeOptions }: Section2Props) => (
     <div className="space-y-6">
         <div className="flex items-center mb-6">
             <Building className="text-orange-500 mr-3" size={24} />
@@ -157,7 +157,7 @@ const Section2 = ({ formData, errors, handleInputChange, businessTypeOptions, in
                     {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
 
                 </div>
-                     <div>
+                <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                         Country *
                     </label>

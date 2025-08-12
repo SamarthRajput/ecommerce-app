@@ -34,9 +34,6 @@ export default function ReviewSubmitStep({
                         <span className="font-medium">Product Name:</span> {formData.name || 'Not specified'}
                     </div>
                     <div>
-                        <span className="font-medium">Category:</span> {formData.category || 'Not specified'}
-                    </div>
-                    <div>
                         <span className="font-medium">Price:</span> {formData.currency} {formData.price || 0}
                     </div>
                     <div>

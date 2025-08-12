@@ -65,7 +65,7 @@ const ListingDashboard: React.FC = () => {
         await toggleListingStatus(listingId, action);
     };
 
-    const hasActiveFilters = !!filters.search || filters.status !== 'all' || filters.category !== 'all';
+    const hasActiveFilters = !!filters.search || filters.status !== 'all';
 
     // Show loading state
     if (loading) {

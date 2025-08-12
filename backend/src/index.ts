@@ -17,6 +17,7 @@ import chatRouter from "./routes/chat.route";
 import certificationRouter from "./routes/certification.routes";
 import multer from "multer";
 import errorHandler from "./middlewares/errorHandler";
+import publicRouter from "./routes/public.routes";
 
 
 // Configs
@@ -45,6 +46,8 @@ app.use("/api/v1/admin", adminRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/certification", certificationRouter);
+app.use("/api/v1/public", publicRouter);
+
 console.log("all router called");
 // Root route
 app.get(

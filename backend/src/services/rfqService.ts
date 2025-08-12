@@ -7,7 +7,7 @@ export async function createRFQRecord(buyerId: string, body: CreateRFQRequest) {
             productId: body.productId,
             buyerId,
             quantity: body.quantity,
-            unit: body.unit || null,
+            unitId: body.unitId,
             deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
             currency: body.currency || null,
             paymentTerms: body.paymentTerms || null,

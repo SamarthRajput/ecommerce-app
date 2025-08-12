@@ -44,7 +44,6 @@ export interface Listing {
 export interface ListingFilters {
     search: string;
     status: string;
-    category: string;
     sortBy: string;
 }
 

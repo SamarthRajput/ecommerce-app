@@ -160,7 +160,7 @@ listingRouter.get('/category/:category', async (req: Request, res: Response) => 
 
         const listings = await prisma.product.findMany({
             where: {
-                category: category,
+                categoryId: category,
                 status: "APPROVED"
             }, // Filter by category and approved status
             include: {
