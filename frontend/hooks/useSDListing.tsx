@@ -120,7 +120,7 @@ export const useListingFilters = (listings: Listing[]) => {
     const [filters, setFilters] = useState<ListingFilters>({
         search: '',
         status: 'all',
-        category: 'all',
+        // category: 'all',
         sortBy: 'createdAt-desc'
     });
 
@@ -131,10 +131,10 @@ export const useListingFilters = (listings: Listing[]) => {
                 listing.name?.toLowerCase().includes(filters.search.toLowerCase()) ||
                 listing.category?.toLowerCase().includes(filters.search.toLowerCase());
             const matchesStatus = filters.status === 'all' || listing.status === filters.status;
-            const matchesCategory = filters.category === 'all' || listing.category === filters.category;
+            // const matchesCategory = filters.category === 'all' || listing.category === filters.category;
 
             console.log(`\n\nMatched Status: ${matchesStatus}`);
-            return matchesSearch && matchesStatus && matchesCategory;
+            return matchesSearch && matchesStatus;
         });
 
         // Sort listings
@@ -188,7 +188,7 @@ export const useListingFilters = (listings: Listing[]) => {
         setFilters({
             search: '',
             status: 'all',
-            category: 'all',
+            // category: 'all',
             sortBy: 'createdAt-desc'
         });
     }, []);
