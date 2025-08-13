@@ -131,7 +131,7 @@ export const getProductById = async (req: Request, res: Response) => {
             },
         });
 
-        console.log("Product fetched:", JSON.stringify(product));
+        // console.log("Product fetched:", JSON.stringify(product));
         if (!product) {
             console.log("Product not found with ID:", id);
             return res.status(404).json({ message: "Product not found or not ACTIVE" });

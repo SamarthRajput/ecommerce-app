@@ -610,5 +610,6 @@ const defaultUnits = [
     { name: 'Set', symbol: 'set' },
     { name: 'Box', symbol: 'box' },
     { name: 'Pack', symbol: 'pack' },
-    { name: 'Bundle', symbol: 'bundle' }
+    { name: 'Bundle', symbol: 'bundle' },
+    { name: 'Piece', symbol: 'pcs' }
 ];
