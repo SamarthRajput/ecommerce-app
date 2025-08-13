@@ -506,7 +506,7 @@ const ProductPage = () => {
                                             <span className="text-2xl md:text-3xl font-bold text-green-600">
                                                 ₹{product.price.toLocaleString()}
                                             </span>
-                                            <span className="text-sm md:text-base text-gray-600">per {product.unit.name}({product.unit.symbol})</span>
+                                            <span className="text-sm md:text-base text-gray-600">per {product.unit?.name}({product.unit?.symbol})</span>
                                         </div>
                                         <div className="text-xs md:text-sm text-green-700 mt-1">
                                             Best price guaranteed
