@@ -262,7 +262,7 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: SellerDashboardRfq[] }) =>
                                         <div className="space-y-2 text-sm">
                                             <p><span className="font-medium">Name:</span> {rfq.product.name}</p>
                                             <p><span className="font-medium">Model:</span> {rfq.product.model}</p>
-                                            <p><span className="font-medium">Category:</span> {rfq.product.category}</p>
+                                            <p><span className="font-medium">Category:</span> {rfq.product.category.name}</p>
                                             <p><span className="font-medium">Price:</span> {formatCurrency(rfq.product.price, rfq.product.currency)}</p>
                                         </div>
                                     </div>
@@ -466,7 +466,7 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: SellerDashboardRfq[] }) =>
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500">Category</p>
-                                            <p className="font-medium">{selectedRFQ.product.category}</p>
+                                            <p className="font-medium">{selectedRFQ.product.category.name}</p>
                                         </div>
                                         <div>
                                             <p className="text-sm text-gray-500">Price</p>
@@ -608,7 +608,7 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: SellerDashboardRfq[] }) =>
                                         <div className="space-y-4">
                                             <div>
                                                 <p className="text-sm text-gray-500">Industry</p>
-                                                <p className="font-medium">{selectedRFQ.product.industry}</p>
+                                                <p className="font-medium">{selectedRFQ.product.industry.name}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm text-gray-500">Minimum Order Quantity</p>
