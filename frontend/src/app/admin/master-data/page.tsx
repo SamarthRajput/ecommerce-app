@@ -661,6 +661,16 @@ const MasterData = () => {
                             <p className="text-gray-600 mb-6">
                                 Are you sure you want to delete <strong>"{deleteItem.name}"</strong>? This action cannot be undone.
                             </p>
+                            {deleteItem.type === "unit" && (
+                                <p className="text-sm text-gray-700 mb-4">
+                                    If any RFQ or Listing uses this Unit, it will be changed to the default (<strong>Piece</strong>).
+                                </p>
+                            )}
+                            {(deleteItem.type === "category" || deleteItem.type === "industry") && (
+                                <p className="text-sm text-gray-700 mb-4">
+                                    Linked product sellers will be assigned the default "<strong>Others</strong>".
+                                </p>
+                            )}
                             <div className="flex justify-end gap-3">
                                 <button
                                     className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
