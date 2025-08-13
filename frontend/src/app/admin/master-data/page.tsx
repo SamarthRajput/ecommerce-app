@@ -7,6 +7,44 @@ import Link from 'next/dist/client/link';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
+// Default options for bulk insert
+const defaultCategories = [
+    'Electronics', 'Clothing & Apparel', 'Home & Garden', 'Sports & Outdoors',
+    'Books & Media', 'Health & Beauty', 'Automotive', 'Toys & Games',
+    'Jewelry & Accessories', 'Food & Beverages', 'Office Supplies', 'Pet Supplies',
+    'Industrial Equipment', 'Art & Crafts', 'Musical Instruments'
+];
+
+const defaultIndustries = [
+    'Agriculture', 'Manufacturing', 'Technology', 'Healthcare', 'Education',
+    'Financial Services', 'Real Estate', 'Retail', 'Transportation', 'Energy',
+    'Construction', 'Food & Beverage', 'Textiles', 'Chemicals', 'Automotive',
+    'Telecommunications', 'Entertainment', 'Hospitality', 'Consulting', 'Legal Services'
+];
+
+const defaultUnits = [
+    { name: 'Kilogram', symbol: 'kg' },
+    { name: 'Gram', symbol: 'g' },
+    { name: 'Pound', symbol: 'lb' },
+    { name: 'Ounce', symbol: 'oz' },
+    { name: 'Meter', symbol: 'm' },
+    { name: 'Centimeter', symbol: 'cm' },
+    { name: 'Inch', symbol: 'in' },
+    { name: 'Foot', symbol: 'ft' },
+    { name: 'Liter', symbol: 'L' },
+    { name: 'Milliliter', symbol: 'ml' },
+    { name: 'Gallon', symbol: 'gal' },
+    { name: 'Square Meter', symbol: 'm²' },
+    { name: 'Square Foot', symbol: 'ft²' },
+    { name: 'Cubic Meter', symbol: 'm³' },
+    { name: 'Dozen', symbol: 'dz' },
+    { name: 'Pair', symbol: 'pr' },
+    { name: 'Set', symbol: 'set' },
+    { name: 'Box', symbol: 'box' },
+    { name: 'Pack', symbol: 'pack' },
+    { name: 'Bundle', symbol: 'bundle' }
+];
+
 const MasterData = () => {
     const [categories, setCategories] = useState<CategoryMasterDataTypes[]>([]);
     const [industries, setIndustries] = useState<IndustryMasterDataTypes[]>([]);
@@ -24,6 +62,11 @@ const MasterData = () => {
     const [editSymbol, setEditSymbol] = useState<string>('');
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [deleteItem, setDeleteItem] = useState<{ id: string; type: 'category' | 'industry' | 'unit'; name: string } | null>(null);
+
+    // Bulk insert states
+    const [bulkModalOpen, setBulkModalOpen] = useState(false);
+    const [bulkType, setBulkType] = useState<'category' | 'industry' | 'unit'>('category');
+    const [selectedDefaults, setSelectedDefaults] = useState<string[]>([]);
 
     const { user, isAdmin, authLoading } = useAuth();
     const router = useRouter();
@@ -65,6 +108,13 @@ const MasterData = () => {
         fetchMasterData();
     }, []);
 
+    // Check if item can be edited/deleted
+    const canModifyItem = (itemName: string, itemType: 'category' | 'industry' | 'unit') => {
+        if (itemType === 'unit' && itemName === 'Piece') return false;
+        if ((itemType === 'category' || itemType === 'industry') && itemName === 'Others') return false;
+        return true;
+    };
+    
     const handleAddMasterData = async () => {
         if (!name.trim()) {
             showError('Name is required');
@@ -96,6 +146,61 @@ const MasterData = () => {
         } catch (error: any) {
             showError(error.message);
             console.error('Error adding master data:', error);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleBulkInsert = async () => {
+        if (selectedDefaults.length === 0) {
+            showError('Please select at least one item to add');
+            return;
+        }
+
+        setUploading(true);
+        let successCount = 0;
+        let failCount = 0;
+
+        try {
+            for (const item of selectedDefaults) {
+                let payload;
+                if (bulkType === 'unit') {
+                    const unitData = defaultUnits.find(u => u.name === item);
+                    payload = { name: item, type: bulkType, symbol: unitData?.symbol || '' };
+                } else {
+                    payload = { name: item, type: bulkType, symbol: '' };
+                }
+
+                try {
+                    const response = await fetch(`${APIURL}/admin/master-data`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify(payload),
+                    });
+
+                    if (response.ok) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                    }
+                } catch {
+                    failCount++;
+                }
+            }
+
+            if (successCount > 0) {
+                showSuccess(`Successfully added ${successCount} items${failCount > 0 ? `, ${failCount} failed` : ''}`);
+                await fetchMasterData();
+            } else {
+                showError('Failed to add any items');
+            }
+
+            setBulkModalOpen(false);
+            setSelectedDefaults([]);
+        } catch (error: any) {
+            showError('Error during bulk insert');
+            console.error('Error bulk inserting:', error);
         } finally {
             setUploading(false);
         }
@@ -158,15 +263,6 @@ const MasterData = () => {
         if (!deleteItem) return;
         setUploading(true);
         try {
-            if (
-                (deleteItem.type === 'unit' && deleteItem.name === 'Peice') ||
-                ((deleteItem.type === 'category' || deleteItem.type === 'industry') && deleteItem.name === 'Others')
-            ) {
-                showError('This item cannot be deleted.');
-                setDeleteConfirmOpen(false);
-                setDeleteItem(null);
-                return;
-            }
             const response = await fetch(`${APIURL}/admin/master-data`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
@@ -194,6 +290,43 @@ const MasterData = () => {
         }
     };
 
+    const openBulkModal = (type: 'category' | 'industry' | 'unit') => {
+        setBulkType(type);
+        setSelectedDefaults([]);
+        setBulkModalOpen(true);
+    };
+
+    const getDefaultOptionsForType = (type: 'category' | 'industry' | 'unit') => {
+        switch (type) {
+            case 'category': return defaultCategories;
+            case 'industry': return defaultIndustries;
+            case 'unit': return defaultUnits.map(u => u.name);
+            default: return [];
+        }
+    };
+
+    const getExistingNames = (type: 'category' | 'industry' | 'unit') => {
+        switch (type) {
+            case 'category': return categories.map(c => c.name);
+            case 'industry': return industries.map(i => i.name);
+            case 'unit': return units.map(u => u.name);
+            default: return [];
+        }
+    };
+
+    const getAvailableDefaults = (type: 'category' | 'industry' | 'unit') => {
+        const existing = getExistingNames(type);
+        return getDefaultOptionsForType(type).filter(item => !existing.includes(item));
+    };
+
+    const toggleDefaultSelection = (item: string) => {
+        setSelectedDefaults(prev =>
+            prev.includes(item)
+                ? prev.filter(i => i !== item)
+                : [...prev, item]
+        );
+    };
+
     const renderDataCard = (
         title: string,
         data: any[],
@@ -202,13 +335,22 @@ const MasterData = () => {
     ) => (
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
             <div className="p-4 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <span className={`inline-block w-3 h-3 rounded-full ${colorClass}`}></span>
-                    {title}
-                    <span className="ml-auto text-sm font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                        {data.length}
-                    </span>
-                </h3>
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <span className={`inline-block w-3 h-3 rounded-full ${colorClass}`}></span>
+                        {title}
+                        <span className="ml-2 text-sm font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                            {data.length}
+                        </span>
+                    </h3>
+                    <button
+                        onClick={() => openBulkModal(itemType)}
+                        className="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-md transition-colors"
+                        disabled={uploading}
+                    >
+                        + Bulk Add
+                    </button>
+                </div>
             </div>
             <div className="p-4">
                 {data.length === 0 ? (
@@ -223,22 +365,24 @@ const MasterData = () => {
                                         <span className="ml-2 text-sm text-gray-500">({item.symbol})</span>
                                     )}
                                 </span>
-                                <div className="flex gap-2">
-                                    <button
-                                        className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
-                                        onClick={() => openEditModal(item, itemType)}
-                                        disabled={uploading}
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
-                                        onClick={() => openDeleteConfirm(item.id, itemType, item.name)}
-                                        disabled={uploading}
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
+                                {canModifyItem(item.name, itemType) && (
+                                    <div className="flex gap-2">
+                                        <button
+                                            className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+                                            onClick={() => openEditModal(item, itemType)}
+                                            disabled={uploading}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
+                                            onClick={() => openDeleteConfirm(item.id, itemType, item.name)}
+                                            disabled={uploading}
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -358,6 +502,96 @@ const MasterData = () => {
                 </div>
             </div>
 
+            {/* Bulk Insert Modal */}
+            {bulkModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-scroll">
+                        <div className="p-6 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                                Add Multiple {bulkType.charAt(0).toUpperCase() + bulkType.slice(1)} Items
+                            </h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                                Select items from the common list to add multiple at once
+                            </p>
+                        </div>
+                        <div className="p-6 overflow-y-auto max-h-96">
+                            {getAvailableDefaults(bulkType).length === 0 ? (
+                                <p className="text-gray-500 text-center py-8">
+                                    All default {bulkType} items have already been added
+                                </p>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-2">
+                                    {getAvailableDefaults(bulkType).map((item) => (
+                                        <label key={item} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedDefaults.includes(item)}
+                                                onChange={() => toggleDefaultSelection(item)}
+                                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm text-gray-900">
+                                                {item}
+                                                {bulkType === 'unit' && (
+                                                    <span className="ml-1 text-gray-500">
+                                                        ({defaultUnits.find(u => u.name === item)?.symbol})
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-6 border-t border-gray-200 flex justify-between items-center">
+                            <p className="text-sm text-gray-600">
+                                {selectedDefaults.length} item(s) selected
+                            </p>
+                            <div className="flex gap-3">
+                                {/* Select All Checkbox */}
+                                <label className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedDefaults.length === getAvailableDefaults(bulkType).length}
+                                        onChange={() => {
+                                            if (selectedDefaults.length === getAvailableDefaults(bulkType).length) {
+                                                setSelectedDefaults([]);
+                                            } else {
+                                                setSelectedDefaults(getAvailableDefaults(bulkType));
+                                            }
+                                        }}
+                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-900">
+                                        Select All
+                                    </span>
+                                </label>
+                                <button
+                                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                                    onClick={() => setBulkModalOpen(false)}
+                                    disabled={uploading}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-md font-medium transition-colors flex items-center"
+                                    onClick={handleBulkInsert}
+                                    disabled={uploading || selectedDefaults.length === 0}
+                                >
+                                    {uploading ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                                            Adding...
+                                        </>
+                                    ) : (
+                                        `Add ${selectedDefaults.length} Item(s)`
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Edit Modal */}
             {editModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -457,7 +691,7 @@ const MasterData = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </div >
     );
 };
 

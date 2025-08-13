@@ -9,6 +9,13 @@ function moveOthersLast<T extends { name: string }>(list: T[]): T[] {
         return a.name.localeCompare(b.name);
     });
 }
+function movePieceLast<T extends { name: string }>(list: T[]): T[] {
+    return list.sort((a, b) => {
+        if (a.name === 'Piece') return 1;
+        if (b.name === 'Piece') return -1;
+        return a.name.localeCompare(b.name);
+    });
+}
 
 // master data
 export const getMasterdata = async (req: Request, res: Response) => {
@@ -23,7 +30,7 @@ export const getMasterdata = async (req: Request, res: Response) => {
         if (!includeCategories && !includeIndustries && !includeUnits) {
             categories = moveOthersLast(await prisma.category.findMany({ orderBy: { name: 'asc' } }));
             industries = moveOthersLast(await prisma.industry.findMany({ orderBy: { name: 'asc' } }));
-            units = await prisma.unit.findMany({ orderBy: { name: 'asc' } });
+            units = movePieceLast(await prisma.unit.findMany({ orderBy: { name: 'asc' } }));
         } else {
             // if includeCategories is true, fetch categories
             if (includeCategories === 'true') {
