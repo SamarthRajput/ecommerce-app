@@ -80,6 +80,11 @@ const CategoryService = {
     },
     edit: async ({ id, name }: { id: string; name: string }) => {
         try {
+            // Can not edit "Others" , check with id
+            const category = await prisma.category.findUnique({ where: { id } });
+            if (category?.name === 'Others') {
+                throw new Error('Cannot edit category "Others"');
+            }
             await prisma.category.update({
                 where: { id },
                 data: { name },
@@ -117,6 +122,11 @@ const IndustryService = {
     },
     edit: async ({ id, name }: { id: string; name: string }) => {
         try {
+            // Can not edit "Others"
+            const industry = await prisma.industry.findUnique({ where: { id } });
+            if (industry?.name === 'Others') {
+                throw new Error('Cannot edit industry "Others"');
+            }
             await prisma.industry.update({
                 where: { id },
                 data: { name },
@@ -158,6 +168,11 @@ const Unit = {
     },
     edit: async ({ id, name, symbol }: { id: string; name: string; symbol?: string }) => {
         try {
+            // Can not edit "Piece"
+            const unit = await prisma.unit.findUnique({ where: { id } });
+            if (unit?.name === 'Piece') {
+                throw new Error('Cannot edit unit "Piece"');
+            }
             await prisma.unit.update({
                 where: { id },
                 data: { name, symbol },
