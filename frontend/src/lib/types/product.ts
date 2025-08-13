@@ -7,8 +7,14 @@ export interface Product {
   listingType: string
   condition: string
   validityPeriod: string
-  industry: string
-  category: string
+  industry: {
+    id: string
+    name: string
+  }
+  category: {
+    id: string
+    name: string
+  }
   productCode: string
   model: string
   specifications: string
@@ -41,17 +47,20 @@ export interface ProductsResponse {
 
 export interface FilterState {
   searchQuery: string
-  category: string // Only used in the main products page
+  category: string
   priceRange: [number, number]
   condition: string[]
-  industry: string[]
+  industry: string
   country: string[]
   sortBy: string
   viewMode: "grid" | "list"
 }
 
 export interface CategoryData {
-  category: string
+  category: {
+    id: string
+    name: string
+  }
   count: number
   image?: string
 }

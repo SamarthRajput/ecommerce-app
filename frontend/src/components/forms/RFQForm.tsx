@@ -12,7 +12,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { showSuccess, showError } from '@/lib/toast';
 import { useRouter } from 'next/navigation';
 import { APIURL } from '@/src/config/env';
-import { toast } from 'sonner';
 import { ListingData } from '@/src/app/buyer/request-quote/[listingId]/page';
 interface RFQFormProps {
     listingId: string;
@@ -147,6 +146,8 @@ export function RFQForm({ listingId, listingData }: RFQFormProps) {
     }, [router, reset]);
 
 
+    const quantity = watch('quantity');
+
     return (
         <Card className="w-full max-w-2xl mx-auto" >
             <CardHeader>
@@ -160,9 +161,26 @@ export function RFQForm({ listingId, listingData }: RFQFormProps) {
                                 id="quantity"
                                 type="number"
                                 {...register('quantity', { valueAsNumber: true })}
-                                min={1}
+                                min={listingData?.minimumOrderQuantity || 1}
+                                max={listingData?.quantity || Infinity}
                             />
+                            {listingData?.minimumOrderQuantity}
+                            {listingData && (quantity < listingData.minimumOrderQuantity || quantity > listingData.quantity) && (
+                                <div className="mt-1 px-3 py-2 rounded bg-red-100 border border-red-400 text-red-700 text-sm">
+                                    {quantity < listingData.minimumOrderQuantity && (
+                                        <span>
+                                            <strong>Error:</strong> Minimum order quantity is {listingData.minimumOrderQuantity}.
+                                        </span>
+                                    )}
+                                    {quantity > listingData.quantity && (
+                                        <span>
+                                            <strong>Error:</strong> Maximum order quantity is {listingData.quantity} {listingData.unit.name} ({listingData.unit.symbol}).
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                         </FormField>
+
 
                         <FormField label="Delivery Date *" error={errors.deliveryDate?.message}>
                             <Input

@@ -20,12 +20,13 @@ async function main() {
         update: {},
         create: {
             name: 'Super Admin',
-            email: superAdminEmail ,
+            email: superAdminEmail,
             password: superAdminHashedPassword,
             role: 'ADMIN', // Ensure the role is set to ADMIN
             adminRole: 'SUPER_ADMIN',
         },
     });
+    console.log(`Super Admin ensured: ${superAdminEmail}`);
 
     const adminEmail = '2@2';
     const adminpassword = '2';
@@ -42,6 +43,7 @@ async function main() {
             adminRole: 'ADMIN',
         },
     });
+    console.log(`Admin ensured: ${adminEmail}`);
 
     const inspectorEmail = '3@3';
     const inspectorPassword = '3';
@@ -58,8 +60,59 @@ async function main() {
             adminRole: 'INSPECTOR',
         },
     });
+    console.log(`Inspector ensured: ${inspectorEmail}`);
 
-    console.log(`SuperAdmin, Admin, Inspector ensured `);
+
+    // Insert Category , Industry and Units
+    for (const name of defaultIndustries) {
+        await prisma.industry.upsert({
+            where: { name },
+            update: {},
+            create: { name }
+        });
+        console.log(`Industry ensured: ${name}`);
+    }
+    for (const name of defaultCategories) {
+        await prisma.category.upsert({
+            where: { name },
+            update: {},
+            create: { name }
+        });
+        console.log(`Category ensured: ${name}`);
+    }
+    for (const unit of defaultUnits) {
+        await prisma.unit.upsert({
+            where: { name: unit.name },
+            update: {},
+            create: { name: unit.name, symbol: unit.symbol }
+        });
+        console.log(`Unit ensured: ${unit.name}`);
+    }
+    console.log(`Default categories, industries, and units ensured`);
+
+    let industry = await prisma.industry.findFirst();
+
+    // If none exists, create one
+    if (!industry) {
+        industry = await prisma.industry.create({
+            data: { name: "Electronics" } // adjust according to your schema
+        });
+    }
+
+    // Find First Category
+    let category = await prisma.category.findFirst();
+    if (!category) {
+        category = await prisma.category.create({
+            data: { name: "Smartphones" } // adjust according to your schema
+        });
+    }
+
+    let unit = await prisma.unit.findFirst();
+    if (!unit) {
+        unit = await prisma.unit.create({
+            data: { name: "Piece", symbol: "pcs" } // adjust according to your schema
+        });
+    }
 
     const sellerEmail = 'rohitkuyada@gmail.com';
     const sellerPassword = '123456789';
@@ -73,14 +126,7 @@ async function main() {
     if (!seller) {
         console.log('Creating seller...');
         // find first industry
-        let industry = await prisma.industry.findFirst();
 
-        // If none exists, create one
-        if (!industry) {
-        industry = await prisma.industry.create({
-            data: { name: "Electronics" } // adjust according to your schema
-        });
-        }
 
         seller = await prisma.seller.create({
             data: {
@@ -94,7 +140,7 @@ async function main() {
                 city: 'Lucknow',
                 street: '123 Main St',
                 zipCode: '123456',
-                phone: '1234567890',
+                phone: '6392177974',
                 countryCode: '+91',
                 isEmailVerified: true,
                 isPhoneVerified: true,
@@ -169,8 +215,6 @@ async function main() {
             condition: ProductCondition.NEW,
             validityPeriod: 365,
             expiryDate: getExpiryDate(365),
-            industry: 'Electronics',
-            category: 'Smartphones',
             productCode: 'IP14PM-128GB-PURPLE',
             model: 'iPhone 14 Pro Max',
             specifications: '6.7-inch Super Retina XDR display, A16 Bionic chip, 48MP Pro camera system, Face ID, iOS 16, 5G capable, Lightning connector, Water resistant IP68',
@@ -202,8 +246,6 @@ async function main() {
             condition: ProductCondition.NEW,
             validityPeriod: 365,
             expiryDate: getExpiryDate(365),
-            industry: 'Electronics',
-            category: 'Smartphones',
             productCode: 'SGS23U-256GB-CREAM',
             model: 'Galaxy S23 Ultra',
             specifications: '6.8-inch QHD+ Dynamic AMOLED 2X, Snapdragon 8 Gen 2, 200MP camera, 12GB RAM, 256GB storage, S Pen included, 5000mAh battery',
@@ -235,8 +277,6 @@ async function main() {
             condition: ProductCondition.NEW,
             validityPeriod: 365,
             expiryDate: getExpiryDate(365),
-            industry: 'Electronics',
-            category: 'Smartphones',
             productCode: 'OP11-256GB-BLACK',
             model: 'OnePlus 11',
             specifications: 'Snapdragon 8 Gen 2, 6.7-inch 120Hz AMOLED, 100W SUPERVOOC charging, Hasselblad camera, 50MP triple camera system, 16GB RAM, 256GB storage',
@@ -268,8 +308,6 @@ async function main() {
             condition: ProductCondition.NEW,
             validityPeriod: 365,
             expiryDate: getExpiryDate(365),
-            industry: 'Electronics',
-            category: 'Smartphones',
             productCode: 'PIX7PRO-128GB-SNOW',
             model: 'Pixel 7 Pro',
             specifications: 'Google Tensor G2 chip, 6.7-inch LTPO OLED 120Hz, 12GB RAM, 128GB storage, Triple camera system, Android 13, 5G capable',
@@ -300,8 +338,6 @@ async function main() {
             condition: ProductCondition.NEW,
             validityPeriod: 365,
             expiryDate: getExpiryDate(365),
-            industry: 'Electronics',
-            category: 'Smartphones',
             productCode: 'XM13PRO-256GB-BLACK',
             model: 'Xiaomi 13 Pro',
             specifications: 'Leica camera system, 6.73-inch WQHD+ AMOLED 120Hz, 120W fast charging, Snapdragon 8 Gen 2, 12GB RAM, 256GB storage, ceramic body',
@@ -335,8 +371,6 @@ async function main() {
             condition: ProductCondition.NEW,
             validityPeriod: 180,
             expiryDate: getExpiryDate(180),
-            industry: 'Home Appliances',
-            category: 'Air Conditioners',
             productCode: 'LGAC15T5S2024',
             model: 'JS-Q18AUXA2',
             specifications: 'Dual Inverter Technology, 1.5 Ton capacity, 5 Star BEE rating, Copper condenser, 4-way swing, HD filter with anti-virus protection, AI ThinQ smart features',
@@ -367,8 +401,6 @@ async function main() {
             condition: ProductCondition.NEW,
             validityPeriod: 365,
             expiryDate: getExpiryDate(365),
-            industry: 'Fashion',
-            category: 'Footwear',
             productCode: 'ADUB22-BLK-US10',
             model: 'Ultraboost 22',
             specifications: 'Primeknit+ upper, BOOST midsole technology, Linear Energy Push system, Continental™ Rubber outsole, Regular fit, Lace closure',
@@ -399,8 +431,6 @@ async function main() {
             condition: ProductCondition.NEW,
             validityPeriod: 180,
             expiryDate: getExpiryDate(180),
-            industry: 'Sports Equipment',
-            category: 'Badminton',
             productCode: 'YNR18I-BLUE-SILVER',
             model: 'Nanoray Light 18i',
             specifications: 'Graphite shaft and frame, Isometric head shape, Weight: 85-89g, Grip size: G4, Flexible shaft, String tension: 17-22 lbs',
@@ -431,8 +461,6 @@ async function main() {
             condition: ProductCondition.NEW,
             validityPeriod: 365,
             expiryDate: getExpiryDate(365),
-            industry: 'Furniture',
-            category: 'Chairs',
             productCode: 'NKLEO-PL-BROWN-SET4',
             model: 'Leo Plastic Chair',
             specifications: 'High-grade plastic construction, UV stabilized, Ergonomic design, Stackable up to 20 pieces, Weight capacity: 100kg, Dimensions: 45x52x80cm',
@@ -463,8 +491,6 @@ async function main() {
             condition: ProductCondition.REFURBISHED, // Changed for variety
             validityPeriod: 365,
             expiryDate: getExpiryDate(365),
-            industry: 'Kitchen Appliances',
-            category: 'Mixers & Grinders',
             productCode: 'PRIRIS750W-4JAR',
             model: 'IRIS 750W',
             specifications: '750W powerful motor, 4 stainless steel jars (1.5L, 1.0L, 0.4L grinding, 1.0L juicer), Overload protection, Speed control, Ergonomic handles, Non-slip base',
@@ -494,14 +520,41 @@ async function main() {
                 .replace(/(^-|-$)+/g, '')
                 .substring(0, 100); // Ensure slug isn't too long
 
-            // await prisma.product.create({
-            //     data: {
-            //         ...productData,
-            //         sellerId: seller.id,
-            //         status: 'APPROVED',
-            //         slug: slug,
-            //     },
-            // });
+            await prisma.product.create({
+                data: {
+                    sellerId: seller.id,
+                    status: 'APPROVED',
+                    slug,
+
+                    // Required scalar fields
+                    name: productData.name,
+                    description: productData.description ?? 'No description provided',
+                    price: productData.price ?? 0,
+                    currency: productData.currency ?? 'INR',
+                    quantity: productData.quantity ?? 1,
+                    listingType: productData.listingType ?? 'SALE',
+                    condition: productData.condition ?? 'NEW',
+                    validityPeriod: productData.validityPeriod ?? 365,
+                    productCode: productData.productCode ?? 'N/A',
+                    specifications: productData.specifications ?? '',
+                    countryOfSource: productData.countryOfSource ?? 'India',
+                    hsnCode: productData.hsnCode ?? '0000',
+                    images: productData.images ?? [],
+                    tags: productData.tags ?? [],
+                    keywords: productData.keywords ?? [],
+                    licenses: productData.licenses ?? [],
+                    certifications: productData.certifications ?? [],
+
+                    // Required relations
+                    // category: { connect: { id: category.id } },
+                    // industry: { connect: { id: industry.id } },
+                    // unit: { connect: { id: unit.id } },
+
+                    categoryId: category.id,
+                    industryId: industry.id,
+                    unitId: unit.id,
+                },
+            });
 
             console.log(`✅ Successfully inserted product: ${productData.name}`);
         } catch (error) {
@@ -510,14 +563,6 @@ async function main() {
     }
 
     console.log('🎉 Seeding completed successfully!');
-
-    await prisma.unit.createMany({
-        data: [
-            { name: 'Piece' },
-            { name: 'Kg' },
-            { name: 'Meter' },
-        ],
-    })
 }
 
 main()
@@ -529,3 +574,41 @@ main()
     });
 
 export default main;
+
+// Default options for bulk insert
+const defaultCategories = [
+    'Electronics', 'Clothing & Apparel', 'Home & Garden', 'Sports & Outdoors',
+    'Books & Media', 'Health & Beauty', 'Automotive', 'Toys & Games',
+    'Jewelry & Accessories', 'Food & Beverages', 'Office Supplies', 'Pet Supplies',
+    'Industrial Equipment', 'Art & Crafts', 'Musical Instruments'
+];
+
+const defaultIndustries = [
+    'Agriculture', 'Manufacturing', 'Technology', 'Healthcare', 'Education',
+    'Financial Services', 'Real Estate', 'Retail', 'Transportation', 'Energy',
+    'Construction', 'Food & Beverage', 'Textiles', 'Chemicals', 'Automotive',
+    'Telecommunications', 'Entertainment', 'Hospitality', 'Consulting', 'Legal Services'
+];
+
+const defaultUnits = [
+    { name: 'Kilogram', symbol: 'kg' },
+    { name: 'Gram', symbol: 'g' },
+    { name: 'Pound', symbol: 'lb' },
+    { name: 'Ounce', symbol: 'oz' },
+    { name: 'Meter', symbol: 'm' },
+    { name: 'Centimeter', symbol: 'cm' },
+    { name: 'Inch', symbol: 'in' },
+    { name: 'Foot', symbol: 'ft' },
+    { name: 'Liter', symbol: 'L' },
+    { name: 'Milliliter', symbol: 'ml' },
+    { name: 'Gallon', symbol: 'gal' },
+    { name: 'Square Meter', symbol: 'm²' },
+    { name: 'Square Foot', symbol: 'ft²' },
+    { name: 'Cubic Meter', symbol: 'm³' },
+    { name: 'Dozen', symbol: 'dz' },
+    { name: 'Pair', symbol: 'pr' },
+    { name: 'Set', symbol: 'set' },
+    { name: 'Box', symbol: 'box' },
+    { name: 'Pack', symbol: 'pack' },
+    { name: 'Bundle', symbol: 'bundle' }
+];

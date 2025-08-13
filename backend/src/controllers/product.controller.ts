@@ -21,7 +21,12 @@ export const getProducts = async (req: Request, res: Response) => {
                 listingType: true,
                 condition: true,
                 validityPeriod: true,
-                industry: true,
+                industry: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                },
                 category: {
                     select: {
                         id: true,
@@ -74,7 +79,12 @@ export const getProductById = async (req: Request, res: Response) => {
             where: {
                 id,
                 status: "APPROVED",
-                categoryId: category,
+                category: {
+                    name: {
+                        equals: category,
+                        mode: "insensitive"
+                    }
+                },
             },
             select: {
                 id: true,
@@ -85,13 +95,6 @@ export const getProductById = async (req: Request, res: Response) => {
                 listingType: true,
                 condition: true,
                 validityPeriod: true,
-                industry: true,
-                category: {
-                    select: {
-                        id: true,
-                        name: true,
-                    }
-                },
                 productCode: true,
                 model: true,
                 specifications: true,
@@ -112,6 +115,18 @@ export const getProductById = async (req: Request, res: Response) => {
                         state: true,
                         city: true,
                     },
+                },
+                industry: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                },
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
                 },
             },
         });
@@ -154,16 +169,19 @@ export const getProductsBySellerId = async (req: Request, res: Response) => {
             },
             skip,
             take,
-            // You might want to include additional fields or relations
-            select: {
-                id: true,
-                name: true,
-                // Add other product fields you need in the frontend
-                description: true,
-                price: true,
-                createdAt: true,
-                updatedAt: true,
-                // Add any other fields your frontend needs
+            include: {
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                }
+                , industry: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                }
             },
         });
 
@@ -182,7 +200,20 @@ export const getSimilarProducts = async (req: Request, res: Response) => {
     try {
         const product = await prisma.product.findUnique({
             where: { id },
-            select: { category: true },
+            select: {
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                },
+                industry: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                }
+            }
         });
 
         if (!product) {
@@ -195,6 +226,20 @@ export const getSimilarProducts = async (req: Request, res: Response) => {
                 category: product.category,
                 status: "APPROVED",
                 id: { not: id },
+            },
+            include: {
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                },
+                industry: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                }
             },
             skip,
             take,

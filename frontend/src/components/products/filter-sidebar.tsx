@@ -119,7 +119,7 @@ export function FilterSidebar({
           </div>
         )}
         {/* Industry */}
-        {uniqueIndustries.length > 0 && (
+        {/* {uniqueIndustries.length > 0 && (
           <div>
             <label className="text-sm font-medium mb-3 block">Industry</label>
             <div className="space-y-2 max-h-32 overflow-y-auto">
@@ -146,7 +146,7 @@ export function FilterSidebar({
               ))}
             </div>
           </div>
-        )}
+        )} */}
         {/* Country (only for main products page) */}
         {uniqueCountries && uniqueCountries.length > 0 && (
           <div>

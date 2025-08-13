@@ -15,7 +15,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, formatCategoryName, onQuoteClick }: ProductCardProps) {
   return (
-    <Link href={`/products/${product.category}/${product.id}`} className="block h-full">
+    <Link href={`/products/${encodeURIComponent(product.category.name)}/${product.id}`} className="block h-full">
       <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-200 h-full group">
         <CardContent className="p-3 md:p-4 h-full flex flex-col">
           {/* Product Image */}
@@ -74,7 +74,7 @@ export function ProductCard({ product, formatCategoryName, onQuoteClick }: Produ
             {/* Category */}
             <div className="mb-2">
               <Badge variant="outline" className="text-xs">
-                {formatCategoryName(product.category)}
+                {formatCategoryName(product.category.name)}
               </Badge>
             </div>
             {/* Quick Actions */}

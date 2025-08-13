@@ -23,6 +23,11 @@ export interface ListingData {
         id: string;
         name: string;
     };
+    unit: {
+        id: string;
+        name: string;
+        symbol: string;
+    };
     quantity: number;
     currency: string;
     price: number;

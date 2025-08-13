@@ -23,8 +23,19 @@ interface Product {
     listingType: string;
     condition: string;
     validityPeriod: string;
-    industry: string;
-    category: string;
+    industry: {
+        id: string;
+        name: string;
+    };
+    category: {
+        id: string;
+        name: string;
+    };
+    unit: {
+        id: string;
+        name: string;
+        symbol: string;
+    };
     productCode: string;
     model: string;
     specifications: string;
@@ -318,7 +329,7 @@ const ProductPage = () => {
     };
 
     const ProductCard = ({ product }: { product: Product }) => (
-        <Link href={`/products/${product.category}/${product.id}`} className="block">
+        <Link href={`/products/${encodeURIComponent(product.category.name.toLocaleLowerCase())}/${product.id}`} className="block">
             <Card className="hover:shadow-md transition-shadow cursor-pointer border border-gray-200 h-full">
                 <CardContent className="p-3 md:p-4">
                     <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
@@ -495,7 +506,7 @@ const ProductPage = () => {
                                             <span className="text-2xl md:text-3xl font-bold text-green-600">
                                                 ₹{product.price.toLocaleString()}
                                             </span>
-                                            <span className="text-sm md:text-base text-gray-600">per unit</span>
+                                            <span className="text-sm md:text-base text-gray-600">per {product.unit.name}({product.unit.symbol})</span>
                                         </div>
                                         <div className="text-xs md:text-sm text-green-700 mt-1">
                                             Best price guaranteed
@@ -615,8 +626,8 @@ const ProductPage = () => {
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                                     {[
-                                        { label: 'Category', value: product.category },
-                                        { label: 'Industry', value: product.industry },
+                                        { label: 'Category', value: product.category.name },
+                                        { label: 'Industry', value: product.industry.name },
                                         { label: 'Model', value: product.model || 'N/A' },
                                         { label: 'HSN Code', value: product.hsnCode },
                                         { label: 'Country of Origin', value: product.countryOfSource },

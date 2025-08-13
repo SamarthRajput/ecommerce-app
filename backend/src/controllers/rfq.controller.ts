@@ -54,7 +54,8 @@ export const getListingInfoForRfq = async (req: Request, res: Response) => {
       where: { id },
       include: {
         category: true,
-        industry: true
+        industry: true,
+        unit: true
       }
     });
 
@@ -79,6 +80,11 @@ export const getListingInfoForRfq = async (req: Request, res: Response) => {
       industry: {
         id: listing.industry.id,
         name: listing.industry.name
+      },
+      unit: {
+        id: listing.unit.id,
+        name: listing.unit.name,
+        symbol: listing.unit.symbol
       }
     };
 

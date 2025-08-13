@@ -15,7 +15,7 @@ interface ProductListItemProps {
 
 export function ProductListItem({ product, formatCategoryName, onQuoteClick }: ProductListItemProps) {
   return (
-    <Link href={`/products/${product.category}/${product.id}`} className="block">
+    <Link href={`/products/${encodeURIComponent(product.category.name.toLocaleLowerCase())}/${product.id}`} className="block">
       <Card className="hover:shadow-md transition-shadow cursor-pointer border border-gray-200 group">
         <CardContent className="p-4">
           <div className="flex gap-4">
@@ -46,7 +46,7 @@ export function ProductListItem({ product, formatCategoryName, onQuoteClick }: P
                   {product.condition}
                 </Badge>
                 <Badge variant="secondary" className="text-xs">
-                  {formatCategoryName(product.category)}
+                  {formatCategoryName(product.category.name)}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
                   <Eye className="w-3 h-3 mr-1" />

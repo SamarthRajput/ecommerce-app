@@ -37,7 +37,7 @@ import type { Product, ProductsResponse, FilterState, CategoryData } from "@/src
 import { APIURL } from "@/src/config/env"
 
 interface ProductListingsProps {
-  initialCategory?: string // Optional for the main products page
+  initialCategory?: string
 }
 
 export function ProductListings({ initialCategory }: ProductListingsProps) {
@@ -61,7 +61,7 @@ export function ProductListings({ initialCategory }: ProductListingsProps) {
     category: initialCategory || searchParams.get("category") || "",
     priceRange: [0, 1000000],
     condition: [],
-    industry: [],
+    industry: "",
     country: [],
     sortBy: "newest",
     viewMode: "grid",
@@ -101,11 +101,11 @@ export function ProductListings({ initialCategory }: ProductListingsProps) {
         const matchesName = product.name.toLowerCase().includes(query)
         const matchesDescription = product.description.toLowerCase().includes(query)
         const matchesSeller = product.seller?.businessName?.toLowerCase().includes(query)
-        const matchesCategory = product.category.toLowerCase().includes(query)
+        const matchesCategory = product.category.name.toLowerCase().includes(query)
         if (!matchesName && !matchesDescription && !matchesSeller && !matchesCategory) return false
       }
       // Category (only apply if not on a specific category page, or if it matches the current category)
-      if (!initialCategory && filters.category && product.category !== filters.category) {
+      if (!initialCategory && filters.category && product.category.name !== filters.category) {
         return false
       }
       // Price range
@@ -117,9 +117,9 @@ export function ProductListings({ initialCategory }: ProductListingsProps) {
         return false
       }
       // Industry
-      if (filters.industry.length > 0 && !filters.industry.includes(product.industry)) {
-        return false
-      }
+      // if (filters.industry.length > 0 && !filters.industry.includes(product.industry)) {
+      //   return false
+      // }
       // Country (only for main products page)
       if (!initialCategory && filters.country.length > 0 && !filters.country.includes(product.seller?.country || "")) {
         return false
@@ -197,15 +197,19 @@ export function ProductListings({ initialCategory }: ProductListingsProps) {
 
           // Calculate featured categories only for the main products page
           if (!initialCategory) {
-            const categoryCount = data.products.reduce((acc: Record<string, number>, product: Product) => {
-              acc[product.category] = (acc[product.category] || 0) + 1
-              return acc
-            }, {})
-            const featured = Object.entries(categoryCount)
-              .sort(([, a], [, b]) => b - a)
-              .slice(0, 8)
-              .map(([category, count]) => ({ category, count }))
-            setFeaturedCategories(featured)
+            // Use category object as key
+            const categoryCount = data.products.reduce((acc: Record<string, { category: Product["category"]; count: number }>, product: Product) => {
+              const catId = product.category.id;
+              if (!acc[catId]) {
+                acc[catId] = { category: product.category, count: 0 };
+              }
+              acc[catId].count += 1;
+              return acc;
+            }, {});
+            const featured = Object.values(categoryCount)
+              .sort((a, b) => b.count - a.count)
+              .slice(0, 8);
+            setFeaturedCategories(featured);
           }
         }
       } catch (err) {
@@ -228,7 +232,7 @@ export function ProductListings({ initialCategory }: ProductListingsProps) {
       category: initialCategory || "", // Keep initial category if on category page
       priceRange: [0, maxPrice],
       condition: [],
-      industry: [],
+      industry: "",
       country: [],
       sortBy: "newest",
       viewMode: filters.viewMode,
@@ -346,7 +350,7 @@ export function ProductListings({ initialCategory }: ProductListingsProps) {
             </div>
           ) : (
             <>
-              {featuredCategories.length > 0 && (
+              {featuredCategories.length > 3 && (
                 <div className="mb-8 md:mb-12">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl md:text-2xl font-bold text-gray-900">Popular Categories</h2>
@@ -361,7 +365,7 @@ export function ProductListings({ initialCategory }: ProductListingsProps) {
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 md:gap-4">
                     {featuredCategories.map((cat) => (
-                      <CategoryCard key={cat.category} category={cat} formatCategoryName={formatCategoryName} />
+                      <CategoryCard key={cat.category.id} category={cat} formatCategoryName={formatCategoryName} />
                     ))}
                   </div>
                 </div>
@@ -488,20 +492,20 @@ export function ProductListings({ initialCategory }: ProductListingsProps) {
                       />
                     </Badge>
                   ))}
-                  {filters.industry.map((industry) => (
-                    <Badge key={industry} variant="secondary" className="gap-1">
-                      {industry}
+                  {/* {filters.industry.map((industry) => (
+                    <Badge key={industry.id} variant="secondary" className="gap-1">
+                      {industry.name}
                       <X
                         className="w-3 h-3 cursor-pointer hover:text-red-500"
                         onClick={() =>
                           handleFilterChange(
                             "industry",
-                            filters.industry.filter((i) => i !== industry),
+                            filters.industry.filter((i) => i !== industry), // <-- fix: remove industry from array
                           )
                         }
                       />
                     </Badge>
-                  ))}
+                  ))} */}
                   {!initialCategory &&
                     filters.country.map((country) => (
                       <Badge key={country} variant="secondary" className="gap-1">
@@ -533,9 +537,9 @@ export function ProductListings({ initialCategory }: ProductListingsProps) {
               filters={filters}
               handleFilterChange={handleFilterChange as (key: string | number | symbol, value: any) => void}
               clearFilters={clearFilters}
-              uniqueCategories={!initialCategory ? uniqueCategories : undefined}
+              uniqueCategories={!initialCategory ? uniqueCategories.map(cat => cat.name) : undefined}
               uniqueConditions={uniqueConditions}
-              uniqueIndustries={uniqueIndustries}
+              uniqueIndustries={uniqueIndustries.map(industry => industry.name)}
               uniqueCountries={!initialCategory ? uniqueCountries : undefined}
               maxPrice={maxPrice}
               formatCategoryName={formatCategoryName}
@@ -559,9 +563,9 @@ export function ProductListings({ initialCategory }: ProductListingsProps) {
                   filters={filters}
                   handleFilterChange={handleFilterChange as (key: string | number | symbol, value: any) => void}
                   clearFilters={clearFilters}
-                  uniqueCategories={!initialCategory ? uniqueCategories : undefined}
+                  uniqueCategories={!initialCategory ? uniqueCategories.map(cat => cat.name) : undefined}
+                  uniqueIndustries={uniqueIndustries.map(ind => ind.name)}
                   uniqueConditions={uniqueConditions}
-                  uniqueIndustries={uniqueIndustries}
                   uniqueCountries={!initialCategory ? uniqueCountries : undefined}
                   maxPrice={maxPrice}
                   formatCategoryName={formatCategoryName}
