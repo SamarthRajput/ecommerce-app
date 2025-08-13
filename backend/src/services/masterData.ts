@@ -1,9 +1,10 @@
 import { prisma } from "../lib/prisma";
 
 const OTHERS = "Others";
+const PIECE = "Piece";
 
 const ensureOthers = async () => {
-    const [categoryExists, IndustryExists] = await Promise.all([
+    const [categoryExists, industryExists] = await Promise.all([
         prisma.category.findUnique({ where: { name: OTHERS } }),
         prisma.industry.findUnique({ where: { name: OTHERS } }),
     ]);
@@ -14,7 +15,7 @@ const ensureOthers = async () => {
             create: { name: OTHERS },
         });
     }
-    if (!IndustryExists) {
+    if (!industryExists) {
         await prisma.industry.upsert({
             where: { name: OTHERS },
             update: {},
@@ -22,14 +23,24 @@ const ensureOthers = async () => {
         });
     }
 };
+const ensurePiece = async () => {
+    // In Units ensure piece
+    const pieceExists = await prisma.unit.findUnique({ where: { name: PIECE } });
+    if (!pieceExists) {
+        await prisma.unit.create({ data: { name: PIECE } });
+    }
+}
 
-const getOthersID = async ({ types }: { types: 'category' | 'industry' }) => {
+const getOthersID = async ({ types }: { types: 'category' | 'industry' | 'unit' }) => {
     await ensureOthers();
-    const [category, industry] = await Promise.all([
+    await ensurePiece();
+    const [category, industry, unit] = await Promise.all([
         prisma.category.findUnique({ where: { name: OTHERS } }),
         prisma.industry.findUnique({ where: { name: OTHERS } }),
+        prisma.unit.findUnique({ where: { name: PIECE } }),
     ]);
-    return types === 'category' ? category?.id : industry?.id;
+
+    return types === 'category' ? category?.id : types === 'industry' ? industry?.id : unit?.id;
 };
 
 const CategoryService = {
@@ -85,15 +96,6 @@ const IndustryService = {
             const exists = await prisma.industry.findUnique({ where: { name } });
             if (exists) throw new Error(`Industry ${name} already exists`);
             await prisma.industry.create({ data: { name } });
-            // for (const option of industryOptions) {
-            //     if (option !== name) {
-            //         await prisma.industry.upsert({
-            //             where: { name: option },
-            //             update: {},
-            //             create: { name: option },
-            //         });
-            //     }
-            // }
         } catch (error: any) {
             throw new Error(error.message);
         }
@@ -128,6 +130,7 @@ const IndustryService = {
 const Unit = {
     add: async ({ name, symbol }: { name: string; symbol?: string }) => {
         try {
+            await ensurePiece();
             await prisma.unit.create({
                 data: { name, symbol },
             });
@@ -137,17 +140,17 @@ const Unit = {
     },
     delete: async ({ id }: { id: string }) => {
         try {
-            // find any product / rfq use this or not
-            const [rfqs, products] = await Promise.all([
-                prisma.rFQ.findMany({ where: { unitId: id } }),
-                prisma.product.findMany({ where: { unitId: id } }),
-            ]);
-            if (rfqs.length > 0 || products.length > 0) {
-
+            // check if delete request is not for "Piece"
+            const isPiece = await prisma.unit.findUnique({ where: { id } });
+            if (isPiece?.name === 'Piece') {
+                throw new Error('Cannot delete unit "Piece"');
             }
-            await prisma.unit.delete({
-                where: { id },
-            });
+            const pieceId = await getOthersID({ types: 'unit' });
+            await prisma.$transaction([
+                prisma.rFQ.updateMany({ where: { unitId: id }, data: { unitId: pieceId } }),
+                prisma.product.updateMany({ where: { unitId: id }, data: { unitId: pieceId } }),
+                prisma.unit.delete({ where: { id } }),
+            ]);
         } catch (error: any) {
             console.error('Error deleting unit:', error);
             throw new Error(error.message);
@@ -173,8 +176,4 @@ export const MasterDataService = {
 
 export default MasterDataService;
 
-// const industryOptions = [
-//     'Agriculture', 'Manufacturing', 'Technology', 'Healthcare', 'Education',
-//     'Financial Services', 'Real Estate', 'Retail', 'Transportation', 'Energy',
-//     'Construction', 'Food & Beverage', 'Textiles', 'Chemicals', 'Automotive'
-// ];
+

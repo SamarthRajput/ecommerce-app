@@ -449,3 +449,10 @@ const MasterData = () => {
 }
 
 export default MasterData
+
+const industryOptions = [
+    'Agriculture', 'Manufacturing', 'Technology', 'Healthcare', 'Education',
+    'Financial Services', 'Real Estate', 'Retail', 'Transportation', 'Energy',
+    'Construction', 'Food & Beverage', 'Textiles', 'Chemicals', 'Automotive'
+];
+
