@@ -3,7 +3,7 @@ import { prisma } from "../lib/prisma";
 const OTHERS = "Others";
 const PIECE = "Piece";
 
-const ensureOthers = async () => {
+export const ensureOthers = async () => {
     const [categoryExists, industryExists] = await Promise.all([
         prisma.category.findUnique({ where: { name: OTHERS } }),
         prisma.industry.findUnique({ where: { name: OTHERS } }),
@@ -23,7 +23,8 @@ const ensureOthers = async () => {
         });
     }
 };
-const ensurePiece = async () => {
+
+export const ensurePiece = async () => {
     // In Units ensure piece
     const pieceExists = await prisma.unit.findUnique({ where: { name: PIECE } });
     if (!pieceExists) {

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { Category, Industry, Unit } from "@prisma/client";
+import { ensureOthers, ensurePiece } from "../services/masterData";
 
 function moveOthersLast<T extends { name: string }>(list: T[]): T[] {
     return list.sort((a, b) => {
@@ -26,6 +27,8 @@ export const getMasterdata = async (req: Request, res: Response) => {
         let industries: Industry[] = [];
         let units: Unit[] = [];
 
+        await ensureOthers();
+        await ensurePiece();
         // if no query params are provided, return all data
         if (!includeCategories && !includeIndustries && !includeUnits) {
             categories = moveOthersLast(await prisma.category.findMany({ orderBy: { name: 'asc' } }));
