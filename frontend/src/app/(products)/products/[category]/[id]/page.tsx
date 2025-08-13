@@ -13,6 +13,7 @@ import { useAuth } from '@/src/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { APIURL } from '@/src/config/env';
+import { showError } from '@/lib/toast';
 
 interface Product {
     id: string;
@@ -106,10 +107,8 @@ const ProductPage = () => {
                 ]);
 
                 if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error('Product not found');
-                    }
-                    throw new Error(response.statusText);
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || errorData.error || 'Failed to fetch product');
                 }
 
                 const data = await response.json();
@@ -130,7 +129,8 @@ const ProductPage = () => {
                 // Fetch similar and seller products
                 fetchSimilarProducts();
                 fetchSellerProducts();
-            } catch (error) {
+            } catch (error: any) {
+                showError(error?.message || 'An unexpected error occurred');
                 setError(error instanceof Error ? error.message : 'An unexpected error occurred');
             } finally {
                 setLoading(false);
@@ -584,18 +584,18 @@ const ProductPage = () => {
                                     <h3 className="font-semibold text-sm md:text-base">Seller Information</h3>
                                     {/* Removed Seller Information from the product page  */}
                                     {/* <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            const sellerPath = product.seller.slug
-                                                ? `/business/${product.seller.slug}`
-                                                : `/business/${product.seller.id}`;
-                                            router.push(sellerPath);
-                                        }}
-                                        className="text-xs"
-                                    >
-                                        View Profile
-                                    </Button> */}
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                const sellerPath = product.seller.slug
+                                                    ? `/business/${product.seller.slug}`
+                                                    : `/business/${product.seller.id}`;
+                                                router.push(sellerPath);
+                                            }}
+                                            className="text-xs"
+                                        >
+                                            View Profile
+                                        </Button> */}
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex items-center space-x-2">
