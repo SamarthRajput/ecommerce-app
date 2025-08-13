@@ -33,7 +33,6 @@ export const getProducts = async (req: Request, res: Response) => {
                         name: true,
                     }
                 },
-                productCode: true,
                 model: true,
                 specifications: true,
                 countryOfSource: true,
@@ -95,7 +94,6 @@ export const getProductById = async (req: Request, res: Response) => {
                 listingType: true,
                 condition: true,
                 validityPeriod: true,
-                productCode: true,
                 model: true,
                 specifications: true,
                 countryOfSource: true,

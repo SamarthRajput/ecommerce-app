@@ -547,7 +547,6 @@ export const getSellerListings = async (req: AuthenticatedRequest, res: Response
                 description: true,
                 listingType: true,
                 condition: true,
-                productCode: true,
                 model: true,
                 specifications: true,
                 hsnCode: true,
@@ -853,7 +852,6 @@ export const getSellerPublicProfile = async (req: Request, res: Response) => {
                 logisticsSupport: true,
                 industry: true,
                 category: true,
-                productCode: true,
                 model: true,
                 specifications: true,
                 countryOfSource: true,
@@ -1053,16 +1051,7 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
         if (!existingSeller) {
             return res.status(404).json({ error: 'Seller not found' });
         }
-
-        // Check existing listing by productCode
-        const existingListing = await prisma.product.findFirst({
-            where: { sellerId, productCode: data.productCode }
-        });
-
-        if (existingListing) {
-            return res.status(400).json({ error: 'Listing already exists with this product code' });
-        }
-
+        console.log(data);
         // Create the product listing
         const listing = await prisma.product.create({
             data: {
@@ -1073,7 +1062,6 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 industryId: data.industryId,
                 condition: data.condition,
                 unitId: data.unitId,
-                productCode: data.productCode,
                 name: data.name,
                 description: data.description,
                 model: data.model,
@@ -1192,7 +1180,6 @@ export const editListing = async (req: AuthenticatedRequest, res: Response) => {
                 categoryId: data.categoryId,
                 industryId: data.industryId,
                 condition: data.condition,
-                productCode: data.productCode,
                 name: data.name,
                 description: data.description,
                 model: data.model,

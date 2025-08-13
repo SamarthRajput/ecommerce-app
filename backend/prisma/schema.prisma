@@ -124,7 +124,6 @@ model Product {
   categoryId             String
   unitId                 String
 
-  productCode            String
   model                  String?
   specifications         String
   countryOfSource        String

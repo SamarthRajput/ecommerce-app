@@ -77,24 +77,6 @@ export default function ProductBasicsStep({ control, errors, setValue, watch, ca
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="productCode">Product Code *</Label>
-                    <Controller
-                        name="productCode"
-                        control={control}
-                        render={({ field }) => (
-                            <Input
-                                {...field}
-                                placeholder="Enter product code"
-                                className={errors.productCode ? 'border-red-500' : ''}
-                            />
-                        )}
-                    />
-                    {errors.productCode && (
-                        <p className="text-sm text-red-500">{errors.productCode.message}</p>
-                    )}
-                </div>
-
-                <div className="space-y-2">
                     <Label htmlFor="model">Model / Variety</Label>
                     <Controller
                         name="model"
@@ -144,7 +126,7 @@ export default function ProductBasicsStep({ control, errors, setValue, watch, ca
                         name="industryId"
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value || ''}>
+                            <Select onValueChange={field.onChange} value={field.value || 'NEW'}>
                                 <SelectTrigger className={errors.industryId ? 'border-red-500' : ''}>
                                     <SelectValue placeholder="Select industry" />
                                 </SelectTrigger>

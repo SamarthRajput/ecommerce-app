@@ -25,7 +25,6 @@ export const getProductChatRooms = async (req: AuthenticatedRequest, res: Respon
                     select: {
                         id: true,
                         name: true,
-                        productCode: true
                     }
                 },
                 admin: {
@@ -88,7 +87,6 @@ export const getSellerProductChats = async (req: AuthenticatedRequest, res: Resp
                     select: {
                         id: true,
                         name: true,
-                        productCode: true,
                         status: true,
                         images: true
                     }
@@ -185,7 +183,7 @@ export async function createSellerAdminChatOnProduct(productId: string, sellerId
     // Step 3 — Get product info for better chat room title
     const product = await prisma.product.findUnique({
         where: { id: productId },
-        select: { name: true, productCode: true }
+        select: { name: true }
     });
 
     // Step 4 — Create the chat room
@@ -249,7 +247,6 @@ export const getProductChatRoom = async (req: Request, res: Response) => {
                     select: {
                         id: true,
                         name: true,
-                        productCode: true,
                         description: true
                     }
                 },
@@ -329,7 +326,6 @@ export const getChatRoomsByProduct = async (req: Request, res: Response) => {
                     select: {
                         id: true,
                         name: true,
-                        productCode: true
                     }
                 },
                 seller: {
@@ -424,7 +420,6 @@ export const createOrGetProductChatRoom = async (req: Request, res: Response) =>
                     select: {
                         id: true,
                         name: true,
-                        productCode: true
                     }
                 },
                 admin: {
@@ -467,8 +462,7 @@ export const createOrGetProductChatRoom = async (req: Request, res: Response) =>
                 product: {
                     select: {
                         id: true,
-                        name: true,
-                        productCode: true
+                        name: true
                     }
                 },
                 admin: {

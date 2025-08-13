@@ -41,8 +41,8 @@ export default function CreateListingPage() {
                     formData.append(key, value.toString());
                 }
             });
-
-            formData.append('isDraft', isDraft ? 'true' : 'false');
+            console.log(isDraft);
+            formData.append('isDraft', isDraft.toString());
 
             const response = await fetch(`${APIURL}/seller/list-item`, {
                 method: 'POST',

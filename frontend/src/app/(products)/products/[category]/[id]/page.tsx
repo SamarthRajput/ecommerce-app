@@ -37,7 +37,6 @@ interface Product {
         name: string;
         symbol: string;
     };
-    productCode: string;
     model: string;
     specifications: string;
     countryOfSource: string;
@@ -517,10 +516,6 @@ const ProductPage = () => {
                                         <div className="bg-gray-50 rounded p-2 md:p-3">
                                             <span className="text-gray-600 block">Available:</span>
                                             <span className="font-medium">{product.quantity} units</span>
-                                        </div>
-                                        <div className="bg-gray-50 rounded p-2 md:p-3">
-                                            <span className="text-gray-600 block">Code:</span>
-                                            <span className="font-medium">{product.productCode}</span>
                                         </div>
                                     </div>
 

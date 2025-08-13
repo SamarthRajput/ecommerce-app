@@ -105,7 +105,6 @@ export const productSchema = z.object({
     // Product Basics
     name: z.string().min(3, "Product name must be at least 3 characters"),
     slug: z.string().optional(),
-    productCode: z.string().min(1, "Product code is required"),
     model: z.string().optional().nullable(),
     categoryId: z.string().min(1, "Category is required"),
     industryId: z.string().min(1, "Industry is required"),
