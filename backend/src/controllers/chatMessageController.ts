@@ -417,11 +417,33 @@ export const getUserChatRooms = async (req: AuthenticatedRequest, res: Response)
             take,
         });
 
-        const chatRoomsWithTitles = chatRooms.map((chatRoom) => ({
-            ...chatRoom,
-            title: generateChatTitle(chatRoom, userRole),
-        }));
+        const chatRoomsWithTitles = chatRooms.map((chatRoom) => {
+            let title;
+            try {
+                // Add null checking before calling generateChatTitle
+                if (chatRoom.rfq && chatRoom.rfq.product) {
+                    title = generateChatTitle(chatRoom, userRole);
+                } else {
+                    // Fallback title when RFQ or product is missing
+                    if (chatRoom.type === 'BUYER' && chatRoom.buyer) {
+                        title = `Chat with ${chatRoom.buyer.firstName} ${chatRoom.buyer.lastName}`;
+                    } else if (chatRoom.type === 'SELLER' && chatRoom.seller) {
+                        title = `Chat with ${chatRoom.seller.businessName || chatRoom.seller.firstName + ' ' + chatRoom.seller.lastName}`;
+                    } else {
+                        title = 'Chat Room';
+                    }
+                }
+            } catch (error) {
+                console.error('Error generating chat title:', error);
+                // Fallback title in case of any error
+                title = 'Chat Room';
+            }
 
+            return {
+                ...chatRoom,
+                title,
+            };
+        });
 
         res.status(200).json({
             success: true,
