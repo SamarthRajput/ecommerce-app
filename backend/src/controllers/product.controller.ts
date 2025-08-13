@@ -6,7 +6,7 @@ import { parsePagination } from "../utils/parsePagination";
 export const getProducts = async (req: Request, res: Response) => {
     const { skip, take } = parsePagination(req.query);
     const { category } = req.params;
-    console.log("Fetching products for category:", category);
+    console.log("Fetching all products for category:", category);
 
     try {
         const products = await prisma.product.findMany({
@@ -56,7 +56,7 @@ export const getProducts = async (req: Request, res: Response) => {
                 },
             },
         });
-        console.log(products)
+        // console.log(products)
         res.status(200).json({
             products,
             page: typeof req.query.page === "string" ? parseInt(req.query.page) : 1,
