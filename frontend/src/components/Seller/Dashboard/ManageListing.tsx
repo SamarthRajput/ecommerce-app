@@ -9,7 +9,6 @@ import { useListingData, useListingFilters } from '@/hooks/useSDListing';
 import { Listing } from '@/lib/types/seller/sellerDashboardListing';
 import { ListingCard, ListingEmptyState, ListingErrorAlert, ListingFiltersSection, ListingLoadingState, ListingStatsCards, ListingTableView } from './ListingComponent';
 import { ListingDetailModal } from './ListingDetailModel';
-import { toast } from 'sonner';
 
 const ListingDashboard: React.FC = () => {
     const router = useRouter();

@@ -14,6 +14,18 @@ interface ReviewSubmitStepProps {
     getValues: UseFormGetValues<ProductFormData>;
     imageFiles: File[];
     mode: 'create' | 'edit';
+    category: {
+        id: string;
+        name: string;
+    }[] | null
+    industry: {
+        id: string;
+        name: string;
+    }[] | null
+    unit: {
+        id: string;
+        name: string;
+    }[] | null;
 }
 
 export default function ReviewSubmitStep({
@@ -21,7 +33,10 @@ export default function ReviewSubmitStep({
     errors,
     getValues,
     imageFiles,
-    mode
+    mode,
+    category,
+    industry,
+    unit
 }: ReviewSubmitStepProps) {
     const formData = getValues();
 
@@ -37,14 +52,29 @@ export default function ReviewSubmitStep({
                         <span className="font-medium">Price:</span> {formData.currency} {formData.price || 0}
                     </div>
                     <div>
+                        <span className="font-medium">Images:</span> {imageFiles.length} uploaded
+                    </div>
+                    <div>
                         <span className="font-medium">Quantity:</span> {formData.quantity || 0}
+                    </div>
+
+                    <div>
+                        <span className="font-medium">Minimum Order Quantity:</span> {formData.minimumOrderQuantity || 0}
+                    </div>
+                    <div>
+                        <span className="font-medium">Unit:</span> {unit?.find(unt => unt.id === formData.unitId)?.name || 'Not specified'}
+                    </div>
+                    <div>
+                        <span className="font-medium">Category:</span> {category?.find(cat => cat.id === formData.categoryId)?.name || 'Not specified'}
+                    </div>
+
+                    <div>
+                        <span className="font-medium">Industry:</span> {industry?.find(ind => ind.id === formData.industryId)?.name || 'Not specified'}
                     </div>
                     <div>
                         <span className="font-medium">Delivery Time:</span> {formData.deliveryTimeInDays || 0} days
                     </div>
-                    <div>
-                        <span className="font-medium">Images:</span> {imageFiles.length} uploaded
-                    </div>
+
                 </div>
             </div>
 

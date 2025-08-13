@@ -21,8 +21,6 @@ export interface Listing {
     expiryDate?: string
     deliveryTimeInDays?: number
     logisticsSupport?: "SELF" | "INTERLINK" | "BOTH"
-    industry: string
-    category: string
     productCode: string
     model: string
     specifications: string
@@ -59,6 +57,14 @@ export interface Listing {
     }>
     _count: {
         rfqs: number
+    }
+    category: {
+        id: string
+        name: string
+    }
+    industry: {
+        id: string
+        name: string
     }
     createdAt: string
     updatedAt: string

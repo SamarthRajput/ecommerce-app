@@ -15,6 +15,7 @@ interface PricingQuantityStepProps {
 
 export default function PricingQuantityStep({ control, errors, unit }: PricingQuantityStepProps) {
     const quantity = useWatch({ control, name: "quantity" });
+    const minimumOrderQuantity = useWatch({ control, name: "minimumOrderQuantity" });
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -121,6 +122,9 @@ export default function PricingQuantityStep({ control, errors, unit }: PricingQu
                     />
                     {errors.minimumOrderQuantity && (
                         <p className="text-sm text-red-500">{errors.minimumOrderQuantity.message}</p>
+                    )}
+                    {quantity && minimumOrderQuantity > quantity && (
+                        <p className="text-sm text-red-500">Minimum order quantity cannot be more than available quantity.</p>
                     )}
                 </div>
             </div>

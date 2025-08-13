@@ -8,7 +8,6 @@ export interface Listing {
     name: string;
     description: string;
     listingType: string;
-    industry: string;
     condition: string;
     productCode: string;
     model: string;
@@ -19,7 +18,6 @@ export interface Listing {
     images: string[];
     price: number;
     quantity: number;
-    category: string;
     status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED' | 'REJECTED' | 'APPROVED' | 'PENDING' | 'DRAFT';
     createdAt: string;
     rejectionReason?: string; // Optional for rejected listings
@@ -39,12 +37,24 @@ export interface Listing {
     warrantyPeriod?: string,
     keywords: string[],
     videoUrl: string,
+    category: {
+        id: string;
+        name: string;
+    }
+    industry: {
+        id: string;
+        name: string;
+    }
 }
 
 export interface ListingFilters {
     search: string;
     status: string;
     sortBy: string;
+    category: {
+        id: string;
+        name: string;
+    };
 }
 
 export interface ListingStats {

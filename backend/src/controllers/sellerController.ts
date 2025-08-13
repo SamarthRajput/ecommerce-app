@@ -546,7 +546,6 @@ export const getSellerListings = async (req: AuthenticatedRequest, res: Response
                 name: true,
                 description: true,
                 listingType: true,
-                industry: true,
                 condition: true,
                 productCode: true,
                 model: true,
@@ -570,11 +569,22 @@ export const getSellerListings = async (req: AuthenticatedRequest, res: Response
                 images: true,
                 price: true,
                 quantity: true,
-                category: true,
                 status: true,
                 createdAt: true,
                 _count: true,
-                rfqs:true,
+                rfqs: true,
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                },
+                industry: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                }
             }
         });
 

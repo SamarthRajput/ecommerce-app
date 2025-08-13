@@ -70,7 +70,7 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
     });
 
     useEffect(() => {
-        const fetchCategoryData = async () => {
+        const fetchMasterData = async () => {
             const response = await fetch(`${APIURL}/public/master-data`);
             if (!response.ok) {
                 showError('Failed to fetch Categories...');
@@ -80,7 +80,7 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
             setIndustry(data.data.industries);
             setUnit(data.data.units);
         }
-        fetchCategoryData();
+        fetchMasterData();
     }, []);
 
     useEffect(() => {
@@ -224,6 +224,9 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
                         getValues={getValues}
                         imageFiles={imageFiles}
                         mode={mode}
+                        category={category}
+                        industry={industry}
+                        unit={unit}
                     />
                 );
             default:

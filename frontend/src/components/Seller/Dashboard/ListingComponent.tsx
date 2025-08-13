@@ -96,7 +96,10 @@ export const ListingStatsCards: React.FC<{ stats: ListingStats }> = ({ stats }) 
 // Filters Section Component
 interface FiltersSectionProps {
     filters: ListingFilters;
-    categories: string[];
+    categories: {
+        id: string;
+        name: string;
+    }[];
     totalListings: number;
     filteredCount: number;
     viewMode: 'grid' | 'table';
@@ -321,9 +324,9 @@ export const ListingCard: React.FC<ListingCardProps> = ({
                                 <h3 className="font-semibold text-gray-900 truncate">
                                     {listing.productName}
                                 </h3>
-                                {/* <p className="text-sm text-gray-600 truncate">
-                                    {listing.category}
-                                </p> */}
+                                <p className="text-sm text-gray-600 truncate">
+                                    {listing.category.name}
+                                </p>
                             </div>
                             <Badge className={statusConfig?.color ?? ''}>
                                 {statusConfig?.label ?? listing.status}
@@ -383,9 +386,9 @@ export const ListingTableView: React.FC<TableViewProps> = ({
                             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                                 Quantity
                             </th>
-                            {/* <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+                            <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                                 Category
-                            </th> */}
+                            </th>
                             <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                                 Status
                             </th>
@@ -398,7 +401,7 @@ export const ListingTableView: React.FC<TableViewProps> = ({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                        {listings.map((listing) => {
+                        {listings.map((listing: Listing) => {
                             const statusConfig = STATUS_CONFIG[listing.status];
                             return (
                                 <tr key={listing.id} className="hover:bg-gray-50">
@@ -433,9 +436,9 @@ export const ListingTableView: React.FC<TableViewProps> = ({
                                     <td className="px-4 py-3 text-gray-700">
                                         {listing.quantity}
                                     </td>
-                                    {/* <td className="px-4 py-3 text-gray-700">
-                                        {listing.category}
-                                    </td> */}
+                                    <td className="px-4 py-3 text-gray-700">
+                                        {listing.category.name}
+                                    </td>
                                     <td className="px-4 py-3">
                                         <Badge className={statusConfig?.color ?? ''}>
                                             {statusConfig?.label ?? listing.status}

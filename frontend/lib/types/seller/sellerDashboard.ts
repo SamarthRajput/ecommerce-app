@@ -1,5 +1,3 @@
-import { Key } from "lucide-react";
-
 interface Address {
     street: string;
     city: string;
@@ -37,6 +35,10 @@ interface Seller {
     address: Address;
     createdAt: string;
     updatedAt: string;
+    category: {
+        id: string;
+        name: string;
+    }
 }
 
 interface ApiResponse {
@@ -155,8 +157,14 @@ export interface SellerDashboardRfq {
         expiryDate: Date;
         deliveryTimeInDays: number;
         logisticsSupport: string;
-        industry: string;
-        category: string;
+        industry: {
+            id: string;
+            name: string
+        }
+        category: {
+            id: string;
+            name: string;
+        }
         productCode: string;
         model: string;
         specifications: string;

@@ -255,10 +255,10 @@ model Admin {
 model ChatRoom {
   id            String         @id @default(uuid())
   rfqId         String?
+  productId     String?
   buyerId       String?
   sellerId      String?
   adminId       String
-  productId     String?
   type          ChatRoomType
   status        ChatRoomStatus @default(ACTIVE)
   lastMessageAt DateTime       @default(now())
@@ -272,6 +272,7 @@ model ChatRoom {
   seller        Seller?        @relation(fields: [sellerId], references: [id])
 
   @@unique([rfqId, type])
+  @@unique([productId, sellerId, type])
 }
 
 model ChatMessage {

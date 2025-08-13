@@ -56,7 +56,6 @@ export default function CreateListingPage() {
 
             const result = await response.json();
             if (response.ok) {
-                // alert(isDraft ? 'Product saved as draft!' : 'Product submitted for approval!');
                 toast.success(isDraft ? 'Product saved as draft!' : 'Product submitted for approval!');
                 router.push('/seller/dashboard?tab=listings');
             } else {

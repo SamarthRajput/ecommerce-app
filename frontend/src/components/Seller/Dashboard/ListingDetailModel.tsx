@@ -1,6 +1,6 @@
 // components/listing/ListingDetailModal.tsx
-import React, { useState } from 'react';
-import { X, Edit, Check, RefreshCw, AlertTriangle, Package } from 'lucide-react';
+import React from 'react';
+import { X, Edit, Package } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -155,12 +155,12 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    {/* {listing.status == "APPROVED" && (
-                                        <Button variant="link" size="sm" onClick={() => router.push(`/products/${listing.category}/${listing.id}`)}>
+                                    {listing.status == "APPROVED" && (
+                                        <Button variant="link" size="sm" onClick={() => router.push(`/products/${listing.category.name}/${listing.id}`)}>
                                             <Package className="w-4 h-4 mr-2" />
                                             View on Marketplace
                                         </Button>
-                                    )} */}
+                                    )}
 
                                     <Button onClick={() => {
                                         if (listing.slug) {
@@ -186,10 +186,10 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
                                                 <span className="text-sm font-medium text-gray-600 block mb-1">Quantity Available</span>
                                                 <p className="text-lg font-semibold">{listing.quantity.toLocaleString()} units</p>
                                             </div>
-                                            {/* <div>
+                                            <div>
                                                 <span className="text-sm font-medium text-gray-600 block mb-1">Category</span>
-                                                <p className="text-gray-900">{listing.category || 'Not specified'}</p>
-                                            </div> */}
+                                                <p className="text-gray-900">{listing.category.name || 'Not specified'}</p>
+                                            </div>
                                             <div>
                                                 <span className="text-sm font-medium text-gray-600 block mb-1">Minimum Order Quantity</span>
                                                 <p className="text-gray-900">{listing.minimumOrderQuantity || 1}</p>
@@ -257,7 +257,7 @@ export const ListingDetailModal: React.FC<ListingDetailModalProps> = ({
                                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Technical Details</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {[
-                                            // { label: 'Industry', value: listing.industry },
+                                            { label: 'Industry', value: listing.industry.name },
                                             { label: 'Condition', value: listing.condition },
                                             { label: 'Product Code', value: listing.productCode },
                                             { label: 'Model', value: listing.model },
