@@ -15,7 +15,14 @@ interface RequestQuotePageProps {
 export interface ListingData {
     id: string;
     name: string;
-    category: string;
+    category: {
+        id: string;
+        name: string;
+    };
+    industry: {
+        id: string;
+        name: string;
+    };
     quantity: number;
     currency: string;
     price: number;
@@ -114,7 +121,6 @@ export default function RequestQuotePage({ params }: RequestQuotePageProps) {
                         <span className="text-gray-500">Request RFQ</span>
                     </li>
                 </ol>
-                {/* {JSON.stringify(listingData, null, 2)} */}
 
             </nav>
             <RFQForm listingId={params.listingId} listingData={listingData} />

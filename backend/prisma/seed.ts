@@ -72,6 +72,16 @@ async function main() {
 
     if (!seller) {
         console.log('Creating seller...');
+        // find first industry
+        let industry = await prisma.industry.findFirst();
+
+        // If none exists, create one
+        if (!industry) {
+        industry = await prisma.industry.create({
+            data: { name: "Electronics" } // adjust according to your schema
+        });
+        }
+
         seller = await prisma.seller.create({
             data: {
                 firstName: 'Rohit',
@@ -96,7 +106,12 @@ async function main() {
                 taxId: 'TAX123456',
                 panOrTin: 'PAN123456',
                 agreedToTerms: true,
-            },
+                industry: {
+                    connect: {
+                        id: industry.id
+                    }
+                }
+            }
         });
     }
     // test@gmail.com
@@ -149,7 +164,7 @@ async function main() {
             quantity: 50,
             minimumOrderQuantity: 1,
             deliveryTimeInDays: 3,
-            logisticsSupport: LogisticsType.BOTH,
+            logisticsSupport: LogisticsType.INTERLINK,
             listingType: ListingType.SELL,
             condition: ProductCondition.NEW,
             validityPeriod: 365,
@@ -215,7 +230,7 @@ async function main() {
             quantity: 100,
             minimumOrderQuantity: 1,
             deliveryTimeInDays: 1,
-            logisticsSupport: LogisticsType.BOTH,
+            logisticsSupport: LogisticsType.INTERLINK,
             listingType: ListingType.SELL,
             condition: ProductCondition.NEW,
             validityPeriod: 365,
@@ -248,7 +263,7 @@ async function main() {
             quantity: 60,
             minimumOrderQuantity: 1,
             deliveryTimeInDays: 2,
-            logisticsSupport: LogisticsType.SELF,
+            logisticsSupport: LogisticsType.SELLER,
             listingType: ListingType.SELL,
             condition: ProductCondition.NEW,
             validityPeriod: 365,
@@ -315,7 +330,7 @@ async function main() {
             quantity: 30,
             minimumOrderQuantity: 1,
             deliveryTimeInDays: 7,
-            logisticsSupport: LogisticsType.BOTH,
+            logisticsSupport: LogisticsType.INTERLINK,
             listingType: ListingType.LEASE, // Changed to LEASE for variety
             condition: ProductCondition.NEW,
             validityPeriod: 180,
@@ -347,7 +362,7 @@ async function main() {
             quantity: 100,
             minimumOrderQuantity: 1,
             deliveryTimeInDays: 5,
-            logisticsSupport: LogisticsType.SELF,
+            logisticsSupport: LogisticsType.SELLER,
             listingType: ListingType.SELL,
             condition: ProductCondition.NEW,
             validityPeriod: 365,
@@ -379,7 +394,7 @@ async function main() {
             quantity: 200,
             minimumOrderQuantity: 2,
             deliveryTimeInDays: 4,
-            logisticsSupport: LogisticsType.BOTH,
+            logisticsSupport: LogisticsType.INTERLINK,
             listingType: ListingType.SELL,
             condition: ProductCondition.NEW,
             validityPeriod: 180,
@@ -411,8 +426,8 @@ async function main() {
             quantity: 300,
             minimumOrderQuantity: 4,
             deliveryTimeInDays: 6,
-            logisticsSupport: LogisticsType.SELF,
-            listingType: ListingType.RENT, // Changed to RENT for variety
+            logisticsSupport: LogisticsType.SELLER,
+            listingType: ListingType.LEASE, // Changed to LEASE for variety
             condition: ProductCondition.NEW,
             validityPeriod: 365,
             expiryDate: getExpiryDate(365),
@@ -443,7 +458,7 @@ async function main() {
             quantity: 150,
             minimumOrderQuantity: 1,
             deliveryTimeInDays: 3,
-            logisticsSupport: LogisticsType.BOTH,
+            logisticsSupport: LogisticsType.INTERLINK,
             listingType: ListingType.SELL,
             condition: ProductCondition.REFURBISHED, // Changed for variety
             validityPeriod: 365,
@@ -479,14 +494,14 @@ async function main() {
                 .replace(/(^-|-$)+/g, '')
                 .substring(0, 100); // Ensure slug isn't too long
 
-            await prisma.product.create({
-                data: {
-                    ...productData,
-                    sellerId: seller.id,
-                    status: 'APPROVED',
-                    slug: slug,
-                },
-            });
+            // await prisma.product.create({
+            //     data: {
+            //         ...productData,
+            //         sellerId: seller.id,
+            //         status: 'APPROVED',
+            //         slug: slug,
+            //     },
+            // });
 
             console.log(`✅ Successfully inserted product: ${productData.name}`);
         } catch (error) {
@@ -495,6 +510,14 @@ async function main() {
     }
 
     console.log('🎉 Seeding completed successfully!');
+
+    await prisma.unit.createMany({
+        data: [
+            { name: 'Piece' },
+            { name: 'Kg' },
+            { name: 'Meter' },
+        ],
+    })
 }
 
 main()

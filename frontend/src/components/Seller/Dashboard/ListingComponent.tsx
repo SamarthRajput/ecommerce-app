@@ -96,7 +96,10 @@ export const ListingStatsCards: React.FC<{ stats: ListingStats }> = ({ stats }) 
 // Filters Section Component
 interface FiltersSectionProps {
     filters: ListingFilters;
-    categories: string[];
+    categories: {
+        id: string;
+        name: string;
+    }[];
     totalListings: number;
     filteredCount: number;
     viewMode: 'grid' | 'table';
@@ -143,7 +146,7 @@ export const ListingFiltersSection: React.FC<FiltersSectionProps> = ({
                         </SelectContent>
                     </Select>
 
-                    <Select value={filters.category} onValueChange={(value) => onFilterChange('category', value)}>
+                    {/* <Select value={filters.category} onValueChange={(value) => onFilterChange('category', value)}>
                         <SelectTrigger className="w-40">
                             <SelectValue placeholder="Category" />
                         </SelectTrigger>
@@ -155,7 +158,7 @@ export const ListingFiltersSection: React.FC<FiltersSectionProps> = ({
                                 </SelectItem>
                             ))}
                         </SelectContent>
-                    </Select>
+                    </Select> */}
 
                     <Select value={filters.sortBy} onValueChange={(value) => onFilterChange('sortBy', value)}>
                         <SelectTrigger className="w-44">
@@ -201,7 +204,7 @@ export const ListingFiltersSection: React.FC<FiltersSectionProps> = ({
                 </div>
             </div>
 
-            {(filters.search || filters.status !== 'all' || filters.category !== 'all') && (
+            {(filters.search || filters.status !== 'all') && (
                 <div className="mt-3 text-sm text-gray-600">
                     Showing {filteredCount} of {totalListings} listings
                 </div>
@@ -322,7 +325,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
                                     {listing.productName}
                                 </h3>
                                 <p className="text-sm text-gray-600 truncate">
-                                    {listing.category}
+                                    {listing.category.name}
                                 </p>
                             </div>
                             <Badge className={statusConfig?.color ?? ''}>
@@ -398,7 +401,7 @@ export const ListingTableView: React.FC<TableViewProps> = ({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                        {listings.map((listing) => {
+                        {listings.map((listing: Listing) => {
                             const statusConfig = STATUS_CONFIG[listing.status];
                             return (
                                 <tr key={listing.id} className="hover:bg-gray-50">
@@ -434,7 +437,7 @@ export const ListingTableView: React.FC<TableViewProps> = ({
                                         {listing.quantity}
                                     </td>
                                     <td className="px-4 py-3 text-gray-700">
-                                        {listing.category}
+                                        {listing.category.name}
                                     </td>
                                     <td className="px-4 py-3">
                                         <Badge className={statusConfig?.color ?? ''}>

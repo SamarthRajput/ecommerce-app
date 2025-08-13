@@ -30,9 +30,6 @@ const Section5 = ({ formData, errors, handleInputChange, businessTypeOptions }: 
                 <div>
                     <span className="font-medium">Location:</span> {formData.city}, {formData.state}
                 </div>
-                <div>
-                    <span className="font-medium">Industries:</span> {formData.industryTags.join(', ')}
-                </div>
             </div>
         </div>
 

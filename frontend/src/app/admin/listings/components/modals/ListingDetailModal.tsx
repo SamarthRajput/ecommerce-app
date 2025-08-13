@@ -245,11 +245,11 @@ export const ListingDetailModal = ({ listing, listingState }: ListingDetailModal
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Industry</Label>
-                                <p className="text-sm mt-1 font-medium break-words">{listing.industry}</p>
+                                <p className="text-sm mt-1 font-medium break-words">{listing.industry.name}</p>
                             </div>
                             <div>
                                 <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Category</Label>
-                                <p className="text-sm mt-1 font-medium break-words">{listing.category}</p>
+                                <p className="text-sm mt-1 font-medium break-words">{listing.category.name}</p>
                             </div>
                         </div>
                         {listing.tags.length > 0 && (

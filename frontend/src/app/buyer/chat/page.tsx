@@ -60,7 +60,7 @@ const ChatDashboard: React.FC = () => {
             Chat with {selectedRoom.title}
           </h3>
           <p className="text-xs lg:text-sm text-gray-600">
-            RFQ: <span className="font-mono font-medium">{formatRfqId(selectedRoom.rfqId)}</span>
+            RFQ: <span className="font-mono font-medium">{formatRfqId(selectedRoom.rfqId ?? "")}</span>
           </p>
         </div>
       </div>
@@ -211,7 +211,7 @@ const ChatDashboard: React.FC = () => {
                                 {room.title.length > 25 ? room.title.slice(0, 25) + "..." : room.title}
                               </p>
                               <p className="text-xs text-gray-600 font-mono">
-                                {formatRfqId(room.rfqId)}
+                                {formatRfqId(room.rfqId ?? "")}
                               </p>
                             </div>
                           </div>

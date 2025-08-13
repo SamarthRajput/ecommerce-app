@@ -7,12 +7,16 @@ import { APIURL } from '@/src/config/env';
 interface ChatRoom {
     id: string;
     title: string;
-    rfqId: string;
+    rfqId?: string;
+    productId?: string; // Added for product chats
     type: Role;
     adminId: string;
+    sellerId?: string; // Added for seller-admin chats
+    status: string; // Added status field
     createdAt: Date;
     updatedAt: Date;
 }
+
 export type Role = "SELLER" | "BUYER" | "ADMIN";
 
 export type MessageStatus = 'sending' | 'sent' | 'read';
@@ -50,6 +54,7 @@ export interface ChatMessage {
     replyTo: ReplyToMessage | null;
     reactions: ChatReaction[];
 }
+
 export interface ChatMessagesResponse {
     success: boolean;
     chatRoomId: string;
@@ -61,9 +66,11 @@ export interface ChatMessagesResponse {
         hasMore: boolean;
     };
 }
+
 export const useChat = () => {
     // State management
     const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
+    const [productChatRooms, setProductChatRooms] = useState<ChatRoom[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loadingRooms, setLoadingRooms] = useState(false);
     const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
@@ -101,6 +108,7 @@ export const useChat = () => {
                 headers: { "Content-Type": "application/json" },
             });
 
+            console.log(response);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || "Failed to fetch chat rooms");
@@ -120,6 +128,78 @@ export const useChat = () => {
         } catch (err) {
             toast.error((err as Error).message || "An error occurred while fetching chat rooms");
             setError((err as Error).message);
+        } finally {
+            setLoadingRooms(false);
+        }
+    };
+
+    // New function to fetch product-specific chat rooms
+    const fetchProductChatRooms = async (productId?: string) => {
+        setLoadingRooms(true);
+        try {
+            const url = productId 
+                ? `${APIURL}/chat/product/${productId}/chatrooms` 
+                : `${APIURL}/chat/product-chatrooms?page=1&limit=100`;
+                
+            const response = await fetch(url, {
+                method: "GET",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to fetch product chat rooms");
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                if (data.chatRooms.length === 0) {
+                    toast.info("No product chat rooms found");
+                } else {
+                    setProductChatRooms(data.chatRooms || []);
+                }
+                toast.success("Product chat rooms fetched successfully");
+            } else {
+                setError(data.error || "Failed to fetch product chat rooms");
+            }
+        } catch (err) {
+            toast.error((err as Error).message || "An error occurred while fetching product chat rooms");
+            setError((err as Error).message);
+        } finally {
+            setLoadingRooms(false);
+        }
+    };
+
+    // Function to get chat room for a specific product
+    const getProductChatRoom = async (productId: string) => {
+        setLoadingRooms(true);
+        try {
+            const response = await fetch(`${APIURL}/chat/product/${productId}/chatroom`, {
+                method: "GET",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to fetch product chat room");
+            }
+
+            const data = await response.json();
+            if (data.success && data.chatRoom) {
+                setSelectedRoom(data.chatRoom);
+                await fetchChatMessages(data.chatRoom.id);
+                toast.success("Product chat room loaded successfully");
+                return data.chatRoom;
+            } else {
+                setError(data.error || "No chat room found for this product");
+                return null;
+            }
+        } catch (err) {
+            toast.error((err as Error).message || "An error occurred while fetching product chat room");
+            setError((err as Error).message);
+            return null;
         } finally {
             setLoadingRooms(false);
         }
@@ -322,11 +402,18 @@ export const useChat = () => {
     // Filter chat rooms based on search
     const filteredRooms = chatRooms.filter(room => {
         return searchTerm === '' ||
-            room.rfqId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            room.rfqId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             room.id.toLowerCase().includes(searchTerm.toLowerCase());
     });
 
-    // Get unread message count for a room (admin messages only)
+    // Filter product chat rooms based on search
+    const filteredProductRooms = productChatRooms.filter(room => {
+        return searchTerm === '' ||
+            room.productId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            room.id.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+
+    // Get unread message count for a room
     const getUnreadCount = (roomId: string) => {
         return messages.filter(
             (msg) => msg.chatRoomId === roomId && !msg.read && msg.senderRole.toUpperCase() !== currentUserRole.toUpperCase() && !msg.deleted
@@ -509,6 +596,7 @@ export const useChat = () => {
     return {
         // State
         chatRooms,
+        productChatRooms,
         error,
         loadingRooms,
         selectedRoom,
@@ -518,19 +606,20 @@ export const useChat = () => {
         sending,
         messagesEndRef,
         filteredRooms,
+        filteredProductRooms,
 
         // Actions
         setNewMessage,
         setSearchTerm,
         setError,
         fetchChatRooms,
+        fetchProductChatRooms,
+        getProductChatRoom,
         fetchChatMessages,
         sendMessage,
         uploadFile,
         handleRoomSelect,
         handleKeyPress,
-
-
         editMessage,
         deleteMessage,
         pinMessage,
@@ -542,7 +631,6 @@ export const useChat = () => {
         formatRfqId,
         isImageFile,
         isPdfFile,
-
         isImageAttachment,
         isPdfAttachment,
         getFileName,

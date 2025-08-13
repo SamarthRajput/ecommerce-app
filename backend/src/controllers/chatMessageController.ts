@@ -1,12 +1,13 @@
 // File: backend/src/controllers/chatMessageController.ts
 import { AuthenticatedRequest } from "../middlewares/authBuyer";
-import { Response } from "express";
+import { Response, Request } from "express";
 import { prisma } from "../lib/prisma";
 import validator from 'validator';
 import sanitizeHtml from 'sanitize-html';
 import { parsePagination } from "../utils/parsePagination";
 import { v2 as cloudinary } from "cloudinary";
 import generateChatTitle from "../utils/generateChatTitle";
+import MasterDataService from "../services/masterData";
 
 // Create a new chat room between admin and seller
 export const createChatRoomBetweenAdminAndSeller = async (req: AuthenticatedRequest, res: Response) => {
@@ -333,8 +334,8 @@ export const getRecentChats = async (req: AuthenticatedRequest, res: Response) =
             chatRoomId: room.id,
             type: room.type,
             rfqId: room.rfqId,
-            rfqStatus: room.rfq.status,
-            productName: room.rfq.product.name,
+            rfqStatus: room.rfq?.status,
+            productName: room.rfq?.product.name,
             with: room.type === 'BUYER'
                 ? `${room.buyer?.firstName} ${room.buyer?.lastName}`
                 : `${room.seller?.businessName || room.seller?.firstName}`,

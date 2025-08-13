@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-
 // Buyer signup schema
 export const signupSchema = z.object({
     email: z.string().email(),

@@ -1,21 +1,46 @@
-
-
 // components/form-steps/ProductBasicsStep.tsx
 import React, { useEffect } from 'react';
 import { Controller, Control, FieldErrors, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ProductFormData, CATEGORIES, INDUSTRIES } from '../../../lib/types/listing'
+import { ProductFormData } from '../../../lib/types/listing'
+import { CategoryMasterDataTypes, IndustryMasterDataTypes, UnitMasterDataTypes } from '@/src/types/masterdata';
 
+/*
+
+export interface CategoryMasterDataTypes {
+    id: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface IndustryMasterDataTypes {
+    id: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface UnitMasterDataTypes {
+    id: string;
+    name: string;
+    symbol?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+    */
 interface ProductBasicsStepProps {
     control: Control<ProductFormData>;
     errors: FieldErrors<ProductFormData>;
     setValue: UseFormSetValue<ProductFormData>;
     watch: UseFormWatch<ProductFormData>;
+    category: CategoryMasterDataTypes[] | null;
+    industry: IndustryMasterDataTypes[] | null;
 }
 
-export default function ProductBasicsStep({ control, errors, setValue, watch }: ProductBasicsStepProps) {
+export default function ProductBasicsStep({ control, errors, setValue, watch, category, industry }: ProductBasicsStepProps) {
     // Auto-generate slug from product name
     const productName = watch('name');
     useEffect(() => {
@@ -70,14 +95,15 @@ export default function ProductBasicsStep({ control, errors, setValue, watch }: 
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="model">Model *</Label>
+                    <Label htmlFor="model">Model / Variety</Label>
                     <Controller
                         name="model"
                         control={control}
                         render={({ field }) => (
                             <Input
                                 {...field}
-                                placeholder="Enter model"
+                                value={field.value ?? ""} // Convert null/undefined to empty string
+                                placeholder="Enter model / variety"
                                 className={errors.model ? 'border-red-500' : ''}
                             />
                         )}
@@ -90,50 +116,50 @@ export default function ProductBasicsStep({ control, errors, setValue, watch }: 
                 <div className="space-y-2">
                     <Label htmlFor="category">Category *</Label>
                     <Controller
-                        name="category"
+                        name="categoryId"
                         control={control}
                         render={({ field }) => (
                             <Select onValueChange={field.onChange} value={field.value || ''}>
-                                <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
+                                <SelectTrigger className={errors.categoryId ? 'border-red-500' : ''}>
                                     <SelectValue placeholder="Select category" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {CATEGORIES.map(category => (
-                                        <SelectItem key={category} value={category}>
-                                            {category}
+                                    {category && category.map(category => (
+                                        <SelectItem key={category.id} value={category.id}>
+                                            {category.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         )}
                     />
-                    {errors.category && (
-                        <p className="text-sm text-red-500">{errors.category.message}</p>
+                    {errors.categoryId && (
+                        <p className="text-sm text-red-500">{errors.categoryId.message}</p>
                     )}
                 </div>
 
                 <div className="space-y-2">
                     <Label htmlFor="industry">Industry *</Label>
                     <Controller
-                        name="industry"
+                        name="industryId"
                         control={control}
                         render={({ field }) => (
                             <Select onValueChange={field.onChange} value={field.value || ''}>
-                                <SelectTrigger className={errors.industry ? 'border-red-500' : ''}>
+                                <SelectTrigger className={errors.industryId ? 'border-red-500' : ''}>
                                     <SelectValue placeholder="Select industry" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {INDUSTRIES.map(industry => (
-                                        <SelectItem key={industry} value={industry}>
-                                            {industry}
+                                    {industry && industry.map(industry => (
+                                        <SelectItem key={industry.id} value={industry.id}>
+                                            {industry.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         )}
                     />
-                    {errors.industry && (
-                        <p className="text-sm text-red-500">{errors.industry.message}</p>
+                    {errors.industryId && (
+                        <p className="text-sm text-red-500">{errors.industryId.message}</p>
                     )}
                 </div>
 
@@ -171,7 +197,6 @@ export default function ProductBasicsStep({ control, errors, setValue, watch }: 
                                 <SelectContent>
                                     <SelectItem value="SELL">Sell</SelectItem>
                                     <SelectItem value="LEASE">Lease</SelectItem>
-                                    <SelectItem value="RENT">Rent</SelectItem>
                                 </SelectContent>
                             </Select>
                         )}

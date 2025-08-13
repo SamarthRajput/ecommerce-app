@@ -1,7 +1,7 @@
 export interface CreateRFQRequest {
     productId: string;
     quantity: number;
-    unit: string;
+    unitId: string;
     deliveryDate?: string;
     currency?: string;
     paymentTerms?: string;

@@ -118,6 +118,7 @@ export default function MediaAttachmentsStep({
                     render={({ field }) => (
                         <Input
                             {...field}
+                            value={field.value ?? ""} // Convert null/undefined to empty string
                             placeholder="YouTube or Video URL"
                             className={errors.videoUrl ? 'border-red-500' : ''}
                         />

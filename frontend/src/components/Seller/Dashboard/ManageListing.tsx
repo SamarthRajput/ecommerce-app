@@ -9,7 +9,6 @@ import { useListingData, useListingFilters } from '@/hooks/useSDListing';
 import { Listing } from '@/lib/types/seller/sellerDashboardListing';
 import { ListingCard, ListingEmptyState, ListingErrorAlert, ListingFiltersSection, ListingLoadingState, ListingStatsCards, ListingTableView } from './ListingComponent';
 import { ListingDetailModal } from './ListingDetailModel';
-import { toast } from 'sonner';
 
 const ListingDashboard: React.FC = () => {
     const router = useRouter();
@@ -65,7 +64,7 @@ const ListingDashboard: React.FC = () => {
         await toggleListingStatus(listingId, action);
     };
 
-    const hasActiveFilters = !!filters.search || filters.status !== 'all' || filters.category !== 'all';
+    const hasActiveFilters = !!filters.search || filters.status !== 'all';
 
     // Show loading state
     if (loading) {

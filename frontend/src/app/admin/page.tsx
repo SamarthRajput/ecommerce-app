@@ -21,6 +21,7 @@ const superAdminLinks = [
     { href: '/admin/reports', label: 'View Reports', icon: BarChart3, description: 'Analytics and performance reports' },
     { href: '/admin/chat', label: 'Chat Dashboard', icon: MessageSquare, description: 'Communicate with buyers and sellers' },
     { href: '/admin/certifications', label: 'Certifications', icon: BookCheck, description: 'Seller Certification approval' },
+    { href: '/admin/master-data', label: 'Master Data', icon: FileText, description: 'Manage Categories, Industry, and Unit Master Data' },
 ];
 
 const adminLinks = [

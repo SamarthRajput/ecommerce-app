@@ -183,8 +183,6 @@ const useSellerDashboard = () => {
             if (response.ok) {
                 const data = await response.json();
                 setRfqRequests(data.rfqRequests || []);
-                await navigator.clipboard.writeText(JSON.stringify(data.rfqRequests, null, 2)); // For debugging purposes
-                toast.info(`${data.rfqRequests.length} RFQ requests fetched and copied to clipboard`);
             }
         } catch (error) {
             console.error('Error fetching RFQ requests:', error);

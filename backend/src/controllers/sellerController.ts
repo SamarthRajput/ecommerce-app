@@ -18,6 +18,7 @@ import slugify from "slugify";
 import crypto from "crypto";
 import { BusinessType } from "@prisma/client";
 import { sendEmail } from "../utils/sendEmail";
+import { createSellerAdminChatOnProduct } from "../services/chatService";
 
 // Sign up seller
 export const signupSeller = async (req: Request, res: Response) => {
@@ -112,7 +113,9 @@ export const signupSeller = async (req: Request, res: Response) => {
                 industryTags: data.industryTags || [],
                 keyProducts: data.keyProducts || [],
                 yearsInBusiness: data.yearsInBusiness ? Number(data.yearsInBusiness) : 0,
-                agreedToTerms: data.agreedToTerms || false
+                agreedToTerms: data.agreedToTerms || false,
+
+                industryId: data.industryId
             }
         })
 
@@ -543,7 +546,6 @@ export const getSellerListings = async (req: AuthenticatedRequest, res: Response
                 name: true,
                 description: true,
                 listingType: true,
-                industry: true,
                 condition: true,
                 productCode: true,
                 model: true,
@@ -567,11 +569,22 @@ export const getSellerListings = async (req: AuthenticatedRequest, res: Response
                 images: true,
                 price: true,
                 quantity: true,
-                category: true,
                 status: true,
                 createdAt: true,
                 _count: true,
-                rfqs:true,
+                rfqs: true,
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                },
+                industry: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                }
             }
         });
 
@@ -642,7 +655,7 @@ export const toggleListingStatus = async (req: AuthenticatedRequest, res: Respon
                 name: updatedListing.name,
                 description: updatedListing.description,
                 price: updatedListing.price,
-                category: updatedListing.category,
+                categoryId: updatedListing.categoryId,
                 status: updatedListing.status
             }
         });
@@ -1056,9 +1069,10 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 sellerId,
                 slug: uniqueSlug,
                 listingType: data.listingType,
-                industry: data.industry,
-                category: data.category,
+                categoryId: data.categoryId,
+                industryId: data.industryId,
                 condition: data.condition,
+                unitId: data.unitId,
                 productCode: data.productCode,
                 name: data.name,
                 description: data.description,
@@ -1084,6 +1098,8 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 status: data.isDraft ? 'DRAFT' : 'PENDING'
             }
         });
+
+        await createSellerAdminChatOnProduct(listing.id, sellerId);
 
         return res.status(201).json({
             message: 'Listing created successfully',
@@ -1173,8 +1189,8 @@ export const editListing = async (req: AuthenticatedRequest, res: Response) => {
             where: { id: listingId },
             data: {
                 listingType: data.listingType,
-                industry: data.industry,
-                category: data.category,
+                categoryId: data.categoryId,
+                industryId: data.industryId,
                 condition: data.condition,
                 productCode: data.productCode,
                 name: data.name,

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { User, X, Plus, Trash2 } from 'lucide-react';
 import { Section4Props } from '@/lib/types/seller/signup';
+import { IndustrySelect } from './SelectIndustry';
 
-const Section4 = ({ formData, errors, handleInputChange, industryOptions, yearsInBusinessOptions }: Section4Props) => {
+const Section4 = ({ formData, errors, handleInputChange, industryId, yearsInBusinessOptions }: Section4Props) => {
     const [productInput, setProductInput] = useState('');
 
     // Handle adding products from comma-separated input
@@ -67,28 +68,12 @@ const Section4 = ({ formData, errors, handleInputChange, industryOptions, yearsI
             </div>
 
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Industries Served *
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {industryOptions.map(industry => (
-                        <label key={industry} className="flex items-center space-x-2">
-                            <input
-                                type="checkbox"
-                                checked={formData.industryTags.includes(industry)}
-                                onChange={(e) => {
-                                    const newTags = e.target.checked
-                                        ? [...formData.industryTags, industry]
-                                        : formData.industryTags.filter(tag => tag !== industry);
-                                    handleInputChange('industryTags', newTags);
-                                }}
-                                className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
-                            />
-                            <span className="text-sm">{industry}</span>
-                        </label>
-                    ))}
-                </div>
-                {errors.industryTags && <p className="text-red-500 text-sm mt-1">{errors.industryTags}</p>}
+                {/* Pass the selected industry value from formData */}
+                <IndustrySelect
+                    industryOptions={industryId}
+                    value={formData.industryId}
+                    onChange={(selected) => handleInputChange('industryId', selected)}
+                />
             </div>
 
             <div>

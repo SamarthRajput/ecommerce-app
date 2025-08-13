@@ -36,6 +36,18 @@ export const getAllListings = async (req: Request, res: Response) => {
                 },
                 _count: {
                     select: { rfqs: true }
+                },
+                category: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                },
+                industry: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
                 }
             },
             orderBy: { createdAt: 'desc' }, // 

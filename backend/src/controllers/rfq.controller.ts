@@ -52,6 +52,10 @@ export const getListingInfoForRfq = async (req: Request, res: Response) => {
   try {
     const listing = await prisma.product.findUnique({
       where: { id },
+      include: {
+        category: true,
+        industry: true
+      }
     });
 
     if (!listing) {
@@ -60,7 +64,7 @@ export const getListingInfoForRfq = async (req: Request, res: Response) => {
     const listingData = {
       id: listing.id,
       name: listing.name,
-      category: listing.category,
+      unitId: listing.unitId,
       quantity: listing.quantity,
       currency: listing.currency,
       price: listing.price,
@@ -68,6 +72,14 @@ export const getListingInfoForRfq = async (req: Request, res: Response) => {
       minimumDeliveryDateInDays: listing.deliveryTimeInDays,
       createdAt: listing.createdAt,
       updatedAt: listing.updatedAt,
+      category: {
+        id: listing.category.id,
+        name: listing.category.name
+      },
+      industry: {
+        id: listing.industry.id,
+        name: listing.industry.name
+      }
     };
 
     return res.status(200).json({ data: listingData });
