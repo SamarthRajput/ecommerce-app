@@ -359,9 +359,10 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        onClick={() => {
-                                            setSubmitType('draft');
-                                            handleSubmit(onFormSubmit)();
+                                        onClick={async () => {
+                                            console.log('🔍 Save as Draft clicked');
+                                            const formData = getValues();
+                                            await onSubmit(formData, true); // Pass true for draft
                                         }}
                                         disabled={loading}
                                         className="flex items-center gap-2"
@@ -372,9 +373,10 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
                                 )}
                                 <Button
                                     type="button"
-                                    onClick={() => {
-                                        setSubmitType('submit');
-                                        handleSubmit(onFormSubmit)();
+                                    onClick={async () => {
+                                        console.log('🔍 Submit for Approval clicked');
+                                        const formData = getValues();
+                                        await onSubmit(formData, false); // Pass false for submission
                                     }}
                                     disabled={loading}
                                     className="flex items-center gap-2"

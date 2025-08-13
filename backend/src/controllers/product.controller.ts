@@ -12,6 +12,9 @@ export const getProducts = async (req: Request, res: Response) => {
         const products = await prisma.product.findMany({
             skip,
             take,
+            where: {
+                status: "APPROVED"
+            },
             select: {
                 id: true,
                 name: true,

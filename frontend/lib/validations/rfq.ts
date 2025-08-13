@@ -16,7 +16,8 @@ export const rfqFormSchema = z.object({
   requestChangeInDeliveryTerms: z.boolean().optional(),
   servicesRequired: z.array(z.string()).optional(),
   additionalNotes: z.string().optional(),
-  message: z.string().optional()
+  message: z.string().optional(),
+  unitId: z.string().min(1, 'Unit is required'),
 });
 
 export type RFQFormSchema = z.infer<typeof rfqFormSchema>;

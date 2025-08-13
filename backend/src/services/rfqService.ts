@@ -6,8 +6,8 @@ export async function createRFQRecord(buyerId: string, body: CreateRFQRequest) {
         data: {
             productId: body.productId,
             buyerId,
+            unitId: body.unitId, // Make sure body.unitId exists and is passed in CreateRFQRequest
             quantity: body.quantity,
-            unitId: body.unitId,
             deliveryDate: body.deliveryDate ? new Date(body.deliveryDate) : null,
             currency: body.currency || null,
             paymentTerms: body.paymentTerms || null,

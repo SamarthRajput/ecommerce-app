@@ -61,6 +61,7 @@ export function RFQForm({ listingId, listingData }: RFQFormProps) {
         requestChangeInDeliveryTerms: false,
         additionalNotes: '',
         message: '',
+        unitId: listingData?.unit.id ?? '' // Ensure unitId is always a string
     }), [listingId, listingData]);
 
 
@@ -100,6 +101,7 @@ export function RFQForm({ listingId, listingData }: RFQFormProps) {
             const payload = {
                 productId: data.listingId,
                 quantity: data.quantity,
+                unitId: data.unitId,
                 deliveryDate: data.deliveryDate,
                 currency: data.currency,
                 paymentTerms: data.paymentTerms,
@@ -164,7 +166,7 @@ export function RFQForm({ listingId, listingData }: RFQFormProps) {
                                 min={listingData?.minimumOrderQuantity || 1}
                                 max={listingData?.quantity || Infinity}
                             />
-                            {listingData?.minimumOrderQuantity}
+                            {/* {listingData?.minimumOrderQuantity} */}
                             {listingData && (quantity < listingData.minimumOrderQuantity || quantity > listingData.quantity) && (
                                 <div className="mt-1 px-3 py-2 rounded bg-red-100 border border-red-400 text-red-700 text-sm">
                                     {quantity < listingData.minimumOrderQuantity && (

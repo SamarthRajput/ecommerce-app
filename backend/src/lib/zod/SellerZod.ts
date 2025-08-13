@@ -149,5 +149,16 @@ export const productSchema = z.object({
 
     // Terms
     agreedToTerms: z.preprocess(val => val === 'true' || val === true, z.boolean().optional()),
-    isDraft: z.coerce.boolean().optional().default(false)
+    isDraft: z.preprocess(
+        (val) => {
+            // Handle string values from FormData
+            if (val === 'true') return true;
+            if (val === 'false') return false;
+            // Handle boolean values
+            if (typeof val === 'boolean') return val;
+            // Default fallback
+            return false;
+        },
+        z.boolean().optional().default(false)
+    )
 });

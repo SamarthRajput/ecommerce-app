@@ -19,6 +19,8 @@ export default function CreateListingPage() {
         }
     }, [authLoading, authenticated, user, router]);
 
+    // In your CreateListingPage component - fix the handleSubmit function
+
     const handleSubmit = async (data: ProductFormData, isDraft = false) => {
         try {
             const formData = new FormData();
@@ -41,8 +43,12 @@ export default function CreateListingPage() {
                     formData.append(key, value.toString());
                 }
             });
-            console.log(isDraft);
+            
+            console.log('Frontend: isDraft parameter received:', isDraft);
             formData.append('isDraft', isDraft.toString());
+
+            // Debug log to verify what's being sent
+            console.log('Frontend: FormData isDraft value:', formData.get('isDraft'));
 
             const response = await fetch(`${APIURL}/seller/list-item`, {
                 method: 'POST',
@@ -66,7 +72,6 @@ export default function CreateListingPage() {
             throw error;
         }
     };
-
     const handleCancel = () => {
         router.push('/seller/dashboard');
     };

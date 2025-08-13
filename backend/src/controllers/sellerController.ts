@@ -1024,7 +1024,7 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
         // Validate with Zod schema
         const parsed = productSchema.safeParse(req.body);
 
-        console.log('Validation failed:', parsed.success, parsed.error?.issues);
+        console.log('Validation result:', parsed.success, parsed.error?.issues);
         if (!parsed.success) {
             return res.status(400).json({
                 error: `Validation failed: ${parsed.error.issues[0]?.message}`,
@@ -1051,7 +1051,10 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
         if (!existingSeller) {
             return res.status(404).json({ error: 'Seller not found' });
         }
-        console.log(data);
+        
+        console.log('isDraft value:', data.isDraft);
+        console.log('Parsed data:', data);
+        
         // Create the product listing
         const listing = await prisma.product.create({
             data: {
@@ -1072,7 +1075,7 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 price: data.price,
                 currency: data.currency,
                 deliveryTimeInDays: data.deliveryTimeInDays,
-                logisticsSupport: data.logisticsSupport as any, // Cast to correct enum type
+                logisticsSupport: data.logisticsSupport as any,
                 countryOfSource: data.countryOfSource,
                 validityPeriod: data.validityPeriod,
                 warrantyPeriod: data.warrantyPeriod,
@@ -1083,14 +1086,14 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 videoUrl: data.videoUrl || null,
                 tags: data.tags,
                 keywords: data.keywords,
-                status: data.isDraft ? 'DRAFT' : 'PENDING'
+                status: data.isDraft ? 'DRAFT' : 'PENDING' // Now data.isDraft is properly validated
             }
         });
 
         await createSellerAdminChatOnProduct(listing.id, sellerId);
 
         return res.status(201).json({
-            message: 'Listing created successfully',
+            message: data.isDraft ? 'Listing saved as draft successfully' : 'Listing created successfully',
             listing: {
                 id: listing.id,
                 name: listing.name,
@@ -1133,20 +1136,33 @@ export const editListing = async (req: AuthenticatedRequest, res: Response) => {
             }
         });
 
-        // If images are being uploaded again
+        // Handle image processing
         const files = (req.files as Express.Multer.File[]) || [];
-        let imageUrls: string[] = req.body.images || [];
+        let finalImageUrls: string[] = [];
 
+        // Get existing images from the request body (sent from frontend)
+        const existingImages = req.body.existingImages;
+        if (existingImages) {
+            if (Array.isArray(existingImages)) {
+                finalImageUrls = [...existingImages];
+            } else if (typeof existingImages === 'string') {
+                // Handle case where only one existing image is sent as string
+                finalImageUrls = [existingImages];
+            }
+        }
+
+        // Upload new files and add to the existing images
         if (files.length > 0) {
             try {
-                const uploaded = await Promise.all(files.map(file => uploadImageToCloudinary(file)));
-                imageUrls = uploaded;
+                const uploadedUrls = await Promise.all(files.map(file => uploadImageToCloudinary(file)));
+                finalImageUrls = [...finalImageUrls, ...uploadedUrls];
             } catch (uploadError) {
                 return res.status(400).json({ error: (uploadError as Error).message });
             }
         }
 
-        req.body.images = imageUrls;
+        // Set the final images array
+        req.body.images = finalImageUrls;
 
         // Validate request data
         const validationResult = productSchema.safeParse(req.body);
@@ -1190,7 +1206,7 @@ export const editListing = async (req: AuthenticatedRequest, res: Response) => {
                 price: data.price,
                 currency: data.currency,
                 deliveryTimeInDays: data.deliveryTimeInDays,
-                logisticsSupport: data.logisticsSupport as any, // Cast to correct enum type
+                logisticsSupport: data.logisticsSupport as any,
                 countryOfSource: data.countryOfSource,
                 validityPeriod: data.validityPeriod,
                 warrantyPeriod: data.warrantyPeriod,
