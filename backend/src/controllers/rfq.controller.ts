@@ -42,6 +42,7 @@ export const createRFQ = async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 export const getListingInfoForRfq = async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -94,6 +95,7 @@ export const getListingInfoForRfq = async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
+
 interface AdminUser {
   id: string;
   name: string;

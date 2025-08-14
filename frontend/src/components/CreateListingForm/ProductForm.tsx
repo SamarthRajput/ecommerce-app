@@ -7,17 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Package, DollarSign, Truck, FileText, ImageIcon, Tag, Check, ChevronRight, ChevronLeft, Save, Send, AlertCircle, Edit } from 'lucide-react';
+import { Package, DollarSign, Truck, FileText, MapPin, ImageIcon, Check, ChevronRight, ChevronLeft, Save, Send, AlertCircle, Edit } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui/alert-dialog"
 import { ProductFormData, ProductFormProps, productSchema, createProductSchema, FORM_STEPS } from '@/lib/types/listing'
-import { ProductBasicsStep, PricingQuantityStep, LogisticsValidityStep, ProductDetailsStep, MediaAttachmentsStep, ReviewSubmitStep } from './index'
+import { ProductBasicsStep, PricingQuantityStep, LogisticsValidityStep, ProductDetailsStep, DeliveryTermsStep, MediaAttachmentsStep, ReviewSubmitStep } from './index'
 import { useRouter } from 'next/navigation';
 import { CategoryMasterDataTypes, IndustryMasterDataTypes, UnitMasterDataTypes } from '@/src/types/masterdata';
 import { APIURL } from '@/src/config/env';
 import { showError, showInfo } from '@/lib/toast';
 
-// Form steps configuration with icons
-const STEP_ICONS = [Package, DollarSign, Truck, FileText, ImageIcon, Tag, Check];
+// Updated Form steps configuration with correct icons (7 icons for 7 steps)
+const STEP_ICONS = [Package, DollarSign, Truck, FileText, MapPin, ImageIcon, Check];
 
 export default function ProductForm({ mode, initialData, onSubmit }: ProductFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
@@ -71,14 +71,20 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
 
     useEffect(() => {
         const fetchMasterData = async () => {
-            const response = await fetch(`${APIURL}/public/master-data`);
-            if (!response.ok) {
-                showError('Failed to fetch Categories...');
+            try {
+                const response = await fetch(`${APIURL}/public/master-data`);
+                if (!response.ok) {
+                    showError('Failed to fetch Categories...');
+                    return;
+                }
+                const data = await response.json();
+                setCategory(data.data.categories);
+                setIndustry(data.data.industries);
+                setUnit(data.data.units);
+            } catch (error) {
+                console.error('Error fetching master data:', error);
+                showError('Failed to fetch master data');
             }
-            const data = await response.json();
-            setCategory(data.data.categories);
-            setIndustry(data.data.industries);
-            setUnit(data.data.units);
         }
         fetchMasterData();
     }, []);
@@ -133,15 +139,16 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
         trigger('images');
     };
 
-    // Step validation mapping
+    // Updated step validation mapping
     const getStepFields = (stepId: number): (keyof ProductFormData)[] => {
         const stepFields: { [key: number]: (keyof ProductFormData)[] } = {
             1: ['name', 'model', 'categoryId', 'industryId', 'condition', 'listingType', 'description'],
             2: ['price', 'currency', 'quantity', 'unitId', 'minimumOrderQuantity'],
             3: ['deliveryTimeInDays', 'logisticsSupport', 'countryOfSource', 'validityPeriod'],
             4: ['hsnCode', 'specifications'],
-            5: ['images'],
-            6: mode === 'create' ? ['agreedToTerms'] : []
+            5: ['deliveryTerm', 'cityOfDispatch', 'loadPort', 'loadCountry'],
+            6: ['images'],
+            7: mode === 'create' ? ['agreedToTerms'] : []
         };
         return stepFields[stepId] || [];
     };
@@ -192,7 +199,7 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
     // Progress calculation
     const progress = (currentStep / FORM_STEPS.length) * 100;
 
-    // Render step content
+    // Updated render step content
     const renderStepContent = () => {
         const stepProps = { control, errors, watch, setValue, getValues };
 
@@ -205,7 +212,9 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
                 return <LogisticsValidityStep control={control} errors={errors} />;
             case 4:
                 return <ProductDetailsStep control={control} errors={errors} />;
-            case 5:
+            case 5: 
+                return <DeliveryTermsStep control={control} errors={errors} />;
+            case 6:
                 return (
                     <MediaAttachmentsStep
                         control={control}
@@ -216,7 +225,7 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
                         onRemoveImage={removeImage}
                     />
                 );
-            case 6:
+            case 7:
                 return (
                     <ReviewSubmitStep
                         control={control}
@@ -229,6 +238,7 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
                         unit={unit}
                     />
                 );
+        
             default:
                 return null;
         }
@@ -402,6 +412,7 @@ export default function ProductForm({ mode, initialData, onSubmit }: ProductForm
                     </div>
                 </div>
 
+                {/* Error display */}
                 {Object.keys(errors).length > 0 && (
                     <Alert className="mt-6" variant="destructive">
                         <AlertCircle className="h-4 w-4" />

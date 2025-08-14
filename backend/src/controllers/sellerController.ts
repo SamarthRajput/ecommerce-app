@@ -1086,7 +1086,14 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
                 videoUrl: data.videoUrl || null,
                 tags: data.tags,
                 keywords: data.keywords,
-                status: data.isDraft ? 'DRAFT' : 'PENDING' // Now data.isDraft is properly validated
+                status: data.isDraft ? 'DRAFT' : 'PENDING', // Now data.isDraft is properly validated
+                deliveryTerm: data.deliveryTerm,
+                cityOfDispatch: data.cityOfDispatch,
+                loadPort: data.loadPort,
+                loadCountry: data.loadCountry,
+                packingDescription: data.packingDescription,
+                primaryPacking: data.primaryPacking,
+                secondaryPacking: data.secondaryPacking,
             }
         });
 
@@ -1217,7 +1224,14 @@ export const editListing = async (req: AuthenticatedRequest, res: Response) => {
                 tags: data.tags,
                 keywords: data.keywords,
                 images: data.images,
-                status: 'PENDING'
+                status: 'PENDING',
+                deliveryTerm: data.deliveryTerm,
+                cityOfDispatch: data.cityOfDispatch,
+                loadPort: data.loadPort,
+                loadCountry: data.loadCountry,
+                packingDescription: data.packingDescription,
+                primaryPacking: data.primaryPacking,
+                secondaryPacking: data.secondaryPacking,
             }
         });
 

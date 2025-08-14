@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { prisma } from '../src/lib/prisma';
 
 import bcrypt from 'bcryptjs';
-import { ListingType, ProductCondition, LogisticsType } from '@prisma/client';
+import { ListingType, ProductCondition, LogisticsType, DeliveryTerm } from '@prisma/client';
 
 async function main() {
 
@@ -231,6 +231,13 @@ async function main() {
             ],
             tags: ['smartphone', 'apple', 'iphone', 'premium', 'flagship'],
             keywords: ['iPhone 14 Pro Max', 'Apple smartphone', 'A16 Bionic', 'Pro camera'],
+            deliveryTerm: DeliveryTerm.FOB,
+            cityOfDispatch: 'New York',
+            loadPort: 'Port of New York and New Jersey',
+            loadCountry: 'USA',
+            packingDescription: 'Box with protective padding',
+            primaryPacking: 'Box',
+            secondaryPacking: 'Carton'
         },
         {
             name: 'Samsung Galaxy S23 Ultra 5G (Cream, 256 GB) (12 GB RAM)',
@@ -261,6 +268,13 @@ async function main() {
             ],
             tags: ['samsung', 'android', 'smartphone', 'camera', 's-pen'],
             keywords: ['Galaxy S23 Ultra', 'Samsung flagship phone', '200MP camera', 'S Pen'],
+            deliveryTerm: DeliveryTerm.FOB,
+            cityOfDispatch: 'New York',
+            loadPort: 'Port of New York and New Jersey',
+            loadCountry: 'USA',
+            packingDescription: 'Box with protective padding',
+            primaryPacking: 'Box',
+            secondaryPacking: 'Carton'
         },
         {
             name: 'OnePlus 11 5G (Titan Black, 256GB) (16GB RAM)',
@@ -291,6 +305,13 @@ async function main() {
             ],
             tags: ['oneplus', 'fast charging', 'android', 'flagship', 'hasselblad'],
             keywords: ['OnePlus 11 5G', 'Flagship Android phone', 'Snapdragon 8 Gen 2', '100W charging'],
+            deliveryTerm: DeliveryTerm.FOB,
+            cityOfDispatch: 'New York',
+            loadPort: 'Port of New York and New Jersey',
+            loadCountry: 'USA',
+            packingDescription: 'Box with protective padding',
+            primaryPacking: 'Box',
+            secondaryPacking: 'Carton'
         },
         {
             name: 'Google Pixel 7 Pro (Snow, 128GB) (12GB RAM)',
@@ -320,6 +341,13 @@ async function main() {
             ],
             tags: ['google', 'pixel', 'smartphone', 'ai', 'camera'],
             keywords: ['Pixel 7 Pro', 'Google smartphone', 'Tensor G2', 'AI photography'],
+            deliveryTerm: DeliveryTerm.FOB,
+            cityOfDispatch: 'New York',
+            loadPort: 'Port of New York and New Jersey',
+            loadCountry: 'USA',
+            packingDescription: 'Box with protective padding',
+            primaryPacking: 'Box',
+            secondaryPacking: 'Carton'
         },
         {
             name: 'Xiaomi 13 Pro (Ceramic Black, 256GB) (12GB RAM)',
@@ -350,6 +378,13 @@ async function main() {
             ],
             tags: ['xiaomi', 'leica', 'smartphone', 'ceramic', 'camera'],
             keywords: ['Xiaomi 13 Pro', 'Android flagship', 'Leica camera', 'ceramic build'],
+            deliveryTerm: DeliveryTerm.FOB,
+            cityOfDispatch: 'New York',
+            loadPort: 'Port of New York and New Jersey',
+            loadCountry: 'USA',
+            packingDescription: 'Box with protective padding',
+            primaryPacking: 'Box',
+            secondaryPacking: 'Carton'
         },
 
         // 5 products from different industries/categories
@@ -381,6 +416,13 @@ async function main() {
             ],
             tags: ['AC', 'LG', 'cooling', 'smart', 'energy efficient'],
             keywords: ['LG AC', 'Inverter Air Conditioner', 'AI ThinQ', 'Dual Inverter'],
+            deliveryTerm: DeliveryTerm.FOB,
+            cityOfDispatch: 'New York',
+            loadPort: 'Port of New York and New Jersey',
+            loadCountry: 'USA',
+            packingDescription: 'Box with protective padding',
+            primaryPacking: 'Box',
+            secondaryPacking: 'Carton'
         },
         {
             name: 'Adidas Ultraboost 22 Running Shoes (Core Black/Carbon/Grey) - Men\'s',
@@ -410,6 +452,13 @@ async function main() {
             ],
             tags: ['shoes', 'adidas', 'running', 'boost', 'athletic'],
             keywords: ['Ultraboost 22', 'Adidas running shoes', 'BOOST technology', 'performance footwear'],
+            deliveryTerm: DeliveryTerm.FOB,
+            cityOfDispatch: 'New York',
+            loadPort: 'Port of New York and New Jersey',
+            loadCountry: 'USA',
+            packingDescription: 'Box with protective padding',
+            primaryPacking: 'Box',
+            secondaryPacking: 'Carton'
         },
         {
             name: 'Yonex Nanoray Light 18i Badminton Racket (Blue/Silver) - Beginner to Intermediate',
@@ -439,6 +488,13 @@ async function main() {
             ],
             tags: ['badminton', 'racket', 'yonex', 'lightweight', 'beginner'],
             keywords: ['Yonex racket', 'Nanoray 18i', 'badminton equipment', 'graphite racket'],
+            deliveryTerm: DeliveryTerm.FOB,
+            cityOfDispatch: 'New York',
+            loadPort: 'Port of New York and New Jersey',
+            loadCountry: 'USA',
+            packingDescription: 'Box with protective padding',
+            primaryPacking: 'Box',
+            secondaryPacking: 'Carton'
         },
         {
             name: 'Nilkamal Leo Plastic Chair (Brown) - Set of 4 - Stackable & Weather Resistant',
@@ -468,6 +524,13 @@ async function main() {
             ],
             tags: ['chair', 'nilkamal', 'furniture', 'plastic', 'stackable'],
             keywords: ['Plastic Chair', 'Nilkamal Leo', 'outdoor furniture', 'stackable chair'],
+            deliveryTerm: DeliveryTerm.FOB,
+            cityOfDispatch: 'New York',
+            loadPort: 'Port of New York and New Jersey',
+            loadCountry: 'USA',
+            packingDescription: 'Box with protective padding',
+            primaryPacking: 'Box',
+            secondaryPacking: 'Carton'
         },
         {
             name: 'Prestige IRIS 750W Mixer Grinder (White/Blue) - 4 Jars with Juicer Attachment',
@@ -497,6 +560,13 @@ async function main() {
             ],
             tags: ['mixer', 'grinder', 'kitchen', 'prestige', 'appliance'],
             keywords: ['Prestige Mixer', 'IRIS 750W', 'mixer grinder', 'kitchen appliance'],
+            deliveryTerm: DeliveryTerm.FOB,
+            cityOfDispatch: 'New York',
+            loadPort: 'Port of New York and New Jersey',
+            loadCountry: 'USA',
+            packingDescription: 'Box with protective padding',
+            primaryPacking: 'Box',
+            secondaryPacking: 'Carton'
         }
     ];
 
@@ -533,6 +603,14 @@ async function main() {
                     keywords: productData.keywords ?? [],
                     licenses: productData.licenses ?? [],
                     certifications: productData.certifications ?? [],
+
+                    deliveryTerm: productData.deliveryTerm,
+                    cityOfDispatch: productData.cityOfDispatch,
+                    loadPort: productData.loadPort,
+                    loadCountry: productData.loadCountry,
+                    packingDescription: productData.packingDescription,
+                    primaryPacking: productData.primaryPacking,
+                    secondaryPacking: productData.secondaryPacking,
 
                     // Required relations
                     // category: { connect: { id: category.id } },

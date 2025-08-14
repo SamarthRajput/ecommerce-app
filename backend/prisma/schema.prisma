@@ -136,6 +136,16 @@ model Product {
   keywords               String[]
   licenses               String[]
 
+  deliveryTerm           DeliveryTerm     // EXW, FOR, FOB, CIF, etc.
+  cityOfDispatch         String           // City of warehouse/factory
+  loadPort               String?          // Port name
+  loadCountry            String?          // Country name
+
+  packingDescription     String?
+  primaryPacking         String?          
+  secondaryPacking       String?          
+
+
   status                 ProductStatus    @default(PENDING)
   rejectionReason        String?
   sellerId               String
@@ -402,4 +412,11 @@ enum RFQStatus {
   APPROVED
   FORWARDED
   REJECTED
+}
+
+enum DeliveryTerm {
+  EXW
+  FOR
+  FOB
+  CIF
 }

@@ -252,7 +252,7 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: SellerDashboardRfq[] }) =>
                                 </div>
 
                                 {/* Product and Buyer Summary */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
+                                <div className="grid grid-cols-1 gap-6 mb-4">
                                     {/* Product Info */}
                                     <div className="bg-gray-50 rounded-lg p-4">
                                         <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
@@ -267,7 +267,7 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: SellerDashboardRfq[] }) =>
                                         </div>
                                     </div>
 
-                                    {/* Buyer Info */}
+                                    {/* Buyer Info
                                     <div className="bg-blue-50 rounded-lg p-4">
                                         <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                                             <User className="w-4 h-4 mr-2" />
@@ -279,7 +279,7 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: SellerDashboardRfq[] }) =>
                                             <p><span className="font-medium">Phone:</span> {rfq.buyer.phoneNumber}</p>
                                             <p><span className="font-medium">Location:</span> {rfq.buyer.city}, {rfq.buyer.country}</p>
                                         </div>
-                                    </div>
+                                    </div> */}
                                 </div>
 
                                 {/* RFQ Details Grid */}
@@ -416,7 +416,7 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: SellerDashboardRfq[] }) =>
 
                         <CardContent className="space-y-6">
                             {/* RFQ Overview */}
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 <Card>
                                     <CardHeader className="pb-3">
                                         <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
@@ -482,8 +482,9 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: SellerDashboardRfq[] }) =>
                                         </div>
                                     </CardContent>
                                 </Card>
+                                </div>
 
-                                <Card>
+                                {/* <Card>
                                     <CardHeader className="pb-3">
                                         <CardTitle className="text-sm font-medium text-gray-600 flex items-center">
                                             <User className="w-4 h-4 mr-2" />
@@ -517,9 +518,7 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: SellerDashboardRfq[] }) =>
                                             <p className="font-medium text-sm">{selectedRFQ.buyer.street}, {selectedRFQ.buyer.city}, {selectedRFQ.buyer.state} {selectedRFQ.buyer.zipCode}, {selectedRFQ.buyer.country}</p>
                                         </div>
                                     </CardContent>
-                                </Card>
-                            </div>
-
+                                </Card> */}
                             {/* Payment Details */}
                             <Card>
                                 <CardHeader>

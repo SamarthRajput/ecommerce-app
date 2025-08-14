@@ -119,6 +119,17 @@ export const productSchema = z.object({
     quantity: z.preprocess(val => Number(val), z.number().min(1, "Quantity must be at least 1")),
     minimumOrderQuantity: z.preprocess(val => Number(val), z.number().min(1, "Minimum order quantity must be at least 1")),
 
+    // Delivery Terms -> left them optional will change later
+    deliveryTerm: z.enum(['EXW', 'FOR', 'FOB', 'CIF']),
+    cityOfDispatch: z.string().min(1),
+    loadPort: z.string().optional(),
+    loadCountry: z.string().optional(),
+
+    // Product Details
+    packingDescription: z.string().optional(),
+    primaryPacking: z.string().optional(),
+    secondaryPacking: z.string().optional(),
+
     // Logistics & Validity
     deliveryTimeInDays: z.preprocess(val => Number(val), z.number().min(1, "Delivery time must be at least 1 day")),
     logisticsSupport: z.enum(['SELLER', 'INTERLINK', 'BUYER']),
