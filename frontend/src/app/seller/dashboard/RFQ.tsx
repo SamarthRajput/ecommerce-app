@@ -612,7 +612,7 @@ const RFQComponent = ({ rfqRequests }: { rfqRequests: SellerDashboardRfq[] }) =>
                                             </div>
                                             <div>
                                                 <p className="text-sm text-gray-500">Minimum Order Quantity</p>
-                                                <p className="font-medium">{selectedRFQ.product.minimumOrderQuantity.toLocaleString()}</p>
+                                                <p className="font-medium">{selectedRFQ.product.minimumOrderQuantity?.toLocaleString()}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm text-gray-500">Available Quantity</p>

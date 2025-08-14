@@ -4,7 +4,7 @@ import { Controller, Control, FieldErrors, UseFormSetValue, UseFormWatch } from 
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ProductFormData } from '../../../lib/types/listing'
+import { COUNTRIES, ProductFormData } from '../../../lib/types/listing'
 import { CategoryMasterDataTypes, IndustryMasterDataTypes, UnitMasterDataTypes } from '@/src/types/masterdata';
 
 /*
@@ -184,6 +184,31 @@ export default function ProductBasicsStep({ control, errors, setValue, watch, ca
                         )}
                     />
                 </div>
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="countryOfSource">Origin Country *</Label>
+                <Controller
+                    name="countryOfSource"
+                    control={control}
+                    render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
+                            <SelectTrigger className={errors.countryOfSource ? 'border-red-500' : ''}>
+                                <SelectValue placeholder="Select country" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {COUNTRIES.map(country => (
+                                    <SelectItem key={country} value={country}>
+                                        {country}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
+                {errors.countryOfSource && (
+                    <p className="text-sm text-red-500">{errors.countryOfSource.message}</p>
+                )}
             </div>
 
             <div className="space-y-2">
