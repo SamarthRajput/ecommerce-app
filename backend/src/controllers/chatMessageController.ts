@@ -379,7 +379,9 @@ export const getUserChatRooms = async (req: AuthenticatedRequest, res: Response)
                 whereClause = { adminId: userId };
                 break;
             case 'seller':
-                whereClause = { sellerId: userId };
+                whereClause = {
+                    sellerId: userId, productId: null
+                }
                 break;
             case 'buyer':
                 whereClause = { buyerId: userId };
@@ -416,6 +418,8 @@ export const getUserChatRooms = async (req: AuthenticatedRequest, res: Response)
             skip,
             take,
         });
+
+        console.log(`\n\n\nTotal ${chatRooms.length} found....`);
 
         const chatRoomsWithTitles = chatRooms.map((chatRoom) => {
             let title;

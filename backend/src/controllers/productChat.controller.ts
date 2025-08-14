@@ -9,22 +9,27 @@ export const getProductChatRooms = async (req: AuthenticatedRequest, res: Respon
         const userId = req.user?.userId;
         const userRole = req.user?.role;
 
-        if (userRole !== 'SELLER') {
-            res.status(403).json({ error: 'Only sellers can view product chat rooms' });
-            return;
-        }
+        // if (userRole !== 'SELLER') {
+        //     res.status(403).json({ error: 'Only sellers can view product chat rooms' });
+        //     return;
+        // }
 
         const chatRooms = await prisma.chatRoom.findMany({
             where: {
                 sellerId: userId,
                 type: 'SELLER',
-                productId: { not: null }
+                // productId: { not: null }
             },
             include: {
                 product: {
                     select: {
                         id: true,
                         name: true,
+                        seller: {
+                            select: {
+                                firstName: true,
+                            }
+                        }
                     }
                 },
                 admin: {
@@ -38,7 +43,8 @@ export const getProductChatRooms = async (req: AuthenticatedRequest, res: Respon
 
         const formattedChatRooms = chatRooms.map(chatRoom => ({
             id: chatRoom.id,
-            title: chatRoom.product?.name || `Product ${chatRoom.productId}`,
+            title: chatRoom.product?.seller.firstName,
+            // title: chatRoom.product?.name || `Product ${chatRoom.productId}`,
             productId: chatRoom.productId,
             type: chatRoom.type,
             adminId: chatRoom.adminId,
@@ -49,6 +55,8 @@ export const getProductChatRooms = async (req: AuthenticatedRequest, res: Respon
             product: chatRoom.product,
             admin: chatRoom.admin
         }));
+
+        console.log(`Total ${chatRooms.length} found...`);
 
         res.status(200).json({
             success: true,
@@ -70,7 +78,7 @@ export const getSellerProductChats = async (req: AuthenticatedRequest, res: Resp
 
         if (!sellerId) {
             res.status(401).json({ error: 'Unauthorized' });
-            return ;
+            return;
         }
 
         const chatRooms = await prisma.chatRoom.findMany({
@@ -293,8 +301,8 @@ export const getProductChatRoom = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.error('Get product chat room error:', error);
-         res.status(500).json({ error: 'Server error' });
-         return
+        res.status(500).json({ error: 'Server error' });
+        return
     }
 };
 
@@ -306,13 +314,13 @@ export const getChatRoomsByProduct = async (req: Request, res: Response) => {
         const userRole = req.user?.role;
 
         if (!userId) {
-             res.status(401).json({ error: 'Unauthorized' });
+            res.status(401).json({ error: 'Unauthorized' });
             return
         }
 
         if (userRole !== 'ADMIN') {
-             res.status(403).json({ error: 'Admin access required' });
-             return
+            res.status(403).json({ error: 'Admin access required' });
+            return
         }
 
         const chatRooms = await prisma.chatRoom.findMany({
@@ -365,7 +373,7 @@ export const getChatRoomsByProduct = async (req: Request, res: Response) => {
             unreadCount: room._count.messages
         }));
 
-         res.status(200).json({
+        res.status(200).json({
             success: true,
             chatRooms: formattedChatRooms
         });
@@ -373,8 +381,8 @@ export const getChatRoomsByProduct = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.error('Get chat rooms by product error:', error);
-         res.status(500).json({ error: 'Server error' });
-         return
+        res.status(500).json({ error: 'Server error' });
+        return
     }
 };
 
@@ -386,13 +394,13 @@ export const createOrGetProductChatRoom = async (req: Request, res: Response) =>
         const userRole = req.user?.role;
 
         if (!userId) {
-             res.status(401).json({ error: 'Unauthorized' });
-             return
+            res.status(401).json({ error: 'Unauthorized' });
+            return
         }
 
         if (userRole !== 'SELLER') {
-             res.status(403).json({ error: 'Only sellers can create product chat rooms' });
-             return
+            res.status(403).json({ error: 'Only sellers can create product chat rooms' });
+            return
         }
 
         // Check if product exists and belongs to the seller
@@ -404,8 +412,8 @@ export const createOrGetProductChatRoom = async (req: Request, res: Response) =>
         });
 
         if (!product) {
-             res.status(404).json({ error: 'Product not found or access denied' });
-             return
+            res.status(404).json({ error: 'Product not found or access denied' });
+            return
         }
 
         // Check if chat room already exists
@@ -495,7 +503,7 @@ export const createOrGetProductChatRoom = async (req: Request, res: Response) =>
 
     } catch (error) {
         console.error('Create or get product chat room error:', error);
-         res.status(500).json({ error: 'Server error' });
-         return
+        res.status(500).json({ error: 'Server error' });
+        return
     }
 };

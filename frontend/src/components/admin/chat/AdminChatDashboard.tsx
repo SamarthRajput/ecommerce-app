@@ -26,7 +26,6 @@ const AdminChatDashboard = () => {
                 refreshData={adminChatState.refreshData}
                 loadingRooms={adminChatState.loadingRooms}
                 loadingRfqs={adminChatState.loadingRfqs}
-                formatRfqId={chatState.formatRfqId}
             />
 
             <div className="flex-1 flex overflow-hidden">

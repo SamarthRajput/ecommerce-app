@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/context/AuthContext';
 import { APIURL } from '@/src/config/env';
 const API_BASE_URL = `${APIURL}/seller`;
+
 interface LoginFormData {
     email: string;
     password: string;
@@ -38,7 +39,13 @@ const SellerLogin = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [verifying, setVerifying] = useState<boolean>(false);
     const router = useRouter();
-    const { refetch } = useAuth();
+    const { refetch, isSeller, authLoading } = useAuth();
+
+
+    useEffect(() => {
+        if (authLoading) return;
+        if (isSeller) router.push('/seller/dashboard');
+    })
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;

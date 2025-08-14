@@ -126,7 +126,7 @@ export const useAdminChat = () => {
                 const errorData = await response.json()
                 throw new Error(errorData.error || "Failed to fetch chat rooms")
             }
-            toast.success("Chat rooms fetched successfully")
+            // toast.success("Chat rooms fetched successfully")
 
             const data = await response.json()
             setChatRooms(data.chatRooms || [])
@@ -193,10 +193,6 @@ export const useAdminChat = () => {
         [chatRooms],
     )
 
-    const formatRfqId = useCallback((id: string) => {
-        return id.slice(0, 8).toUpperCase()
-    }, [])
-
     const clearError = useCallback(() => {
         setError(null)
     }, [])
@@ -222,6 +218,5 @@ export const useAdminChat = () => {
         getRoleColor,
         sellerChatExists,
         getSellerChatRoom,
-        formatRfqId,
     }
 }

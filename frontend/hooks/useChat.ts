@@ -85,7 +85,7 @@ export const useChat = () => {
 
     // Auto-scroll to bottom of messages
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        // messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
     useEffect(() => {
@@ -121,7 +121,7 @@ export const useChat = () => {
                 } else {
                     setChatRooms(data.chatRooms || []);
                 }
-                toast.success("Chat rooms fetched successfully");
+                // toast.success("Chat rooms fetched successfully");
             } else {
                 setError(data.error || "Failed to fetch chat rooms");
             }
@@ -137,10 +137,10 @@ export const useChat = () => {
     const fetchProductChatRooms = async (productId?: string) => {
         setLoadingRooms(true);
         try {
-            const url = productId 
-                ? `${APIURL}/chat/product/${productId}/chatrooms` 
-                : `${APIURL}/chat/product-chatrooms?page=1&limit=100`;
-                
+            const url = productId
+                ? `${APIURL}/product/chat/product/${productId}/chatrooms`
+                : `${APIURL}/product/chat/product-chatrooms?page=1&limit=100`;
+
             const response = await fetch(url, {
                 method: "GET",
                 credentials: "include",
@@ -159,7 +159,7 @@ export const useChat = () => {
                 } else {
                     setProductChatRooms(data.chatRooms || []);
                 }
-                toast.success("Product chat rooms fetched successfully");
+                // toast.success("Product chat rooms fetched successfully");
             } else {
                 setError(data.error || "Failed to fetch product chat rooms");
             }
@@ -231,7 +231,7 @@ export const useChat = () => {
                 return prev;
             });
             setLoadingRooms(false);
-            toast.success("Chat messages fetched successfully");
+            // toast.success("Chat messages fetched successfully");
 
             // Mark admin messages as read when viewing
             await markMessagesAsRead(chatRoomId);
@@ -340,7 +340,7 @@ export const useChat = () => {
 
             await fetchChatMessages(selectedRoom.id);
         } catch (err) {
-            toast.error((err as Error).message);    
+            toast.error((err as Error).message);
             setError((err as Error).message);
         } finally {
             setSending(false);
@@ -382,6 +382,7 @@ export const useChat = () => {
     // Effects
     useEffect(() => {
         fetchChatRooms();
+        fetchProductChatRooms
     }, []);
 
     // Handle room selection
@@ -423,10 +424,6 @@ export const useChat = () => {
     // Utility functions
     const formatMessageTime = (date: Date) => {
         return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    };
-
-    const formatRfqId = (rfqId: string) => {
-        return rfqId.length > 12 ? `${rfqId.slice(0, 8)}...${rfqId.slice(-4)}` : rfqId;
     };
 
     const isImageFile = (fileName: string) => {
@@ -628,7 +625,6 @@ export const useChat = () => {
         // Utilities
         getUnreadCount,
         formatMessageTime,
-        formatRfqId,
         isImageFile,
         isPdfFile,
         isImageAttachment,

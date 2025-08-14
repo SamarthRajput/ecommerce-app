@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Shield, Menu, RefreshCw, ArrowLeft, ShoppingCart, Package, Phone, Video, MoreVertical } from 'lucide-react'
 import { Badge } from "@/components/ui/badge"
 import ChatView from "../../../Chat/ChatView"
+import { formatRfqId } from "@/lib/formatRFQ"
 
 interface ChatAreaProps {
     chatState: any
@@ -11,7 +12,7 @@ interface ChatAreaProps {
 }
 
 export const ChatArea = ({ chatState, adminChatState, setShowSidebar }: ChatAreaProps) => {
-    const { selectedRoom, messages, sendMessage, uploadFile, editMessage, deleteMessage, pinMessage, reactToMessage, formatRfqId } = chatState
+    const { selectedRoom, messages, sendMessage, uploadFile, editMessage, deleteMessage, pinMessage, reactToMessage } = chatState
     const { refreshData, loadingRooms, loadingRfqs, chatRooms, rfqs } = adminChatState
 
     const chatHeaderContent = selectedRoom ? (
@@ -40,11 +41,12 @@ export const ChatArea = ({ chatState, adminChatState, setShowSidebar }: ChatArea
                         {selectedRoom.title || `${selectedRoom.type} Chat`}
                     </h3>
                     <p className="text-xs lg:text-sm text-gray-600 truncate">
-                        RFQ: <span className="font-mono">{formatRfqId(selectedRoom.rfqId)}</span>
+                        {selectedRoom.rfqId ? "RFQ:" : "ProductId:"}
+                        <span className="font-mono">{formatRfqId(selectedRoom.rfqId ?? selectedRoom.productId ?? "")}</span>
                     </p>
                 </div>
             </div>
-            <div className="flex items-center space-x-1 lg:space-x-2">
+            {/* <div className="flex items-center space-x-1 lg:space-x-2">
                 <Badge className="bg-emerald-100 text-emerald-700 border border-emerald-200 hidden sm:inline-flex text-xs">
                     Active
                 </Badge>
@@ -59,7 +61,7 @@ export const ChatArea = ({ chatState, adminChatState, setShowSidebar }: ChatArea
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <MoreVertical className="w-4 h-4" />
                 </Button>
-            </div>
+            </div> */}
         </div>
     ) : null
 

@@ -1,5 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/button"
+import { formatRfqId } from "@/lib/formatRFQ"
 import { Menu, RefreshCw } from 'lucide-react'
 
 interface MobileHeaderProps {
@@ -9,7 +10,6 @@ interface MobileHeaderProps {
     refreshData: () => void
     loadingRooms: boolean
     loadingRfqs: boolean
-    formatRfqId: (id: string) => string
 }
 
 export const MobileHeader = ({
@@ -19,7 +19,6 @@ export const MobileHeader = ({
     refreshData,
     loadingRooms,
     loadingRfqs,
-    formatRfqId,
 }: MobileHeaderProps) => {
     return (
         <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between flex-shrink-0 sticky top-0 z-40">

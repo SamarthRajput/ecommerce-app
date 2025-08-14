@@ -15,10 +15,10 @@ import { adminRouter } from "./routes/admin";
 import productRouter from "./routes/product.routes";
 import chatRouter from "./routes/chat.route";
 import certificationRouter from "./routes/certification.routes";
-import multer from "multer";
 import errorHandler from "./middlewares/errorHandler";
 import publicRouter from "./routes/public.routes";
 import categoryRouter from "./routes/category.route";
+import productChat from "./routes/productChat.route";
 
 
 // Configs
@@ -49,6 +49,7 @@ app.use("/api/v1/chat", chatRouter);
 app.use("/api/v1/certification", certificationRouter);
 app.use("/api/v1/public", publicRouter);
 app.use("/api/v1/category", categoryRouter);
+app.use("/api/v1/product/chat", productChat);
 
 console.log("all router called");
 // Root route

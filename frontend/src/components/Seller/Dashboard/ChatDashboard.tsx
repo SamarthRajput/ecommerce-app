@@ -1,13 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { 
-    MessageSquare, 
-    Search, 
-    RefreshCw, 
-    AlertTriangle, 
-    MoreVertical, 
-    Shield, 
-    X, 
+import {
+    MessageSquare,
+    Search,
+    RefreshCw,
+    AlertTriangle,
+    MoreVertical,
+    Shield,
+    X,
     ChevronLeft,
     Package,
     FileText,
@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ChatView from "../../Chat/ChatView";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/src/context/AuthContext";
+import { formatRfqId } from "@/lib/formatRFQ";
 
 type ChatType = 'rfq' | 'product';
 
@@ -41,7 +42,7 @@ const ChatDashboard: React.FC = () => {
         searchTerm,
         filteredRooms,
         filteredProductRooms,
-        
+
         // Actions
         setSearchTerm,
         setError,
@@ -54,10 +55,9 @@ const ChatDashboard: React.FC = () => {
         pinMessage,
         reactToMessage,
         handleRoomSelect,
-        
+
         // Utilities
         getUnreadCount,
-        formatRfqId,
     } = useChat();
 
     // Load data based on active tab
@@ -107,7 +107,7 @@ const ChatDashboard: React.FC = () => {
                 </div>
                 <div>
                     <h3 className="font-semibold text-gray-900 text-base lg:text-lg">
-                        {activeTab === 'product' ? 'Product Support Chat' : 'Admin Support Chat'}
+                        {activeTab === 'product' ? `${selectedRoom.title}` : 'Admin Support Chat'}
                     </h3>
                     <p className="text-xs lg:text-sm text-gray-600">
                         {activeTab === 'product' ? (
@@ -117,23 +117,17 @@ const ChatDashboard: React.FC = () => {
                                 <span>Product Chat</span>
                             )
                         ) : (
-                            <span>RFQ: <span className="font-mono font-medium">{formatRfqId(selectedRoom.rfqId || '')}</span></span>
+                            <span>{selectedRoom.rfqId ? "RFQ: " : "Product Id: "}<span className="font-mono font-medium">{formatRfqId(selectedRoom.rfqId ?? selectedRoom.productId ?? '')}</span></span>
                         )}
                     </p>
                 </div>
             </div>
-
-            <div className="flex items-center space-x-2">
-                <Badge className="bg-green-100 text-green-700 border border-green-200 text-xs">
-                    Online
-                </Badge>
-                <Button variant="ghost" size="sm" className="p-1">
-                    <MoreVertical className="w-4 h-4" />
-                </Button>
-            </div>
         </div>
     ) : null;
 
+    interface ChatRoom {
+
+    }
     // Render chat room item
     const renderChatRoomItem = (room: any, isProduct: boolean = false) => {
         const unreadCount = getUnreadCount(room.id);
@@ -143,11 +137,10 @@ const ChatDashboard: React.FC = () => {
             <button
                 key={room.id}
                 onClick={() => handleRoomSelectMobile(room)}
-                className={`w-full p-3 lg:p-4 rounded-lg text-left transition-all duration-200 ${
-                    isSelected
-                        ? 'bg-blue-50 border-2 border-blue-200 shadow-sm'
-                        : 'hover:bg-gray-50 border-2 border-transparent hover:border-gray-200'
-                }`}
+                className={`w-full p-3 lg:p-4 rounded-lg text-left transition-all duration-200 ${isSelected
+                    ? 'bg-blue-50 border-2 border-blue-200 shadow-sm'
+                    : 'hover:bg-gray-50 border-2 border-transparent hover:border-gray-200'
+                    }`}
             >
                 <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-3">
@@ -163,7 +156,7 @@ const ChatDashboard: React.FC = () => {
                                 {isProduct ? 'Product Support' : 'Admin Support'}
                             </p>
                             <p className="text-xs text-gray-600 font-mono">
-                                {isProduct ? 
+                                {isProduct ?
                                     (room.productId ? `Product: ${room.title}` : 'Product Chat') :
                                     formatRfqId(room.rfqId || '')
                                 }
@@ -181,13 +174,12 @@ const ChatDashboard: React.FC = () => {
                         Updated {new Date(room.updatedAt).toLocaleDateString()}
                     </p>
                     {isProduct && room.product?.status && (
-                        <Badge 
-                            variant="outline" 
-                            className={`text-xs ${
-                                room.product.status === 'APPROVED' ? 'border-green-200 text-green-700' :
+                        <Badge
+                            variant="outline"
+                            className={`text-xs ${room.product.status === 'APPROVED' ? 'border-green-200 text-green-700' :
                                 room.product.status === 'PENDING' ? 'border-yellow-200 text-yellow-700' :
-                                'border-red-200 text-red-700'
-                            }`}
+                                    'border-red-200 text-red-700'
+                                }`}
                         >
                             {room.product.status}
                         </Badge>
@@ -255,12 +247,10 @@ const ChatDashboard: React.FC = () => {
             {/* Main Content Area */}
             <div className="flex-1 flex overflow-hidden">
                 {/* Sidebar - Hidden on mobile unless toggled */}
-                <div className={`${
-                    showSidebar ? 'fixed inset-0 z-50 bg-black bg-opacity-50 lg:bg-transparent lg:relative lg:inset-auto' : 'hidden'
-                } lg:block lg:w-80 lg:flex-shrink-0`}>
-                    <Card className={`h-full flex flex-col ${
-                        showSidebar ? 'w-80 bg-white ml-0' : 'w-full'
-                    } lg:rounded-none lg:border-l-0 lg:border-t-0 lg:border-b-0`}>
+                <div className={`${showSidebar ? 'fixed inset-0 z-50 bg-black bg-opacity-50 lg:bg-transparent lg:relative lg:inset-auto' : 'hidden'
+                    } lg:block lg:w-80 lg:flex-shrink-0`}>
+                    <Card className={`h-full flex flex-col ${showSidebar ? 'w-80 bg-white ml-0' : 'w-full'
+                        } lg:rounded-none lg:border-l-0 lg:border-t-0 lg:border-b-0`}>
                         <CardHeader className="pb-4 flex-shrink-0">
                             <div className="flex items-center justify-between mb-4">
                                 <CardTitle className="flex items-center space-x-2">
@@ -335,6 +325,8 @@ const ChatDashboard: React.FC = () => {
                                             <span>{filteredRooms.length} chats</span>
                                         </div>
                                     </div>
+
+                                    {filteredRooms.map(room => renderChatRoomItem(room, false))}
                                 </TabsContent>
 
                                 <TabsContent value="product" className="mt-4">
@@ -344,103 +336,11 @@ const ChatDashboard: React.FC = () => {
                                             <span>{filteredProductRooms.length} chats</span>
                                         </div>
                                     </div>
+
+                                    {productChatRooms.map(room => renderChatRoomItem(room, true))}
                                 </TabsContent>
                             </Tabs>
                         </CardHeader>
-
-                        <CardContent className="flex-1 overflow-y-auto p-0">
-                            {loadingRooms ? (
-                                <div className="flex items-center justify-center h-32">
-                                    <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
-                                </div>
-                            ) : getCurrentChatRooms().length === 0 ? (
-                                <div className="p-6 text-center text-gray-500">
-                                    {activeTab === 'rfq' ? (
-                                        <>
-                                            <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                                            <p className="text-sm font-medium">No RFQ chats found</p>
-                                            <p className="text-xs mt-1">
-                                                RFQ chats will appear here when buyers submit requests for quotes.
-                                            </p>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                                            <p className="text-sm font-medium">No product chats found</p>
-                                            <p className="text-xs mt-1">
-                                                Product support chats are created automatically when you list products.
-                                            </p>
-                                        </>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="space-y-2 p-3">
-                                    {getCurrentChatRooms().map((room) => {
-                                        const unreadCount = getUnreadCount(room.id);
-                                        const isSelected = selectedRoom?.id === room.id;
-                                        const isProduct = activeTab === 'product';
-
-                                        return (
-                                            <button
-                                                key={room.id}
-                                                onClick={() => handleRoomSelectMobile(room)}
-                                                className={`w-full p-3 lg:p-4 rounded-lg text-left transition-all duration-200 ${
-                                                    isSelected
-                                                        ? 'bg-blue-50 border-2 border-blue-200 shadow-sm'
-                                                        : 'hover:bg-gray-50 border-2 border-transparent hover:border-gray-200'
-                                                }`}
-                                            >
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <div className="flex items-center space-x-3">
-                                                        <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
-                                                            {isProduct ? (
-                                                                <Package className="w-4 h-4 lg:w-5 lg:h-5 text-blue-600" />
-                                                            ) : (
-                                                                <Shield className="w-4 h-4 lg:w-5 lg:h-5 text-blue-600" />
-                                                            )}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="font-semibold text-sm text-gray-900 truncate">
-                                                                {isProduct ? 'Product Support' : 'Admin Support'}
-                                                            </p>
-                                                            <p className="text-xs text-gray-600 font-mono">
-                                                                {isProduct ? 
-                                                                    (room.title || `Product ${room.productId?.slice(0, 8)}...`) :
-                                                                    formatRfqId(room.rfqId || '')
-                                                                }
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    {unreadCount > 0 && (
-                                                        <Badge className="bg-red-500 text-white text-xs px-2 py-1">
-                                                            {unreadCount}
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <p className="text-xs text-gray-500">
-                                                        Updated {new Date(room.updatedAt).toLocaleDateString()}
-                                                    </p>
-                                                    {/* {isProduct && room.product?.status && (
-                                                        <Badge 
-                                                            variant="outline" 
-                                                            className={`text-xs ${
-                                                                room.product?.status === 'APPROVED' ? 'border-green-200 text-green-700' :
-                                                                room.product?.status === 'PENDING' ? 'border-yellow-200 text-yellow-700' :
-                                                                room.product.status === 'REJECTED' ? 'border-red-200 text-red-700' :
-                                                                'border-gray-200 text-gray-700'
-                                                            }`}
-                                                        >
-                                                            {room.product.status}
-                                                        </Badge>
-                                                    )} */}
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </CardContent>
                     </Card>
                 </div>
 
@@ -458,9 +358,8 @@ const ChatDashboard: React.FC = () => {
                                 onPinMessage={pinMessage}
                                 onReactToMessage={reactToMessage}
                                 headerContent={chatHeaderContent}
-                                placeholder={`Type your message to admin about ${
-                                    activeTab === 'product' ? 'your product' : 'your RFQ'
-                                }...`}
+                                placeholder={`Type your message to admin about ${activeTab === 'product' ? 'your product' : 'your RFQ'
+                                    }...`}
                             />
                         ) : (
                             /* No Chat Selected */
@@ -483,7 +382,7 @@ const ChatDashboard: React.FC = () => {
                                             'Select an RFQ chat room from the sidebar to start communicating with our admin support team. Get help with your requests, clarifications, and any questions you may have.'
                                         )}
                                     </p>
-                                    
+
                                     {/* Quick Stats */}
                                     <div className="flex items-center justify-center space-x-4 text-xs text-gray-500 mb-4">
                                         <div className="flex items-center space-x-1">

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ChatView from "@/src/components/Chat/ChatView";
 import { useChat } from "@/hooks/useChat";
+import { formatRfqId } from "@/lib/formatRFQ";
 
 const ChatDashboard: React.FC = () => {
   const [showSidebar, setShowSidebar] = useState(false);
@@ -31,7 +32,6 @@ const ChatDashboard: React.FC = () => {
     reactToMessage,
     handleRoomSelect,
     getUnreadCount,
-    formatRfqId,
   } = useChat();
 
   // Handle room selection with mobile sidebar toggle
@@ -60,19 +60,19 @@ const ChatDashboard: React.FC = () => {
             Chat with {selectedRoom.title}
           </h3>
           <p className="text-xs lg:text-sm text-gray-600">
-            RFQ: <span className="font-mono font-medium">{formatRfqId(selectedRoom.rfqId ?? "")}</span>
+            RFQ: <span className="font-mono font-medium">{formatRfqId(selectedRoom.rfqId ?? selectedRoom.productId ?? "")}</span>
           </p>
         </div>
       </div>
 
-      <div className="flex items-center space-x-2">
+      {/* <div className="flex items-center space-x-2">
         <Badge className="bg-green-100 text-green-700 border border-green-200 text-xs">
           Online
         </Badge>
         <Button variant="ghost" size="sm" className="p-1">
           <MoreVertical className="w-4 h-4" />
         </Button>
-      </div>
+      </div> */}
     </div>
   ) : null;
 
@@ -211,7 +211,7 @@ const ChatDashboard: React.FC = () => {
                                 {room.title.length > 25 ? room.title.slice(0, 25) + "..." : room.title}
                               </p>
                               <p className="text-xs text-gray-600 font-mono">
-                                {formatRfqId(room.rfqId ?? "")}
+                                {formatRfqId(room.rfqId ?? room.productId ?? "")}
                               </p>
                             </div>
                           </div>

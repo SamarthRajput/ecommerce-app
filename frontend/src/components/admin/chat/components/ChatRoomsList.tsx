@@ -1,5 +1,6 @@
 "use client"
 import { Badge } from "@/components/ui/badge"
+import { formatRfqId } from "@/lib/formatRFQ"
 import { MessageSquare, ShoppingCart, Package, RefreshCw } from "lucide-react"
 
 interface ChatRoomsListProps {
@@ -10,7 +11,7 @@ interface ChatRoomsListProps {
 }
 
 export const ChatRoomsList = ({ activeTab, chatState, adminChatState, onRoomSelect }: ChatRoomsListProps) => {
-    const { filteredRooms, loadingRooms, formatRfqId } = adminChatState
+    const { filteredRooms, loadingRooms } = adminChatState
     const { selectedRoom, getUnreadCount } = chatState
 
     if (loadingRooms) {
@@ -57,8 +58,8 @@ export const ChatRoomsList = ({ activeTab, chatState, adminChatState, onRoomSele
                                     )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-sm text-gray-900 truncate">{room.type} Chat</p>
-                                    <p className="text-xs text-gray-500 font-mono truncate">{formatRfqId(room.rfqId)}</p>
+                                    <p className="font-medium text-sm text-gray-900 truncate">{room.title}</p>
+                                    <p className="text-xs text-gray-500 font-mono truncate">{formatRfqId(room.rfqId ?? room.productId ?? "")}</p>
                                 </div>
                             </div>
                             {unreadCount > 0 && (
