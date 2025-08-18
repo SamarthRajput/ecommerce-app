@@ -327,11 +327,10 @@ export const resetSellerPassword = async (req: Request, res: Response) => {
         // Find seller with matching hashed token and valid expiry
         const seller = await prisma.seller.findFirst({
             where: {
-                // resetToken: hashedToken,
-                // // resetTokenExpiry: {
-                // //     gte: new Date()
-                // // }
-                email: 'rohitkuyada@gmail.com'
+                resetToken: hashedToken,
+                resetTokenExpiry: {
+                    gte: new Date()
+                }
             }
         });
         console.log(`Seller: ${JSON.stringify(seller)}`);
