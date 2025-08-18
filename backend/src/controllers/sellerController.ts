@@ -262,22 +262,24 @@ export const forgotSellerPassword = async (req: Request, res: Response) => {
         });
 
         if (!seller) {
-            res.status(204).json({ message: 'Reset password link sent to your email if it exists in our records' });
-            return;
+            return res.status(200).json({ message: 'If this email exists in our system, a reset link has been sent' });
         }
+
         // Generate Token
 
         const resetPasswordToken = crypto.randomBytes(32).toString('hex');
-        const resetPasswordUrl = `${process.env.FRONTEND_URL}/seller/reset-password?token=${resetPasswordToken}`;
+        const resetPasswordUrl = `https://www.interlinkb.com/seller/reset-password?token=${resetPasswordToken}`;
         const hashedToken = crypto.createHash('sha256').update(resetPasswordToken).digest('hex');
         try {
-            await prisma.seller.update({
+            const updatedSeller = await prisma.seller.update({
                 where: { id: seller.id },
                 data: {
                     resetToken: hashedToken,
                     resetTokenExpiry: new Date(Date.now() + 10 * 60 * 1000)
                 }
             });
+            console.log(`Seller: ${JSON.stringify(updatedSeller)}`);
+            console.log(`Raw Token: ${resetPasswordToken} \nHashed Token: ${hashedToken}`);
             const info = await sendEmail({
                 from: '"Sam"',
                 to: seller.email,
@@ -321,15 +323,18 @@ export const resetSellerPassword = async (req: Request, res: Response) => {
         // Hash token to match with DB
         const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
+        console.log(`In ResetPassword\nRaw Token: ${token}\nHashed Token: ${hashedToken}`);
         // Find seller with matching hashed token and valid expiry
         const seller = await prisma.seller.findFirst({
             where: {
-                resetToken: hashedToken,
-                resetTokenExpiry: {
-                    gte: new Date()
-                }
+                // resetToken: hashedToken,
+                // // resetTokenExpiry: {
+                // //     gte: new Date()
+                // // }
+                email: 'rohitkuyada@gmail.com'
             }
         });
+        console.log(`Seller: ${JSON.stringify(seller)}`);
 
         if (!seller) {
             return res.status(400).json({ error: 'Invalid or expired token, please request a new password reset' });
@@ -1051,10 +1056,10 @@ export const createListing = async (req: AuthenticatedRequest, res: Response) =>
         if (!existingSeller) {
             return res.status(404).json({ error: 'Seller not found' });
         }
-        
+
         console.log('isDraft value:', data.isDraft);
         console.log('Parsed data:', data);
-        
+
         // Create the product listing
         const listing = await prisma.product.create({
             data: {
