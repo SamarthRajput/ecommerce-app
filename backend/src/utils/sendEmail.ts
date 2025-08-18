@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import nodemailer from "nodemailer"; ``
 
 const transporter = nodemailer.createTransport({
@@ -14,7 +15,8 @@ export const sendEmail = async ({ from, to, subject, text, html }: { from: strin
         to,
         subject,
         text,
-        html
+        html,
+        messageId: `<${randomUUID()}@interlinkb.com>`
     });
     return info;
 };
