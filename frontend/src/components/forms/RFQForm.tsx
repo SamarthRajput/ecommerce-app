@@ -206,7 +206,26 @@ export function RFQForm({ listingId, listingData }: RFQFormProps) {
                                 placeholder="USD"
                             />
                         </FormField>
+                        {/* Visible to user - shows name & symbol */}
+                        <FormField label="Unit">
+                        <Input
+                            value={
+                            listingData
+                                ? `${listingData.unit.name} (${listingData.unit.symbol})`
+                                : ''
+                            }
+                            readOnly
+                        />
+                        </FormField>
                     </div>
+
+                    {/* Hidden field so backend still gets the ID */}
+                    <input
+                    type="hidden"
+                    {...register('unitId')}
+                    value={listingData?.unit?.id || ''}
+                    />
+
                     <div className="grid grid-cols-2 gap-4">
                         <FormField label="Payment Method *" error={errors.paymentMethod?.message}>
                             <div className="flex gap-4">

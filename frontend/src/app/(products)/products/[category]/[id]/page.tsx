@@ -24,28 +24,36 @@ interface Product {
     listingType: string;
     condition: string;
     validityPeriod: string;
-    industry: {
-        id: string;
-        name: string;
+    industry: { 
+        id: string; 
+        name: string 
     };
-    category: {
-        id: string;
-        name: string;
+    category: { 
+        id: string; 
+        name: string 
     };
-    unit: {
-        id: string;
-        name: string;
-        symbol: string;
+    unit: { 
+        id: string; 
+        name: string; 
+        symbol: string 
     };
     model: string;
     specifications: string;
     countryOfSource: string;
     hsnCode: string;
+    deliveryTerm: string;
+    cityOfDispatch: string;
+    loadPort: string;
+    loadCountry: string;
+    packingDescription: string;
+    primaryPacking: string;
+    secondaryPacking: string;
     images: string[];
     createdAt: string;
     updatedAt: string;
     seller: Seller;
 }
+
 
 interface Seller {
     id: string;
@@ -102,7 +110,7 @@ const ProductPage = () => {
             try {
                 const [response, reviewsResponse] = await Promise.all([
                     fetch(`${APIURL}/products/${category}/${id}`),
-                    fetch(`${APIURL}/products/${category}/${id}/reviews`)
+                    fetch(`${APIURL}/products/${id}/reviews`)
                 ]);
 
                 if (!response.ok) {
@@ -627,16 +635,24 @@ const ProductPage = () => {
                                         { label: 'HSN Code', value: product.hsnCode },
                                         { label: 'Country of Origin', value: product.countryOfSource },
                                         { label: 'Validity Period', value: product.validityPeriod },
+                                        { label: 'Delivery Term', value: product.deliveryTerm },
+                                        { label: 'City of Dispatch', value: product.cityOfDispatch },
+                                        { label: 'Load Port', value: product.loadPort },
+                                        { label: 'Load Country', value: product.loadCountry },
+                                        { label: 'Packing Description', value: product.packingDescription },
+                                        { label: 'Primary Packing', value: product.primaryPacking },
+                                        { label: 'Secondary Packing', value: product.secondaryPacking },
                                     ].map((spec) => (
                                         <div key={spec.label} className="bg-gray-50 rounded-lg p-3">
-                                            <span className="text-xs md:text-sm font-medium text-gray-500 block mb-1">
-                                                {spec.label}
-                                            </span>
-                                            <p className="text-sm md:text-base text-gray-900 font-medium">{spec.value}</p>
+                                        <span className="text-xs md:text-sm font-medium text-gray-500 block mb-1">
+                                            {spec.label}
+                                        </span>
+                                        <p className="text-sm md:text-base text-gray-900 font-medium">
+                                            {spec.value || 'N/A'}
+                                        </p>
                                         </div>
                                     ))}
                                 </div>
-
                                 {product.specifications && (
                                     <div className="pt-4 border-t">
                                         <span className="text-sm font-medium text-gray-500 block mb-2">
@@ -759,8 +775,8 @@ const ProductPage = () => {
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 mb-2">
                                                         <span className="font-medium text-sm md:text-base">
-                                                            {review.buyer.firstName} {review.buyer.lastName}
-                                                            {/* {review.buyer.id} */}
+                                                            {/* {review.buyer.firstName} {review.buyer.lastName} */}
+                                                            {review.buyer.id}
                                                         </span>
                                                         <StarRating rating={review.rating} readonly />
                                                         <span className="text-xs md:text-sm text-gray-500">

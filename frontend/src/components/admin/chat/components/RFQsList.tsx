@@ -57,7 +57,7 @@ export const RFQsList = ({ adminChatState, onRoomSelect }: RFQsListProps) => {
                                     <span className="truncate">
                                         {rfq.buyer.firstName} {rfq.buyer.lastName}
                                     </span>
-                                    <span className="font-mono">{formatRfqId(rfq.id)}</span>
+                                    {/* <span className="font-mono">{formatRfqId(rfq.id)}</span> */}
                                 </div>
                             </div>
 

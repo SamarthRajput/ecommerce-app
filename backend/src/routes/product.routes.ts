@@ -12,7 +12,7 @@ productRouter.get("/seller/:id", asyncHandler(getProductsBySellerId));
 productRouter.get("/:id/similar", asyncHandler(getSimilarProducts));
 
 // * Product Reviews
-productRouter.get("/:category/:id/reviews", asyncHandler(getProductReviews));
+productRouter.get("/:id/reviews", asyncHandler(getProductReviews));
 productRouter.post("/:id/reviews", requireBuyer, asyncHandler(postProductReviews));
 
 // * Individual Product

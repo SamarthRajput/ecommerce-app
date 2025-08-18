@@ -20,6 +20,17 @@ export const productSchema = z.object({
   quantity: z.number().min(1, "Quantity must be at least 1"),
   minimumOrderQuantity: z.number().min(1, "Minimum order quantity must be at least 1"),
 
+  // Delivery Terms -> left them optional will change later
+  deliveryTerm: z.enum(['EXW', 'FOR', 'FOB', 'CIF']),
+  cityOfDispatch: z.string().min(1),
+  loadPort: z.string().optional(),
+  loadCountry: z.string().optional(),
+
+  // Product Details
+  packingDescription: z.string().optional(),
+  primaryPacking: z.string().optional(),
+  secondaryPacking: z.string().optional(),
+
   // Logistics & Validity
   deliveryTimeInDays: z.number().min(1, "Delivery time must be at least 1 day"),
   logisticsSupport: z.enum(['SELLER', 'INTERLINK', 'BUYER']),
@@ -70,9 +81,11 @@ export const FORM_STEPS = [
   { id: 2, title: 'Pricing & Quantity', description: 'Pricing and stock details' },
   { id: 3, title: 'Logistics & Validity', description: 'Shipping and validity' },
   { id: 4, title: 'Product Details', description: 'Specifications and certifications' },
-  { id: 5, title: 'Media & Attachments', description: 'Images and documents' },
-  { id: 6, title: 'Review & Submit', description: 'Review and submit' }
+  { id: 5, title: 'Delivery Terms', description: 'Delivery terms and location' },
+  { id: 6, title: 'Media & Attachments', description: 'Images and documents' },
+  { id: 7, title: 'Review & Submit', description: 'Review and submit' }
 ];
+
 
 export interface ProductFormProps {
   mode: 'create' | 'edit';

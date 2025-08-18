@@ -36,10 +36,24 @@ export const getProducts = async (req: Request, res: Response) => {
                         name: true,
                     }
                 },
+                unit: {
+                    select: {
+                        id: true,
+                        name: true,
+                        symbol: true
+                    }
+                },
                 model: true,
                 specifications: true,
                 countryOfSource: true,
                 hsnCode: true,
+                deliveryTerm: true,
+                cityOfDispatch: true,
+                loadPort: true,
+                loadCountry: true,
+                packingDescription: true,
+                primaryPacking: true,
+                secondaryPacking: true,
                 images: true,
                 createdAt: true,
                 updatedAt: true,
@@ -101,6 +115,13 @@ export const getProductById = async (req: Request, res: Response) => {
                 specifications: true,
                 countryOfSource: true,
                 hsnCode: true,
+                deliveryTerm: true,
+                cityOfDispatch: true,
+                loadPort: true,
+                loadCountry: true,
+                packingDescription: true,
+                primaryPacking: true,
+                secondaryPacking: true,
                 images: true,
                 createdAt: true,
                 updatedAt: true,
@@ -127,6 +148,13 @@ export const getProductById = async (req: Request, res: Response) => {
                     select: {
                         id: true,
                         name: true,
+                    }
+                },
+                unit: {
+                    select: {
+                        id: true,
+                        name: true,
+                        symbol: true
                     }
                 },
             },
@@ -255,14 +283,13 @@ export const getSimilarProducts = async (req: Request, res: Response) => {
 };
 
 export const getProductReviews = async (req: Request, res: Response) => {
-    const { category, id } = req.params;
+    const { id } = req.params;
 
     try {
         const reviews = await prisma.review.findMany({
             where: {
                 productId: id,
                 product: {
-                    categoryId: category,
                     status: "APPROVED",
                 },
             },

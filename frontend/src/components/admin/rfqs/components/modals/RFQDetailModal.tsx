@@ -83,7 +83,7 @@ export const RFQDetailModal = ({ rfq, rfqState }: RFQDetailModalProps) => {
                         <Package className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <div className="font-bold truncate">{rfq.product.name}</div>
+                        <div className="font-bold truncate">{rfq.product?.name}</div>
                         <div className="text-sm text-muted-foreground font-normal">RFQ ID: {rfq.id}</div>
                     </div>
                     <div className="flex flex-wrap gap-2 flex-shrink-0">{getStatusBadge(rfq.status)}</div>

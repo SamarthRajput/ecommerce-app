@@ -55,7 +55,7 @@ export default function LogisticsValidityStep({ control, errors }: LogisticsVali
                     />
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                     <Label htmlFor="countryOfSource">Country of Source *</Label>
                     <Controller
                         name="countryOfSource"
@@ -78,7 +78,7 @@ export default function LogisticsValidityStep({ control, errors }: LogisticsVali
                     {errors.countryOfSource && (
                         <p className="text-sm text-red-500">{errors.countryOfSource.message}</p>
                     )}
-                </div>
+                </div> */}
 
                 <div className="space-y-2">
                     <Label htmlFor="validityPeriod">Validity Period (Days) *</Label>
