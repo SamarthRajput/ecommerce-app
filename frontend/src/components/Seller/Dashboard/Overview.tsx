@@ -285,7 +285,7 @@ const RenderOverview: React.FC<OverviewProps> = ({
                         <Button
                             variant="outline"
                             className="flex flex-col items-center justify-center gap-3 h-24 hover:bg-green-50 hover:border-green-200"
-                            onClick={() => setCurrentView('settings')}
+                            onClick={() => setCurrentView('certifications')}
                         >
                             <TrendingUp className="w-6 h-6" />
                             <span className="text-sm font-medium">Upload Certificates</span>
